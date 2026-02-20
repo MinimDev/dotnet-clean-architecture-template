@@ -4,6 +4,7 @@
 
   <ItemGroup>
     <PackageReference Include="Hangfire.SqlServer" Version="1.8.23" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

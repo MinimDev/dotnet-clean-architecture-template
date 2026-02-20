@@ -210,6 +210,18 @@ builder.Services.AddOutputCache(options =>
 var hangfireConnectionString = builder.Configuration.GetConnectionString("HangfireConnection")
     ?? throw new InvalidOperationException("Hangfire connection string not found.");
 
+// Ensure Hangfire database exists before Hangfire tries to use it.
+var builderObj = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(hangfireConnectionString);
+var dbName = builderObj.InitialCatalog;
+builderObj.InitialCatalog = "master";
+using (var connection = new Microsoft.Data.SqlClient.SqlConnection(builderObj.ConnectionString))
+{
+    connection.Open();
+    using var command = connection.CreateCommand();
+    command.CommandText = $"IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '{dbName}') CREATE DATABASE [{dbName}]";
+    command.ExecuteNonQuery();
+}
+
 builder.Services.AddHangfire(configuration => configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
