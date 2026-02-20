@@ -33,7 +33,7 @@ public class ProductsClient
 
         try 
         {
-            var response = await _httpClient.GetFromJsonAsync<Result<PaginatedList<ProductDto>>>($"api/Products{queryString}");
+            var response = await _httpClient.GetFromJsonAsync<Result<PaginatedList<ProductDto>>>($"api/v1/Products{queryString}");
             return response ?? new Result<PaginatedList<ProductDto>> { IsSuccess = false, Error = "No response" };
         }
         catch (Exception ex)
@@ -47,7 +47,7 @@ public class ProductsClient
         try
         {
             AddAuthorizationHeader();
-            var response = await _httpClient.PostAsJsonAsync("api/Products", command);
+            var response = await _httpClient.PostAsJsonAsync("api/v1/Products", command);
             var result = await response.Content.ReadFromJsonAsync<Result<Guid>>();
             return result ?? new Result<Guid> { IsSuccess = false, Error = "No response" };
         }

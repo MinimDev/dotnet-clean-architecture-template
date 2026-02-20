@@ -3,11 +3,14 @@
 @inject NavigationManager NavigationManager
 
 <MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
-    
-    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
     <MudNavLink Href="products" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inventory">Products</MudNavLink>
+    
+    <MudNavGroup Title="System" Icon="@Icons.Material.Filled.Settings" Expanded="false">
+        <MudNavLink Href="https://localhost:7253/hangfire" Target="_blank" Icon="@Icons.Material.Filled.Schedule">Background Jobs</MudNavLink>
+        <MudNavLink Href="https://localhost:7253/scalar/v1" Target="_blank" Icon="@Icons.Material.Filled.Api">Scalar UI</MudNavLink>
+        <MudNavLink Href="https://localhost:7253/swagger" Target="_blank" Icon="@Icons.Material.Filled.DocumentScanner">Swagger UI</MudNavLink>
+    </MudNavGroup>
     
     <AuthorizeView>
         <Authorized>
@@ -17,7 +20,6 @@
             <MudNavLink Href="login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
         </NotAuthorized>
     </AuthorizeView>
-
 </MudNavMenu>
 
 @code {

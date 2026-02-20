@@ -22,7 +22,7 @@ public class AuthClient
         try
         {
             var request = new LoginRequest { Email = email, Password = password };
-            var response = await _httpClient.PostAsJsonAsync("api/Auth/login", request);
+            var response = await _httpClient.PostAsJsonAsync("api/v1/Auth/login", request);
 
             if (response.IsSuccessStatusCode)
             {
