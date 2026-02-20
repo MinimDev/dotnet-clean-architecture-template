@@ -1,0 +1,52 @@
+name: Publish to NuGet
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'   # Trigger on version tags: v1.2.0, v1.3.0, etc.
+
+jobs:
+  publish:
+    name: Pack & Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Update version in .csproj
+        run: |
+          sed -i "s|<Version>.*</Version>|<Version>${{ steps.version.outputs.VERSION }}</Version>|" \
+            Minimdev.CleanArchitecture.Template.csproj
+
+      - name: Pack
+        run: dotnet pack Minimdev.CleanArchitecture.Template.csproj --configuration Release -o ./artifacts
+
+      - name: Publish to NuGet
+        run: |
+          dotnet nuget push ./artifacts/*.nupkg \
+            --source https://api.nuget.org/v3/index.json \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --skip-duplicate
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/*.nupkg
+          generate_release_notes: true
+          body: |
+            ## Installation
+            ```bash
+            dotnet new install Minimdev.CleanArchitecture.Template::${{ steps.version.outputs.VERSION }}
+            ```
+            See [CHANGELOG.md](https://github.com/MinimDev/dotnet-clean-architecture-template/blob/main/CHANGELOG.md) for details.
