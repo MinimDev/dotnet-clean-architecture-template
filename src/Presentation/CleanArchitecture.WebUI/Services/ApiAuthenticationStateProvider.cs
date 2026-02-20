@@ -37,7 +37,7 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider, IDisp
                 var storedData = await _localStorage.GetAsync<AuthResponse>("userInfo");
                 if (storedData.Success && storedData.Value != null)
                 {
-                    _tokenProvider.SetToken(storedData.Value.Token, storedData.Value.UserName, storedData.Value.Email);
+                    _tokenProvider.SetToken(storedData.Value.Token, storedData.Value.UserName, storedData.Value.Email, storedData.Value.Roles);
                 }
             }
             catch
@@ -55,6 +55,15 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider, IDisp
                 new Claim(ClaimTypes.Name, _tokenProvider.UserName ?? ""),
                 new Claim(ClaimTypes.Email, _tokenProvider.Email ?? "")
             };
+
+            if (_tokenProvider.Roles != null)
+            {
+                foreach (var role in _tokenProvider.Roles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                }
+            }
+
             identity = new ClaimsIdentity(claims, "jwt");
         }
 

@@ -2,9 +2,11 @@ using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using CleanArchitecture.Application;
 using CleanArchitecture.Infrastructure.Identity;
+using CleanArchitecture.Infrastructure.Identity.Models;
 using CleanArchitecture.Infrastructure.Persistence;
 using CleanArchitecture.Infrastructure.Shared;
 using CleanArchitecture.WebAPI.Middleware;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using OpenTelemetry.Logs;
@@ -271,6 +273,44 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 
 try
 {
+    using (var scope = app.Services.CreateScope())
+    {
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        // Seed Roles
+        var roles = new[] { "Admin", "Member" };
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole(role));
+            }
+        }
+
+        // Seed default admin
+        if (await userManager.FindByEmailAsync("admin@localhost") == null)
+        {
+            var admin = new ApplicationUser { UserName = "admin@localhost", Email = "admin@localhost", FullName = "System Administrator" };
+            var result = await userManager.CreateAsync(admin, "Admin123!");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(admin, "Admin");
+            }
+        }
+
+        // Seed default member
+        if (await userManager.FindByEmailAsync("member@localhost") == null)
+        {
+            var member = new ApplicationUser { UserName = "member@localhost", Email = "member@localhost", FullName = "Regular Member" };
+            var result = await userManager.CreateAsync(member, "Member123!");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(member, "Member");
+            }
+        }
+    }
+
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     logger.LogInformation("Starting Clean Architecture Web API");
     app.Run();

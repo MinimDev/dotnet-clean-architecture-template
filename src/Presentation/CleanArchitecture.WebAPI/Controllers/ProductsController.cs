@@ -79,6 +79,7 @@ public class ProductsController : ControllerBase
     /// Create a new product
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command)
@@ -95,6 +96,7 @@ public class ProductsController : ControllerBase
     /// Update a product by id
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -120,6 +122,7 @@ public class ProductsController : ControllerBase
     /// Delete a product by id
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteProduct(Guid id)

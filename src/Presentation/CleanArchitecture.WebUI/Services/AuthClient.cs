@@ -29,7 +29,7 @@ public class AuthClient
                 var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
                 if (authResponse != null)
                 {
-                    _tokenProvider.SetToken(authResponse.Token, authResponse.UserName, authResponse.Email);
+                    _tokenProvider.SetToken(authResponse.Token, authResponse.UserName, authResponse.Email, authResponse.Roles);
                     await _localStorage.SetAsync("userInfo", authResponse);
                     return Result.Success();
                 }

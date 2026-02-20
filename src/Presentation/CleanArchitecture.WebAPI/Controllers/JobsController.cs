@@ -8,7 +8,7 @@ namespace CleanArchitecture.WebAPI.Controllers;
 /// <summary>
 /// Boilerplate controller demonstrating how to use Hangfire Background Jobs.
 /// </summary>
-[Authorize]
+[Authorize(Roles = "Admin")]
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]

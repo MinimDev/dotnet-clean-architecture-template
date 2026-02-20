@@ -12,7 +12,12 @@
         <MudSpacer />
         <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
                       AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateProduct" Class="ml-4">Create Product</MudButton>
+        
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateProduct" Class="ml-4">Create Product</MudButton>
+            </Authorized>
+        </AuthorizeView>
     </ToolBarContent>
     <Columns>
         <PropertyColumn Property="x => x.Name" Title="Name" />
