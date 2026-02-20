@@ -15,7 +15,7 @@ using OpenTelemetry.Exporter;
 using Scalar.AspNetCore;
 using System.Threading.RateLimiting;
 using Hangfire;
-using Hangfire.MemoryStorage;
+using Hangfire.SqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -207,11 +207,21 @@ builder.Services.AddOutputCache(options =>
 });
 
 // ─── Hangfire ─────────────────────────────────────────────────────────────────
+var hangfireConnectionString = builder.Configuration.GetConnectionString("HangfireConnection")
+    ?? throw new InvalidOperationException("Hangfire connection string not found.");
+
 builder.Services.AddHangfire(configuration => configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
-    .UseMemoryStorage());
+    .UseSqlServerStorage(hangfireConnectionString, new SqlServerStorageOptions
+    {
+        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+        QueuePollInterval = TimeSpan.Zero,
+        UseRecommendedIsolationLevel = true,
+        DisableGlobalLocks = true
+    }));
 
 builder.Services.AddHangfireServer();
 
