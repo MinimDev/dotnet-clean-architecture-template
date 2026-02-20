@@ -1,79 +1,68 @@
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using CleanArchitecture.Application;
 using CleanArchitecture.Infrastructure.Identity;
 using CleanArchitecture.Infrastructure.Persistence;
 using CleanArchitecture.Infrastructure.Shared;
 using CleanArchitecture.WebAPI.Middleware;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.RateLimiting;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Exporter;
 using Scalar.AspNetCore;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure OpenTelemetry Logging, Tracing, Metrics
-#region Konfigurasi Opentelemetry untuk logging, tracing, metric
+#region OpenTelemetry
 builder.Logging.ClearProviders();
 
 var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"];
-
 Uri? otlpUri = null;
-
 if (!string.IsNullOrEmpty(otlpEndpoint))
-{
     otlpUri = new Uri(otlpEndpoint);
-}
 
 builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => resource.AddService("Inameta-WebApi"))
+    .ConfigureResource(resource => resource.AddService("CleanArchitecture-WebApi"))
     .WithTracing(tracing =>
     {
         tracing.AddAspNetCoreInstrumentation()
                .AddHttpClientInstrumentation();
-
         if (otlpUri is not null)
-        {
             tracing.AddOtlpExporter(options =>
-             {
-                 options.Endpoint = otlpUri;
-                 options.Protocol = OtlpExportProtocol.Grpc;
-             });
-        }
+            {
+                options.Endpoint = otlpUri;
+                options.Protocol = OtlpExportProtocol.Grpc;
+            });
     })
     .WithMetrics(metric =>
     {
         metric.AddConsoleExporter();
-
         if (otlpUri is not null)
-        {
             metric.AddOtlpExporter(options =>
-             {
-                 options.Endpoint = otlpUri;
-                 options.Protocol = OtlpExportProtocol.Grpc;
-             });
-        }
+            {
+                options.Endpoint = otlpUri;
+                options.Protocol = OtlpExportProtocol.Grpc;
+            });
     })
     .WithLogging(logging =>
     {
         logging.AddConsoleExporter();
-
         if (otlpUri is not null)
-        {
             logging.AddOtlpExporter(options =>
             {
                 options.Endpoint = otlpUri;
                 options.Protocol = OtlpExportProtocol.Grpc;
             });
-        }
     });
 #endregion
 
 // Add services to the container
 builder.Services.AddControllers();
-
-// Add HttpContextAccessor for CurrentUserService
 builder.Services.AddHttpContextAccessor();
 
 // Add Application Layer
@@ -84,21 +73,85 @@ builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddIdentityInfrastructure(builder.Configuration);
 builder.Services.AddSharedServices();
 
-// Add Swagger with proper configuration
+// ─── API Versioning ───────────────────────────────────────────────────────────
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader(),
+        new HeaderApiVersionReader("X-Api-Version")
+    );
+})
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
+// ─── Rate Limiting ────────────────────────────────────────────────────────────
+var rateLimitConfig = builder.Configuration.GetSection("RateLimiting");
+builder.Services.AddRateLimiter(options =>
+{
+    // Global fixed window policy
+    options.AddFixedWindowLimiter("fixed", limiterOptions =>
+    {
+        limiterOptions.Window = TimeSpan.FromSeconds(
+            rateLimitConfig.GetValue("WindowSeconds", 60));
+        limiterOptions.PermitLimit =
+            rateLimitConfig.GetValue("PermitLimit", 100);
+        limiterOptions.QueueLimit =
+            rateLimitConfig.GetValue("QueueLimit", 0);
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+
+    // Strict policy for auth endpoints (prevent brute-force)
+    options.AddFixedWindowLimiter("auth", limiterOptions =>
+    {
+        limiterOptions.Window = TimeSpan.FromSeconds(
+            rateLimitConfig.GetValue("Auth:WindowSeconds", 60));
+        limiterOptions.PermitLimit =
+            rateLimitConfig.GetValue("Auth:PermitLimit", 10);
+        limiterOptions.QueueLimit = 0;
+    });
+
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            error = "Too many requests. Please try again later.",
+            retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter)
+                ? (int)retryAfter.TotalSeconds : 60
+        }, token);
+    };
+});
+
+// ─── Swagger / OpenAPI ────────────────────────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-    {
-        Title = "Clean Architecture API",
-        Version = "v1",
-        Description = "A Clean Architecture template API with CQRS, MediatR, and JWT Authentication"
-    });
+    // One SwaggerDoc per API version
+    var provider = builder.Services.BuildServiceProvider()
+        .GetRequiredService<IApiVersionDescriptionProvider>();
 
-    // Add JWT authentication to Swagger
+    foreach (var description in provider.ApiVersionDescriptions)
+    {
+        options.SwaggerDoc(description.GroupName, new Microsoft.OpenApi.Models.OpenApiInfo
+        {
+            Title = "Clean Architecture API",
+            Version = description.ApiVersion.ToString(),
+            Description = description.IsDeprecated
+                ? "This API version is deprecated."
+                : "A Clean Architecture template API with CQRS, MediatR, and JWT Authentication"
+        });
+    }
+
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token",
+        Description = "JWT Authorization header using the Bearer scheme.",
         Name = "Authorization",
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
@@ -121,12 +174,13 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Add CORS
+// ─── CORS ─────────────────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+        var allowedOrigins = builder.Configuration
+            .GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
@@ -134,19 +188,21 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add Health Checks
+// ─── Health Checks ────────────────────────────────────────────────────────────
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>("Database")
     .AddDbContextCheck<IdentityDbContext>("Identity Database");
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+// ─── Middleware Pipeline ──────────────────────────────────────────────────────
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
+
+    var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
     app.MapScalarApiReference(options =>
     {
         options
@@ -170,12 +226,10 @@ app.Use(async (context, next) =>
 });
 
 app.UseHttpsRedirection();
-
 app.UseCors();
-
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 // Health check endpoint
@@ -201,16 +255,13 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 
 try
 {
-    // Use standard logger instead of Serilog
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     logger.LogInformation("Starting Clean Architecture Web API");
     app.Run();
 }
 catch (Exception ex)
 {
-    // Basic fallback logging since DI might be disposed or not built
     Console.WriteLine($"Application terminated unexpectedly: {ex}");
 }
 
-// Make the implicit Program class public so test projects can access it
 public partial class Program { }

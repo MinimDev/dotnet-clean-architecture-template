@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using CleanArchitecture.Application.Features.Products.Commands.CreateProduct;
 using CleanArchitecture.Application.Features.Products.Commands.DeleteProduct;
 using CleanArchitecture.Application.Features.Products.Queries.GetProductById;
@@ -6,6 +7,7 @@ using CleanArchitecture.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CleanArchitecture.WebAPI.Controllers;
 
@@ -14,7 +16,9 @@ namespace CleanArchitecture.WebAPI.Controllers;
 /// </summary>
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
+[EnableRateLimiting("fixed")]
 public class ProductsController : ControllerBase
 {
     private readonly IMediator _mediator;
