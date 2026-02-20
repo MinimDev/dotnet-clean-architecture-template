@@ -1,0 +1,31 @@
+﻿@using CleanArchitecture.WebUI.Services
+@inject AuthClient AuthClient
+@inject NavigationManager NavigationManager
+
+<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+    <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
+    
+    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
+    <MudNavLink Href="products" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inventory">Products</MudNavLink>
+    
+    <AuthorizeView>
+        <Authorized>
+             <MudNavLink OnClick="Logout" Icon="@Icons.Material.Filled.Logout">Logout (@context.User.Identity?.Name)</MudNavLink>
+        </Authorized>
+        <NotAuthorized>
+            <MudNavLink Href="login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+
+</MudNavMenu>
+
+@code {
+    private async Task Logout()
+    {
+        await AuthClient.Logout();
+        NavigationManager.NavigateTo("/login");
+    }
+}
+
+

@@ -1,0 +1,70 @@
+@page "/products"
+@using CleanArchitecture.WebUI.Services
+@using CleanArchitecture.WebUI.Services.Models
+@inject ProductsClient Client
+@inject IDialogService DialogService
+
+<MudText Typo="Typo.h3" GutterBottom="true">Products</MudText>
+
+<MudDataGrid T="ProductDto" ServerData="ServerReload" @ref="_dataGrid">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Product List</MudText>
+        <MudSpacer />
+        <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateProduct" Class="ml-4">Create Product</MudButton>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Name" Title="Name" />
+        <PropertyColumn Property="x => x.Price" Title="Price" Format="C2" />
+        <PropertyColumn Property="x => x.Stock" Title="Stock" />
+        <PropertyColumn Property="x => x.Status" Title="Status" />
+        <PropertyColumn Property="x => x.CreatedAt" Title="Created At" Format="dd/MM/yyyy" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="ProductDto" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    private MudDataGrid<ProductDto> _dataGrid = default!;
+    private string _searchString = "";
+
+    private async Task<GridData<ProductDto>> ServerReload(GridState<ProductDto> state)
+    {
+        var result = await Client.GetProductsAsync(state.Page + 1, state.PageSize, _searchString);
+
+        if (result.IsSuccess && result.Data != null)
+        {
+            return new GridData<ProductDto>
+            {
+                TotalItems = result.Data.TotalCount,
+                Items = result.Data.Items
+            };
+        }
+
+        return new GridData<ProductDto>
+        {
+            TotalItems = 0,
+            Items = new List<ProductDto>()
+        };
+    }
+
+    private Task OnSearch(string text)
+    {
+        _searchString = text;
+        return _dataGrid.ReloadServerData();
+    }
+
+    private async Task CreateProduct()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<CreateProductDialog>("Create Product", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await _dataGrid.ReloadServerData();
+        }
+    }
+}

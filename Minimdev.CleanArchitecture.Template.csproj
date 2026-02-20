@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <PackageId>Minimdev.CleanArchitecture.Template</PackageId>
+    <Title>Clean Architecture Solution Template</Title>
+    <Authors>Minimdev</Authors>
+    <Description>Clean Architecture Solution Template by Minimdev. Features ordered layers (Core, Infrastructure, Presentation), .NET 10 support, and full Visual Studio 2022 compatibility via 'dotnet new' or New Project dialog.</Description>
+    <PackageTags>clean-architecture;csharp;dotnet-new;template;solution</PackageTags>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Minimdev/CleanArchitecture</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Version>1.2.0</Version>
+    <PackageReleaseNotes>v1.2.0: Added Visual Studio 2022 support (ide.host.json with createInPlace=true). Fixed template generation in VS New Project dialog. Improved file exclusions in template sources.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="**\*" Exclude="**\bin\**;**\obj\**;**\.git\**;**\.github\**;**\.vs\**;*.nupkg;Minimdev.CleanArchitecture.Template.csproj;publish.ps1;verify_pack.ps1;**\*.log;**\*.user" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

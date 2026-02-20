@@ -1,0 +1,43 @@
+# Build artifacts
+**/bin/
+**/obj/
+**/out/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Logs
+logs/
+*.log
+
+# Database
+*.mdf
+*.ldf
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# Test results
+TestResults/
+*.trx
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Misc
+*.cache
+*.dll
+*.exe
+*.pdb
+*.tmp

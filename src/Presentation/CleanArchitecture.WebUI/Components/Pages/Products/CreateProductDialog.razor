@@ -1,0 +1,53 @@
+@using CleanArchitecture.WebUI.Services
+@using CleanArchitecture.WebUI.Services.Models
+@using MudBlazor
+@inject ProductsClient Client
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="@success">
+            <MudTextField T="string" Label="Name" Required="true" RequiredError="Name is required!" @bind-Value="command.Name" />
+            <MudTextField T="string" Label="Description" Lines="3" @bind-Value="command.Description" />
+            <MudNumericField T="decimal" Label="Price" Format="C2" Required="true" @bind-Value="command.Price" />
+            <MudNumericField T="int" Label="Stock" Required="true" @bind-Value="command.Stock" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+
+    private CreateProductCommand command = new();
+    private MudForm form = default!;
+    private bool success;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var result = await Client.CreateProductAsync(command);
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Product created successfully", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(result.Data));
+            }
+            else
+            {
+                foreach (var error in result.Errors)
+                {
+                    Snackbar.Add(error, Severity.Error);
+                }
+            }
+        }
+    }
+}

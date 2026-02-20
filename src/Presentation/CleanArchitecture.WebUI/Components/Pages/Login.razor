@@ -1,0 +1,47 @@
+@page "/login"
+@using CleanArchitecture.WebUI.Services
+@using CleanArchitecture.WebUI.Services.Models
+@inject AuthClient AuthClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<MudGrid Justify="Justify.Center" Class="mt-8">
+    <MudItem xs="12" sm="8" md="4">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h5" GutterBottom="true" Align="Align.Center">Login</MudText>
+            <MudForm @ref="form" @bind-IsValid="@success">
+                <MudTextField T="string" Label="Email" Required="true" RequiredError="Email is required!" @bind-Value="email" InputType="InputType.Email" />
+                <MudTextField T="string" Label="Password" Required="true" RequiredError="Password is required!" @bind-Value="password" InputType="InputType.Password" />
+                
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" FullWidth="true" OnClick="Submit" Disabled="@(!success)">Login</MudButton>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private MudForm form = default!;
+    private bool success;
+    private string email = "";
+    private string password = "";
+
+    private async Task Submit()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var result = await AuthClient.LoginAsync(email, password);
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Login successful", Severity.Success);
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                Snackbar.Add(result.Error ?? "Login failed", Severity.Error);
+            }
+        }
+    }
+}
