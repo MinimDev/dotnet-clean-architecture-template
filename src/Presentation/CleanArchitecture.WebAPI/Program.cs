@@ -188,6 +188,22 @@ builder.Services.AddCors(options =>
     });
 });
 
+// ─── Output Cache ────────────────────────────────────────────────────────────
+builder.Services.AddOutputCache(options =>
+{
+    // Default: cache GET responses for 60 seconds
+    options.AddBasePolicy(policy => policy
+        .Expire(TimeSpan.FromSeconds(60))
+        .With(req => req.HttpContext.Request.Method == "GET")
+        .Tag("all"));
+
+    // Named policy for products list (shorter TTL)
+    options.AddPolicy("products", policy => policy
+        .Expire(TimeSpan.FromSeconds(30))
+        .SetVaryByQuery("pageNumber", "pageSize", "status", "searchTerm")
+        .Tag("products"));
+});
+
 // ─── Health Checks ────────────────────────────────────────────────────────────
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>("Database")
@@ -228,6 +244,7 @@ app.Use(async (context, next) =>
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseRateLimiter();
+app.UseOutputCache();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

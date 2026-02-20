@@ -7,6 +7,7 @@ using CleanArchitecture.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.RateLimiting;
 
 namespace CleanArchitecture.WebAPI.Controllers;
@@ -32,6 +33,7 @@ public class ProductsController : ControllerBase
     /// Get paginated list of products
     /// </summary>
     [HttpGet]
+    [OutputCache(PolicyName = "products")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProducts(
         [FromQuery] int pageNumber = 1,
@@ -59,6 +61,7 @@ public class ProductsController : ControllerBase
     /// Get product by ID
     /// </summary>
     [HttpGet("{id}")]
+    [OutputCache(Duration = 60)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetProductById(Guid id)

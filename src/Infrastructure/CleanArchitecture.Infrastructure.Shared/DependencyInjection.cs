@@ -11,7 +11,15 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddSharedServices(this IServiceCollection services)
     {
+        // Date/Time
         services.AddTransient<IDateTime, DateTimeService>();
+
+        // Background Task Queue
+        services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+        services.AddHostedService<QueuedHostedService>();
+
+        // Email Service
+        services.AddTransient<IEmailService, SmtpEmailService>();
 
         return services;
     }
