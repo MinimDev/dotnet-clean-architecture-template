@@ -14,6 +14,8 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Exporter;
 using Scalar.AspNetCore;
 using System.Threading.RateLimiting;
+using Hangfire;
+using Hangfire.MemoryStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -204,6 +206,15 @@ builder.Services.AddOutputCache(options =>
         .Tag("products"));
 });
 
+// ─── Hangfire ─────────────────────────────────────────────────────────────────
+builder.Services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseMemoryStorage());
+
+builder.Services.AddHangfireServer();
+
 // ─── Health Checks ────────────────────────────────────────────────────────────
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>("Database")
@@ -247,6 +258,9 @@ app.UseRateLimiter();
 app.UseOutputCache();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHangfireDashboard("/hangfire");
+
 app.MapControllers();
 
 // Health check endpoint
