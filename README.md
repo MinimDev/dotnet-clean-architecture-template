@@ -58,6 +58,12 @@ YourProject/
 - ✅ **xUnit** - Unit testing framework
 
 ### Key Capabilities
+- ✅ **API Versioning** - Versioned endpoints (`/api/v1/...`) via URL segment & Header
+- ✅ **Rate Limiting** - Built-in ASP.NET Core rate limiting (Global & Auth-specific limits)
+- ✅ **Response Caching** - Output caching configured for GET endpoints
+- ✅ **Background Jobs** - Hangfire integration with SQL Server storage & `/hangfire` dashboard
+- ✅ **Resilience (Polly)** - Standard & Lightweight retry/circuit breaker policies via `Microsoft.Extensions.Http.Resilience`
+- ✅ **Email Service** - `IEmailService` abstraction with built-in `SmtpEmailService` implementation
 - ✅ **Audit Trails** - Automatic tracking of Created/Modified timestamps
 - ✅ **Soft Delete** - Global query filters for deleted entities
 - ✅ **Health Checks** - Database connectivity monitoring
@@ -65,6 +71,7 @@ YourProject/
 - ✅ **CORS Support** - Configurable cross-origin requests
 - ✅ **Docker Support** - Containerization ready
 - ✅ **Visual Studio 2022** - Full IDE support via New Project dialog
+- ✅ **.editorconfig** - Comprehensive code style consistency rules
 
 ## 📦 Using as a Template
 
@@ -177,17 +184,27 @@ After creating your project from the template (`dotnet new cleanarch -n MyProjec
 ### Authentication
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/Auth/register` | Register a new user |
-| POST | `/api/Auth/login` | Login and get JWT token |
+| POST | `/api/v1/Auth/register` | Register a new user |
+| POST | `/api/v1/Auth/login` | Login and get JWT token (Rate limited: 10/min) |
 
 ### Products *(Requires Authentication)*
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/Products` | Get paginated list |
-| GET | `/api/Products/{id}` | Get by ID |
-| POST | `/api/Products` | Create product |
-| PUT | `/api/Products/{id}` | Update product |
-| DELETE | `/api/Products/{id}` | Delete product |
+| GET | `/api/v1/Products` | Get paginated list (Output Cached: 30s) |
+| GET | `/api/v1/Products/{id}` | Get by ID (Output Cached: 60s) |
+| POST | `/api/v1/Products` | Create product |
+| PUT | `/api/v1/Products/{id}` | Update product |
+| DELETE | `/api/v1/Products/{id}` | Delete product |
+
+### Background Jobs *(Requires Authentication)*
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/Jobs/fire-and-forget` | Demonstrates immediate background task |
+| POST | `/api/v1/Jobs/delayed` | Demonstrates scheduled background task |
+| POST | `/api/v1/Jobs/recurring` | Demonstrates CRON-based recurring task |
+| POST | `/api/v1/Jobs/recurring/trigger` | Triggers the daily recurring task immediately |
+
+**Hangfire Dashboard:** Available at `https://localhost:7253/hangfire`
 
 ### Using JWT in Scalar UI
 1. Call `POST /api/Auth/login` to get the token
@@ -219,8 +236,9 @@ Key sections in `appsettings.json`:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "...",
-    "IdentityConnection": "..."
+    "DefaultConnection": "Server=localhost;Database=CleanArchitectureDb;Trusted_Connection=True;",
+    "IdentityConnection": "Server=localhost;Database=CleanArchitectureIdentityDb;Trusted_Connection=True;",
+    "HangfireConnection": "Server=localhost;Database=CleanArchitectureHangfireDb;Trusted_Connection=True;"
   },
   "Jwt": {
     "Secret": "your-secret-key-min-32-characters",
@@ -231,16 +249,32 @@ Key sections in `appsettings.json`:
   "Cors": {
     "AllowedOrigins": ["http://localhost:3000", "https://localhost:5001"]
   },
-  "Serilog": {
-    "MinimumLevel": "Information"
+  "RateLimiting": {
+    "WindowSeconds": 60,
+    "PermitLimit": 100,
+    "Auth": {
+      "WindowSeconds": 60,
+      "PermitLimit": 10
+    }
+  },
+  "Email": {
+    "Host": "smtp.gmail.com",
+    "Port": 587,
+    "EnableSsl": true,
+    "UserName": "your-email@gmail.com",
+    "Password": "your-app-password",
+    "From": "your-email@gmail.com",
+    "DisplayName": "Clean Architecture App"
   }
 }
 ```
 
-**Environment variables for production:**
+**Environment variables for production/overrides:**
 - `ConnectionStrings__DefaultConnection`
 - `ConnectionStrings__IdentityConnection`
+- `ConnectionStrings__HangfireConnection`
 - `Jwt__Secret`
+- `Email__Password`
 
 ## 📝 Adding New Features
 
