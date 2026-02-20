@@ -68,17 +68,10 @@ YourProject/
 
 ## 📦 Using as a Template
 
-### Install from NuGet (Recommended)
+### Install from NuGet
 
 ```bash
 dotnet new install Minimdev.CleanArchitecture.Template
-```
-
-### Install from Source (Local)
-
-```bash
-# Run this in the root folder of the cloned repository
-dotnet new install .
 ```
 
 ### Create a New Project
@@ -90,70 +83,94 @@ dotnet new install .
 dotnet new cleanarch -n MyProject -o MyProject
 ```
 
-**What happens:**
+**What happens automatically:**
 - `CleanArchitecture.Domain` → `MyProject.Domain`
-- Namespaces: `namespace CleanArchitecture.Domain` → `namespace MyProject.Domain`
-- Folders: `src/Core/CleanArchitecture.Domain` → `src/Core/MyProject.Domain`
+- `namespace CleanArchitecture.Domain` → `namespace MyProject.Domain`
+- `src/Core/CleanArchitecture.Domain` → `src/Core/MyProject.Domain`
 
 #### Via Visual Studio 2022
 
 1. Open Visual Studio 2022
 2. Click **Create a new project**
 3. Search for **"Clean Architecture Solution"**
-4. Enter your project name and click **Create**
+4. Enter your project name → **Create**
 
-> The template will automatically rename all projects and namespaces to match your chosen project name.
+> The template automatically renames all projects and namespaces to match your project name.
 
-### Uninstall the Template
+### Uninstall
 
 ```bash
 dotnet new uninstall Minimdev.CleanArchitecture.Template
 ```
 
-## 🚀 Quick Start (Development)
+## 🚀 Quick Start
 
-### Prerequisites
+### A. Start from Generated Project (Template User)
+
+After creating your project from the template (`dotnet new cleanarch -n MyProject`), replace `MyProject` with your actual project name in the steps below.
+
+#### Prerequisites
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [SQL Server](https://www.microsoft.com/sql-server) or SQL Server Express
-- [Visual Studio 2022](https://visualstudio.microsoft.com/) or [VS Code](https://code.visualstudio.com/)
+- SQL Server or SQL Server Express
+- Visual Studio 2022 or VS Code
 
-### Setup
+#### Setup
 
-1. **Clone the repository** *(or create from template as above)*
+1. **Update connection strings**
+
+   Edit `src/Presentation/MyProject.WebAPI/appsettings.Development.json`:
+   ```json
+   {
+     "ConnectionStrings": {
+       "DefaultConnection": "Server=localhost;Database=MyProjectDB;Trusted_Connection=True;",
+       "IdentityConnection": "Server=localhost;Database=MyProjectIdentityDB;Trusted_Connection=True;"
+     }
+   }
+   ```
+
+2. **Apply database migrations**
+   ```bash
+   # Application DB
+   dotnet ef database update --project "src/Infrastructure/MyProject.Infrastructure.Persistence" --startup-project "src/Presentation/MyProject.WebAPI" --context ApplicationDbContext
+
+   # Identity DB
+   dotnet ef database update --project "src/Infrastructure/MyProject.Infrastructure.Identity" --startup-project "src/Presentation/MyProject.WebAPI" --context IdentityDbContext
+   ```
+
+3. **Run the application**
+   ```bash
+   dotnet run --project "src/Presentation/MyProject.WebAPI"
+   ```
+
+4. **Access the API**
+   - **Scalar UI**: `https://localhost:7253/scalar/v1`
+   - **Health Check**: `https://localhost:7253/health`
+
+---
+
+### B. Run the Template Source (Contributor)
+
+> This section is for contributors who want to develop or modify the template itself.
+
+1. **Clone the repository**
    ```bash
    git clone https://github.com/MinimDev/dotnet-clean-architecture-template.git
    cd dotnet-clean-architecture-template
    ```
 
-2. **Update connection strings**
+2. **Update connection strings** in `src/Presentation/CleanArchitecture.WebAPI/appsettings.Development.json`
 
-   Edit `src/Presentation/CleanArchitecture.WebAPI/appsettings.Development.json`:
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Server=localhost;Database=CleanArchDB;Trusted_Connection=True;",
-       "IdentityConnection": "Server=localhost;Database=CleanArchIdentityDB;Trusted_Connection=True;"
-     }
-   }
-   ```
-
-3. **Apply database migrations**
+3. **Apply migrations**
    ```bash
-   # Apply Application database migration
    dotnet ef database update --project "src/Infrastructure/CleanArchitecture.Infrastructure.Persistence" --startup-project "src/Presentation/CleanArchitecture.WebAPI" --context ApplicationDbContext
 
-   # Apply Identity database migration
    dotnet ef database update --project "src/Infrastructure/CleanArchitecture.Infrastructure.Identity" --startup-project "src/Presentation/CleanArchitecture.WebAPI" --context IdentityDbContext
    ```
 
-4. **Run the application**
+4. **Run**
    ```bash
    dotnet run --project "src/Presentation/CleanArchitecture.WebAPI"
    ```
-
-5. **Access the API**
-   - **Scalar UI**: https://localhost:7253/scalar/v1
-   - **Health Check**: https://localhost:7253/health
 
 ## 📖 API Endpoints
 
