@@ -5,6 +5,8 @@ A comprehensive, production-ready ASP.NET Core starter template implementing Cle
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/download)
 [![NuGet](https://img.shields.io/nuget/v/Minimdev.CleanArchitecture.Template.svg)](https://www.nuget.org/packages/Minimdev.CleanArchitecture.Template)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Minimdev.CleanArchitecture.Template.svg)](https://www.nuget.org/packages/Minimdev.CleanArchitecture.Template)
+[![GitHub Stars](https://img.shields.io/github/stars/MinimDev/dotnet-clean-architecture-template.svg)](https://github.com/MinimDev/dotnet-clean-architecture-template/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/MinimDev/dotnet-clean-architecture-template.svg)](https://github.com/MinimDev/dotnet-clean-architecture-template/network)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ## 🏗️ Project Structure
@@ -119,8 +121,8 @@ dotnet new uninstall Minimdev.CleanArchitecture.Template
 
 1. **Clone the repository** *(or create from template as above)*
    ```bash
-   git clone https://github.com/MinimDev/Clean-Architecture-Template-Solution-.NET.git
-   cd Clean-Architecture-Template-Solution-.NET
+   git clone https://github.com/MinimDev/dotnet-clean-architecture-template.git
+   cd dotnet-clean-architecture-template
    ```
 
 2. **Update connection strings**
@@ -296,7 +298,13 @@ public class YourController : ControllerBase
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request on [GitHub](https://github.com/MinimDev/dotnet-clean-architecture-template).
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## 📄 License
 
