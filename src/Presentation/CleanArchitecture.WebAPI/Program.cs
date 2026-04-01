@@ -242,9 +242,9 @@ app.Use(async (context, next) =>
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseRateLimiter();
-app.UseOutputCache();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseOutputCache();
 
 app.UseHangfireDashboard("/hangfire");
 

@@ -22,23 +22,7 @@ public static class DependencyInjection
         services.AddDbContext<IdentityDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("IdentityConnection")));
 
-        // Register Identity
-        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-        {
-            // Password settings
-            options.Password.RequireDigit = true;
-            options.Password.RequireLowercase = true;
-            options.Password.RequireUppercase = true;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequiredLength = 6;
-
-            // User settings
-            options.User.RequireUniqueEmail = true;
-        })
-        .AddEntityFrameworkStores<IdentityDbContext>()
-        .AddDefaultTokenProviders();
-
-        // Register JWT Authentication
+        // Register JWT authentication FIRST — before Identity alters the default auth scheme.
         var jwtSettings = configuration.GetSection("Jwt");
         var secret = jwtSettings["Secret"];
 
@@ -61,6 +45,27 @@ public static class DependencyInjection
                 ClockSkew = TimeSpan.Zero
             };
         });
+
+        // Register Identity AFTER JWT — using AddIdentityCore + AddRoles to avoid overriding
+        // the default authentication scheme that we already set to JWT above.
+        // Note: AddIdentity() internally calls AddAuthentication() and sets defaults to cookie
+        // scheme, which would silently break JWT authentication.
+        services.AddIdentityCore<ApplicationUser>(options =>
+        {
+            // Password settings
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 6;
+
+            // User settings
+            options.User.RequireUniqueEmail = true;
+        })
+        .AddRoles<IdentityRole>()
+        .AddEntityFrameworkStores<IdentityDbContext>()
+        .AddDefaultTokenProviders()
+        .AddSignInManager();
 
         // Register services
         services.AddScoped<TokenService>();
