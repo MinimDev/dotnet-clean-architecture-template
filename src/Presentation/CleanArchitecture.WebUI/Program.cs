@@ -10,11 +10,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMudServices();
 
 // Add services to the container.
-
-builder.Services.AddHttpClient("WebAPI", client => 
+var httpClientBuilder = builder.Services.AddHttpClient("WebAPI", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7253");
 });
+
+// In Development: bypass SSL certificate validation for localhost dev certificate.
+// In Production: standard SSL validation applies — a valid trusted certificate is required.
+if (builder.Environment.IsDevelopment())
+{
+    httpClientBuilder.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        // Bypass SSL validation for development only (localhost dev certificate is self-signed).
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    });
+}
 
 builder.Services.AddScoped<TokenProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
