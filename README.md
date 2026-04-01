@@ -45,6 +45,7 @@ YourProject/
 
 ### Technology Stack
 - ✅ **.NET 10** - Latest .NET framework
+- ✅ **Blazor WebUI** - Interactive frontend with **MudBlazor** Material Design components
 - ✅ **MediatR v12.x** - CQRS implementation
 - ✅ **Entity Framework Core 10** - ORM with Code-First approach
 - ✅ **SQL Server** - Database (separate DBs for App and Identity)
@@ -58,6 +59,8 @@ YourProject/
 - ✅ **xUnit** - Unit testing framework
 
 ### Key Capabilities
+- ✅ **Role-Based Access Control (RBAC)** - Pre-configured `Admin` and `Member` roles with authorization policies
+- ✅ **User Management Dashboard** - Dedicated UI to view users and modify roles dynamically
 - ✅ **API Versioning** - Versioned endpoints (`/api/v1/...`) via URL segment & Header
 - ✅ **Rate Limiting** - Built-in ASP.NET Core rate limiting (Global & Auth-specific limits)
 - ✅ **Response Caching** - Output caching configured for GET endpoints

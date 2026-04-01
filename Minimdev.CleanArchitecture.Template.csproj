@@ -17,8 +17,8 @@
     <PackageProjectUrl>https://github.com/Minimdev/CleanArchitecture</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.2.0</Version>
-    <PackageReleaseNotes>v1.2.0: Added Visual Studio 2022 support (ide.host.json with createInPlace=true). Fixed template generation in VS New Project dialog. Improved file exclusions in template sources.</PackageReleaseNotes>
+    <Version>1.3.0</Version>
+    <PackageReleaseNotes>v1.3.0: Added Role-Based Access Control (RBAC), User Management Dashboard, SmtpEmailService, and Enhanced MudBlazor UI for Products (Cards and Dialogs).</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-02-22
+
+### Added
+- Role-Based Access Control (RBAC) implementation (Admin/Member roles)
+- User Management Dashboard in WebUI (View list and manage roles dynamically)
+- `SmtpEmailService` and `IEmailService` for standardized email sending
+- Interactive Edit, Delete, and Details Modal Dialogs for Products in WebUI
+
+### Changed
+- Converted Products table (`MudDataGrid`) to a responsive layout using `MudCard` with hover animations and skeleton loading
+
+### Fixed
+- Fixed compilation error regarding generic definition of `Result<T>` in WebUI architecture
+
 ## [1.2.0] - 2026-02-20
 
 ### Added
