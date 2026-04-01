@@ -3,73 +3,286 @@
 @using CleanArchitecture.WebUI.Services.Models
 @inject ProductsClient Client
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
-<MudText Typo="Typo.h3" GutterBottom="true">Products</MudText>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
+    <!-- Header Section -->
+    <MudPaper Elevation="0" Class="pa-4 mb-6" Style="background-color: transparent;">
+        <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudItem xs="12" sm="6" md="4">
+                <MudText Typo="Typo.h3" Color="Color.Primary" Class="font-weight-bold">Products</MudText>
+                <MudText Typo="Typo.subtitle1" Color="Color.Default">Browse our latest collections</MudText>
+            </MudItem>
+            
+            <MudItem xs="12" sm="6" md="8">
+                <MudGrid Justify="Justify.FlexEnd" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudItem xs="12" sm="8" md="6">
+                        <MudTextField T="string" Value="@_searchString" ValueChanged="@OnSearchChanged" 
+                                      Placeholder="Search products..." Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" 
+                                      Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
+                                      Class="rounded-lg bg-surface"></MudTextField>
+                    </MudItem>
+                    <AuthorizeView Roles="Admin">
+                        <Authorized>
+                            <MudItem xs="12" sm="4" md="4">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" 
+                                           OnClick="CreateProduct" Size="Size.Large" Class="rounded-lg full-width">
+                                    New Product
+                                </MudButton>
+                            </MudItem>
+                        </Authorized>
+                    </AuthorizeView>
+                </MudGrid>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
 
-<MudDataGrid T="ProductDto" ServerData="ServerReload" @ref="_dataGrid">
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">Product List</MudText>
-        <MudSpacer />
-        <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
-                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-        
-        <AuthorizeView Roles="Admin">
-            <Authorized>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateProduct" Class="ml-4">Create Product</MudButton>
-            </Authorized>
-        </AuthorizeView>
-    </ToolBarContent>
-    <Columns>
-        <PropertyColumn Property="x => x.Name" Title="Name" />
-        <PropertyColumn Property="x => x.Price" Title="Price" Format="C2" />
-        <PropertyColumn Property="x => x.Stock" Title="Stock" />
-        <PropertyColumn Property="x => x.Status" Title="Status" />
-        <PropertyColumn Property="x => x.CreatedAt" Title="Created At" Format="dd/MM/yyyy" />
-    </Columns>
-    <PagerContent>
-        <MudDataGridPager T="ProductDto" />
-    </PagerContent>
-</MudDataGrid>
+    <!-- Product Grid Section -->
+    @if (_isLoading)
+    {
+        <MudGrid>
+            @for (int i = 0; i < 8; i++)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="3" Class="rounded-xl overflow-hidden">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
+                        <MudCardContent>
+                            <MudSkeleton Width="70%" Height="32px;" Class="mb-4" />
+                            <MudSkeleton Width="40%" />
+                            <MudSkeleton Width="100%" />
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudSkeleton Width="64px" Height="40px" Class="ml-2" />
+                            <MudSkeleton Width="64px" Height="40px" Class="ml-2" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else if (_products == null || !_products.Any())
+    {
+        <MudPaper Elevation="0" Class="pa-8 text-center d-flex flex-column align-center justify-center rounded-xl" Style="min-height: 400px; background-color: var(--mud-palette-background-grey);">
+            <MudIcon Icon="@Icons.Material.Filled.Inventory" Size="Size.Large" Color="Color.Surface" Style="font-size: 5rem;" Class="mb-4"/>
+            <MudText Typo="Typo.h5" Color="Color.Default" Class="font-weight-medium mb-2">No Products Found</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">Try adjusting your search query or check back later.</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <MudGrid Spacing="4">
+            @foreach (var product in _products)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="4" Class="rounded-xl overflow-hidden hover-elevation flex-column d-flex h-100 transition-all" Style="transition: transform 0.2s, box-shadow 0.2s;">
+                        <!-- Mock Image Area -->
+                        <div class="d-flex align-center justify-center" style="height: 180px; background: linear-gradient(135deg, var(--mud-palette-primary-lighten) 0%, var(--mud-palette-primary-darken) 100%); position: relative;">
+                            <MudIcon Icon="@Icons.Material.Rounded.ShoppingBag" Style="font-size: 5rem; color: rgba(255,255,255,0.8);" />
+                            <div style="position: absolute; top: 12px; right: 12px;">
+                                @if (product.Status == "Active")
+                                {
+                                    <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold shadow-sm">ACTIVE</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold shadow-sm">@product.Status.ToUpper()</MudChip>
+                                }
+                            </div>
+                        </div>
+
+                        <MudCardContent Class="flex-grow-1 pb-2">
+                            <div class="d-flex justify-space-between align-start mb-2">
+                                <MudText Typo="Typo.h6" Class="font-weight-bold line-clamp-2" Style="line-height: 1.3;">
+                                    @product.Name
+                                </MudText>
+                            </div>
+                            
+                            <MudText Typo="Typo.h5" Color="Color.Primary" Class="font-weight-bold mb-4">
+                                @product.Price.ToString("C2")
+                            </MudText>
+
+                            <MudDivider Class="mb-3" />
+
+                            <div class="d-flex align-center gap-2 mb-2">
+                                <MudIcon Icon="@Icons.Material.Outlined.Inventory2" Size="Size.Small" Color="Color.Secondary" />
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Stock: <b>@product.Stock units</b>
+                                </MudText>
+                            </div>
+
+                            <div class="d-flex align-center gap-2">
+                                <MudIcon Icon="@Icons.Material.Outlined.Event" Size="Size.Small" Color="Color.Secondary" />
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Added: @product.CreatedAt.ToString("MMM dd, yyyy")
+                                </MudText>
+                            </div>
+                        </MudCardContent>
+
+                        <MudCardActions Class="pa-4 pt-0 d-flex justify-end gap-2">
+                            <AuthorizeView Roles="Admin">
+                                <Authorized>
+                                    <MudTooltip Text="Edit Product">
+                                        <MudIconButton Icon="@Icons.Material.Outlined.Edit" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small" Class="rounded-lg hover-bg-primary" OnClick="@(() => EditProduct(product))" />
+                                    </MudTooltip>
+                                    <MudTooltip Text="Delete Product">
+                                        <MudIconButton Icon="@Icons.Material.Outlined.Delete" Color="Color.Error" Variant="Variant.Outlined" Size="Size.Small" Class="rounded-lg hover-bg-error" OnClick="@(() => DeleteProduct(product))" />
+                                    </MudTooltip>
+                                </Authorized>
+                            </AuthorizeView>
+                            <MudTooltip Text="View Details">
+                                <MudIconButton Icon="@Icons.Material.Rounded.ArrowForward" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="rounded-lg ml-auto" OnClick="@(() => ViewProductDetail(product))" />
+                            </MudTooltip>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-center mt-8 mb-4">
+            <MudPagination Color="Color.Primary" Count="@_totalPages" Selected="@_currentPage" SelectedChanged="OnPageChanged" 
+                           ShowFirstButton="true" ShowLastButton="true" Variant="Variant.Filled" Class="rounded-xl shadow-sm"/>
+        </div>
+    }
+</MudContainer>
+
+<style>
+    .hover-elevation:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px -10px rgba(0,0,0,0.2) !important;
+    }
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;  
+        overflow: hidden;
+    }
+    .hover-bg-primary:hover {
+        background-color: var(--mud-palette-primary-hover);
+        color: var(--mud-palette-primary) !important;
+        border-color: var(--mud-palette-primary);
+    }
+    .hover-bg-error:hover {
+        background-color: var(--mud-palette-error-hover);
+        color: var(--mud-palette-error) !important;
+        border-color: var(--mud-palette-error);
+    }
+</style>
 
 @code {
-    private MudDataGrid<ProductDto> _dataGrid = default!;
+    private List<ProductDto> _products = new();
+    private bool _isLoading = true;
     private string _searchString = "";
+    
+    // Pagination state
+    private int _currentPage = 1;
+    private int _pageSize = 8;
+    private int _totalPages = 1;
+    private int _totalItems = 0;
 
-    private async Task<GridData<ProductDto>> ServerReload(GridState<ProductDto> state)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var result = await Client.GetProductsAsync(state.Page + 1, state.PageSize, _searchString);
+        if (firstRender)
+        {
+            await LoadProducts();
+        }
+    }
+
+    private async Task OnSearchChanged(string text)
+    {
+        _searchString = text;
+        _currentPage = 1; // Reset to first page on new search
+        await LoadProducts();
+    }
+
+    private async Task OnPageChanged(int i)
+    {
+        _currentPage = i;
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        var result = await Client.GetProductsAsync(_currentPage, _pageSize, _searchString);
 
         if (result.IsSuccess && result.Data != null)
         {
-            return new GridData<ProductDto>
-            {
-                TotalItems = result.Data.TotalCount,
-                Items = result.Data.Items
-            };
+            _products = result.Data.Items.ToList();
+            _totalItems = result.Data.TotalCount;
+            _totalPages = (int)Math.Ceiling((double)_totalItems / _pageSize);
+            if (_totalPages == 0) _totalPages = 1;
+        }
+        else
+        {
+            _products = new List<ProductDto>();
+            _totalPages = 1;
+            // Show diagnostic error in Snackbar so the failure reason is visible in the UI
+            Snackbar.Add($"Load failed: {result.Error}", Severity.Error);
         }
 
-        return new GridData<ProductDto>
-        {
-            TotalItems = 0,
-            Items = new List<ProductDto>()
-        };
-    }
-
-    private Task OnSearch(string text)
-    {
-        _searchString = text;
-        return _dataGrid.ReloadServerData();
+        _isLoading = false;
+        StateHasChanged();
     }
 
     private async Task CreateProduct()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<CreateProductDialog>("Create Product", options);
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CreateProductDialog>("New Product", options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
-            await _dataGrid.ReloadServerData();
+            _currentPage = 1; // Return to first page to see the new product
+            await LoadProducts();
         }
+    }
+
+    private async Task EditProduct(ProductDto product)
+    {
+        var parameters = new DialogParameters { ["Product"] = product };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<EditProductDialog>("Edit Product", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadProducts();
+        }
+    }
+
+    private async Task DeleteProduct(ProductDto product)
+    {
+        bool? dialogResult = await DialogService.ShowMessageBox(
+            "Delete Product",
+            $"Are you sure you want to delete {product.Name}?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (dialogResult == true)
+        {
+            var result = await Client.DeleteProductAsync(product.Id);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Product deleted successfully", Severity.Success);
+                // Check if page became empty
+                if (_products.Count == 1 && _currentPage > 1) 
+                    _currentPage--;
+                await LoadProducts();
+            }
+            else
+            {
+                Snackbar.Add($"Failed to delete product: {result.Error}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task ViewProductDetail(ProductDto product)
+    {
+        var parameters = new DialogParameters { ["Product"] = product };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        await DialogService.ShowAsync<ProductDetailDialog>($"Product Details - {product.Name}", parameters, options);
     }
 }

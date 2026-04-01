@@ -1,0 +1,53 @@
+@using CleanArchitecture.WebUI.Services.Models
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Inventory" Class="mr-3 mb-n1" />
+            @Product.Name
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudPaper Elevation="0" Class="pa-4 bg-light">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Price</MudText>
+                    <MudText Typo="Typo.body1" Class="font-weight-bold">@Product.Price.ToString("C2")</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Stock</MudText>
+                    <MudText Typo="Typo.body1" Class="font-weight-bold">@Product.Stock units</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Status</MudText>
+                    <div>
+                        <MudChip T="string" Color="@(Product.Status == "Active" ? Color.Success : Color.Warning)" Size="Size.Small">@Product.Status</MudChip>
+                    </div>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Created At</MudText>
+                    <MudText Typo="Typo.body1">@Product.CreatedAt.ToString("MMM dd, yyyy HH:mm")</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Description</MudText>
+                    <MudText Typo="Typo.body2">@(string.IsNullOrWhiteSpace(Product.Description) ? "No description provided." : Product.Description)</MudText>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public ProductDto Product { get; set; } = new();
+
+    private void Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

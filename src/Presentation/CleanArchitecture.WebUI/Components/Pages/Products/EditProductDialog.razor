@@ -1,0 +1,78 @@
+@using CleanArchitecture.WebUI.Services.Models
+@using CleanArchitecture.WebUI.Services
+@inject ProductsClient Client
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" IsValid="@_isValid">
+            <MudTextField @bind-Value="Command.Name" Label="Product Name" Required="true" RequiredError="Name is required!" />
+            <MudTextField @bind-Value="Command.Description" Label="Description" Lines="3" />
+            <MudNumericField @bind-Value="Command.Price" Label="Price" Required="true" Min="0" RequiredError="Price must be valid." />
+            <MudNumericField @bind-Value="Command.Stock" Label="Stock Quantity" Required="true" Min="0" RequiredError="Stock must be valid." />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Disabled="@(_isSaving)">
+            @if (_isSaving)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Saving</MudText>
+            }
+            else
+            {
+                <MudText>Save Changes</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+    
+    [Parameter]
+    public ProductDto Product { get; set; } = new();
+
+    private UpdateProductDto Command { get; set; } = new();
+    private MudForm _form = default!;
+    private bool _isValid;
+    private bool _isSaving;
+
+    protected override void OnInitialized()
+    {
+        Command = new UpdateProductDto
+        {
+            Name = Product.Name,
+            Description = Product.Description,
+            Price = Product.Price,
+            Stock = Product.Stock
+        };
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            _isSaving = true;
+            var result = await Client.UpdateProductAsync(Product.Id, Command);
+            _isSaving = false;
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Product updated successfully", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add($"Failed to update product: {result.Error}", Severity.Error);
+            }
+        }
+    }
+}

@@ -1,0 +1,125 @@
+@page "/users"
+@using CleanArchitecture.WebUI.Services
+@using CleanArchitecture.WebUI.Services.Models
+@inject AuthClient Client
+@inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Admin")]
+
+<MudText Typo="Typo.h3" GutterBottom="true">User Management</MudText>
+<MudText Typo="Typo.subtitle1" Class="mb-4">Manage application users and their roles.</MudText>
+
+@if (_isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="UserDto" Items="@_users" Dense="true" Hover="true" Striped="true" QuickFilter="@_quickFilter">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Registered Users</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="_searchString" Placeholder="Search by Name or Email" Adornment="Adornment.Start" Immediate="true"
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.FullName" Title="Full Name" />
+            <PropertyColumn Property="x => x.Email" Title="Email" />
+            <TemplateColumn Title="Current Role" Sortable="false">
+                <CellTemplate>
+                    @{
+                        var role = context.Item.Roles.FirstOrDefault() ?? "None";
+                        var color = role == "Admin" ? Color.Error : Color.Info;
+                    }
+                    <MudChip T="string" Color="@color" Size="Size.Small">@role</MudChip>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Actions" Sortable="false">
+                <CellTemplate>
+                    <MudSelect T="string" Value="@(context.Item.Roles.FirstOrDefault() ?? "Member")" 
+                               Label="Change Role" 
+                               Variant="Variant.Outlined" 
+                               Margin="Margin.Dense" 
+                               ValueChanged="@(async (string val) => await UpdateRole(context.Item, val))">
+                        <MudSelectItem Value="@("Admin")" />
+                        <MudSelectItem Value="@("Member")" />
+                    </MudSelect>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="UserDto" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+@code {
+    private List<UserDto> _users = new();
+    private bool _isLoading = true;
+    private string _searchString = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadUsers();
+        }
+    }
+
+    private async Task LoadUsers()
+    {
+        _isLoading = true;
+        StateHasChanged(); // Trigger render to show the loading indicator
+
+        var result = await Client.GetUsersAsync();
+        
+        if (result.IsSuccess && result.Data != null)
+        {
+            _users = result.Data;
+        }
+        else
+        {
+            Snackbar.Add($"Failed to load users: {result.Error}", Severity.Error);
+        }
+        
+        _isLoading = false;
+        StateHasChanged(); // Trigger render to display the loaded data
+    }
+
+    private async Task UpdateRole(UserDto user, string newRole)
+    {
+        var currentRole = user.Roles.FirstOrDefault();
+        if (currentRole == newRole) return;
+
+        var result = await Client.UpdateUserRoleAsync(user.Email, newRole);
+
+        if (result.IsSuccess)
+        {
+            Snackbar.Add($"Role for {user.Email} successfully updated to {newRole}", Severity.Success);
+            
+            // Update the local model so the UI reflects the change without a full reload
+            user.Roles.Clear();
+            user.Roles.Add(newRole);
+        }
+        else
+        {
+            Snackbar.Add($"Failed to update role: {result.Error}", Severity.Error);
+            
+            // Reload user list to restore original state if failed
+            await LoadUsers();
+        }
+    }
+
+    private Func<UserDto, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.FullName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    };
+}
