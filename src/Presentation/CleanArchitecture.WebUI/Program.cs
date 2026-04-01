@@ -4,7 +4,57 @@ using CleanArchitecture.WebUI.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Exporter;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure OpenTelemetry Logging, Tracing, Metrics
+#region OpenTelemetry
+builder.Logging.ClearProviders();
+
+var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"];
+Uri? otlpUri = null;
+if (!string.IsNullOrEmpty(otlpEndpoint))
+    otlpUri = new Uri(otlpEndpoint);
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("CleanArchitecture-WebUI"))
+    .WithTracing(tracing =>
+    {
+        tracing.AddAspNetCoreInstrumentation()
+               .AddHttpClientInstrumentation();
+        if (otlpUri is not null)
+            tracing.AddOtlpExporter(options =>
+            {
+                options.Endpoint = otlpUri;
+                options.Protocol = OtlpExportProtocol.Grpc;
+            });
+    })
+    .WithMetrics(metric =>
+    {
+        metric.AddConsoleExporter();
+        if (otlpUri is not null)
+            metric.AddOtlpExporter(options =>
+            {
+                options.Endpoint = otlpUri;
+                options.Protocol = OtlpExportProtocol.Grpc;
+            });
+    })
+    .WithLogging(logging =>
+    {
+        logging.AddConsoleExporter();
+        if (otlpUri is not null)
+            logging.AddOtlpExporter(options =>
+            {
+                options.Endpoint = otlpUri;
+                options.Protocol = OtlpExportProtocol.Grpc;
+            });
+    });
+#endregion
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
