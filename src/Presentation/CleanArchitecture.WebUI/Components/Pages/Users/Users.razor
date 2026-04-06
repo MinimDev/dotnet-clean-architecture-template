@@ -47,9 +47,9 @@ else
             </TemplateColumn>
             <TemplateColumn Title="Actions" Sortable="false">
                 <CellTemplate>
-                    <MudMenu Icon="@Icons.Material.Rounded.MoreVert" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Variant="Variant.Flat">
-                        <MudMenuItem Icon="@Icons.Material.Rounded.Security" IconColor="Color.Error" OnClick="@(async () => await UpdateRole(context.Item, "Admin"))">Make Admin</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Rounded.PersonBasic" IconColor="Color.Info" OnClick="@(async () => await UpdateRole(context.Item, "Member"))">Make Member</MudMenuItem>
+                    <MudMenu Icon="@Icons.Material.Rounded.MoreVert" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        <MudMenuItem Icon="@Icons.Material.Rounded.Security" IconColor="Color.Error" OnClick="@(() => UpdateRole(context.Item, "Admin"))">Make Admin</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Rounded.Person" IconColor="Color.Info" OnClick="@(() => UpdateRole(context.Item, "Member"))">Make Member</MudMenuItem>
                         <MudDivider />
                         <MudMenuItem Icon="@Icons.Material.Rounded.DeleteOutline" IconColor="Color.Default">Remove User</MudMenuItem>
                     </MudMenu>
