@@ -5,17 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.0] - 2026-04-06
 
 ### Added
 - Integrated Mapster mapping configurations (`IRegister`) with Auto-scan mechanism in Dependency Injection
 - Example custom mapping implementation (`ProductMappingConfig.cs`) projecting `Price` to `PriceDisplay` string
 - Aesthetic WebUI overhaul (Glassmorphism, dynamic mesh gradients, modern typography using Outfit/Inter, and interactive animations)
 - `MultiSelection` support and advanced UI layout for User Management Dashboard (`Users.razor`)
+- Custom Badges and Dot Indicators for user roles with premium SaaS look
 
 ### Changed
 - Refactored `GetProductsListQueryHandler` and `GetProductByIdQueryHandler` to utilize Mapster's `ProjectToType<T>()` instead of manual mapping
 - Refactored `UsersController.GetUsers` to utilize Mapster's `.Adapt<List<UserDto>>()` mapping pattern
+- Improved Snackbar configuration: transitioned to `TopRight` position with non-duplicate and auto-close settings
+- Refined Sidebar navigation with gradient active-states and premium accents
+
+### Fixed
+- Resolved `InvalidOperationException` regarding `IAuthenticationService` by migrating from page-level `@attribute [Authorize]` to component-level `<AuthorizeView>`
+- Corrected child content parameter name ambiguity in `Users.razor` (Authentication Context vs DataGrid Context)
 
 ## [1.3.1] - 2026-04-06
 

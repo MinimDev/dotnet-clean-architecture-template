@@ -1,66 +1,75 @@
+using CleanArchitecture.WebUI.Components;
+using CleanArchitecture.WebUI.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 using MudBlazor.Services;
-using CleanArchitecture.WebUI.Services;
-using CleanArchitecture.WebUI.Components;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
-using OpenTelemetry.Exporter;
+using OpenTelemetry.Trace;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Configure OpenTelemetry Logging, Tracing, Metrics
+
 #region OpenTelemetry
+
 builder.Logging.ClearProviders();
 
-var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"];
+string? otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"];
 Uri? otlpUri = null;
 if (!string.IsNullOrEmpty(otlpEndpoint))
+{
     otlpUri = new Uri(otlpEndpoint);
+}
 
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService("CleanArchitecture-WebUI"))
     .WithTracing(tracing =>
     {
         tracing.AddAspNetCoreInstrumentation()
-               .AddHttpClientInstrumentation();
+            .AddHttpClientInstrumentation();
         if (otlpUri is not null)
+        {
             tracing.AddOtlpExporter(options =>
             {
                 options.Endpoint = otlpUri;
                 options.Protocol = OtlpExportProtocol.Grpc;
             });
+        }
     })
     .WithMetrics(metric =>
     {
         metric.AddConsoleExporter();
         if (otlpUri is not null)
+        {
             metric.AddOtlpExporter(options =>
             {
                 options.Endpoint = otlpUri;
                 options.Protocol = OtlpExportProtocol.Grpc;
             });
+        }
     })
     .WithLogging(logging =>
     {
         logging.AddConsoleExporter();
         if (otlpUri is not null)
+        {
             logging.AddOtlpExporter(options =>
             {
                 options.Endpoint = otlpUri;
                 options.Protocol = OtlpExportProtocol.Grpc;
             });
+        }
     });
+
 #endregion
 
 // Add MudBlazor services with premium snackbar configuration
 builder.Services.AddMudServices(config =>
 {
-    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopRight;
     config.SnackbarConfiguration.PreventDuplicates = false;
     config.SnackbarConfiguration.NewestOnTop = false;
     config.SnackbarConfiguration.ShowCloseIcon = true;
@@ -71,7 +80,7 @@ builder.Services.AddMudServices(config =>
 });
 
 // Add services to the container.
-var httpClientBuilder = builder.Services.AddHttpClient("WebAPI", client =>
+IHttpClientBuilder httpClientBuilder = builder.Services.AddHttpClient("WebAPI", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7253");
 });
@@ -92,19 +101,18 @@ builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStatePr
 builder.Services.AddScoped<AuthClient>();
 builder.Services.AddScoped<ProductsClient>();
 
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseExceptionHandler("/Error", true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
