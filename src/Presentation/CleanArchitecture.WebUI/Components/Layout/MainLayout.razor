@@ -1,16 +1,16 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudLayout>
-    <MudAppBar Elevation="1">
+    <MudAppBar Elevation="0" Style="background: var(--mud-palette-appbar-background); backdrop-filter: blur(12px); border-bottom: 1px solid var(--mud-palette-lines-default);">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
+        <MudText Typo="Typo.h5" Class="ml-3 font-weight-bold" Color="Color.Primary">Application</MudText>
         <MudSpacer />
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
     <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
@@ -40,7 +40,12 @@
         {
             PaletteLight = _lightPalette,
             PaletteDark = _darkPalette,
-            LayoutProperties = new LayoutProperties()
+            Typography = _typography,
+            LayoutProperties = new LayoutProperties
+            {
+                DefaultBorderRadius = "12px",
+                AppbarHeight = "72px"
+            }
         };
     }
 
@@ -56,41 +61,75 @@
 
     private readonly PaletteLight _lightPalette = new()
     {
-        Black = "#110e2d",
-        AppbarText = "#424242",
-        AppbarBackground = "rgba(255,255,255,0.8)",
+        Primary = "#4f46e5",
+        PrimaryDarken = "#4338ca",
+        PrimaryLighten = "#818cf8",
+        Secondary = "#64748b",
+        Black = "#0f172a",
+        AppbarText = "#334155",
+        AppbarBackground = "rgba(255,255,255,0.7)",
         DrawerBackground = "#ffffff",
-        GrayLight = "#e8e8e8",
-        GrayLighter = "#f9f9f9",
+        GrayLight = "#f1f5f9",
+        GrayLighter = "#f8fafc",
+        Background = "#f8fafc",
+        Surface = "#ffffff",
+        Success = "#10b981",
+        Warning = "#f59e0b",
+        Error = "#ef4444",
+        Info = "#3b82f6",
+        BackgroundGray = "#f1f5f9",
+        LinesDefault = "#e2e8f0",
+        Divider = "#e2e8f0"
     };
 
     private readonly PaletteDark _darkPalette = new()
     {
-        Primary = "#7e6fff",
-        Surface = "#1e1e2d",
-        Background = "#1a1a27",
-        BackgroundGray = "#151521",
-        AppbarText = "#92929f",
-        AppbarBackground = "rgba(26,26,39,0.8)",
-        DrawerBackground = "#1a1a27",
-        ActionDefault = "#74718e",
-        ActionDisabled = "#9999994d",
-        ActionDisabledBackground = "#605f6d4d",
-        TextPrimary = "#b2b0bf",
-        TextSecondary = "#92929f",
-        TextDisabled = "#ffffff33",
-        DrawerIcon = "#92929f",
-        DrawerText = "#92929f",
-        GrayLight = "#2a2833",
-        GrayLighter = "#1e1e2d",
-        Info = "#4a86ff",
-        Success = "#3dcb6c",
-        Warning = "#ffb545",
-        Error = "#ff3f5f",
-        LinesDefault = "#33323e",
-        TableLines = "#33323e",
-        Divider = "#292838",
-        OverlayLight = "#1e1e2d80",
+        Primary = "#818cf8",
+        PrimaryLighten = "#a5b4fc",
+        PrimaryDarken = "#4f46e5",
+        Secondary = "#94a3b8",
+        Surface = "#1e293b",
+        Background = "#0f172a",
+        BackgroundGray = "#0f172a",
+        AppbarText = "#f8fafc",
+        AppbarBackground = "rgba(15,23,42,0.8)",
+        DrawerBackground = "#1e293b",
+        ActionDefault = "#94a3b8",
+        ActionDisabled = "#475569",
+        ActionDisabledBackground = "#334155",
+        TextPrimary = "#f1f5f9",
+        TextSecondary = "#94a3b8",
+        TextDisabled = "#64748b",
+        DrawerIcon = "#cbd5e1",
+        DrawerText = "#f1f5f9",
+        GrayLight = "#334155",
+        GrayLighter = "#1e293b",
+        Info = "#3b82f6",
+        Success = "#10b981",
+        Warning = "#f59e0b",
+        Error = "#ef4444",
+        LinesDefault = "#334155",
+        TableLines = "#334155",
+        Divider = "#334155",
+        OverlayLight = "#0f172a80",
+    };
+
+    private readonly Typography _typography = new()
+    {
+        Default = new Default()
+        {
+            FontFamily = new[] { "Inter", "Helvetica", "Arial", "sans-serif" },
+            FontSize = "0.95rem",
+            LetterSpacing = "0.01em"
+        },
+        H1 = new H1 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 700 },
+        H2 = new H2 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 700 },
+        H3 = new H3 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 700 },
+        H4 = new H4 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 600 },
+        H5 = new H5 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 600 },
+        H6 = new H6 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 600 },
+        Button = new Button { FontFamily = new[] { "Inter", "sans-serif" }, FontWeight = 600, TextTransform = "none" },
+        Subtitle1 = new Subtitle1 { FontFamily = new[] { "Inter", "sans-serif" }, FontWeight = 500 }
     };
 
     public string DarkLightModeButtonIcon => _isDarkMode switch

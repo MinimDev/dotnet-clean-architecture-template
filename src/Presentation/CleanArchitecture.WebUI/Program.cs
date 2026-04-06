@@ -1,3 +1,4 @@
+using MudBlazor;
 using MudBlazor.Services;
 using CleanArchitecture.WebUI.Services;
 using CleanArchitecture.WebUI.Components;
@@ -56,8 +57,18 @@ builder.Services.AddOpenTelemetry()
     });
 #endregion
 
-// Add MudBlazor services
-builder.Services.AddMudServices();
+// Add MudBlazor services with premium snackbar configuration
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 4000;
+    config.SnackbarConfiguration.HideTransitionDuration = 500;
+    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+});
 
 // Add services to the container.
 var httpClientBuilder = builder.Services.AddHttpClient("WebAPI", client =>

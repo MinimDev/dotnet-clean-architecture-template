@@ -6,23 +6,29 @@
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" IsValid="@_isValid">
-            <MudTextField @bind-Value="Command.Name" Label="Product Name" Required="true" RequiredError="Name is required!" />
-            <MudTextField @bind-Value="Command.Description" Label="Description" Lines="3" />
-            <MudNumericField @bind-Value="Command.Price" Label="Price" Required="true" Min="0" RequiredError="Price must be valid." />
-            <MudNumericField @bind-Value="Command.Stock" Label="Stock Quantity" Required="true" Min="0" RequiredError="Stock must be valid." />
+            <MudTextField @bind-Value="Command.Name" Label="Product Name" Variant="Variant.Outlined" Required="true" RequiredError="Name is required!" Class="mb-4" />
+            <MudTextField @bind-Value="Command.Description" Label="Description" Variant="Variant.Outlined" Lines="3" Class="mb-4" />
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudNumericField @bind-Value="Command.Price" Label="Price" Variant="Variant.Outlined" Required="true" Min="0" RequiredError="Price must be valid." />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField @bind-Value="Command.Stock" Label="Stock Quantity" Variant="Variant.Outlined" Required="true" Min="0" RequiredError="Stock must be valid." />
+                </MudItem>
+            </MudGrid>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Disabled="@(_isSaving)">
+        <MudButton OnClick="Cancel" Class="rounded-lg mr-2 text-transform-none font-weight-bold">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Disabled="@(_isSaving)" Class="rounded-lg px-6 text-transform-none font-weight-bold shadow-sm">
             @if (_isSaving)
             {
-                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                <MudText Class="ms-2">Saving</MudText>
+                <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true" />
+                <span>Saving...</span>
             }
             else
             {
-                <MudText>Save Changes</MudText>
+                <span>Save Changes</span>
             }
         </MudButton>
     </DialogActions>

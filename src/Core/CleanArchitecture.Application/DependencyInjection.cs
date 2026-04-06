@@ -3,6 +3,8 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using CleanArchitecture.Application.Common.Behaviours;
+using CleanArchitecture.Application.Features.Products.Queries.GetProductsList;
+using CleanArchitecture.Domain.Entities;
 
 namespace CleanArchitecture.Application;
 
@@ -25,8 +27,11 @@ public static class DependencyInjection
         // Register FluentValidation validators
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-        // Register AutoMapper
-        services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        // Register Mapster (Optional explicit config if needed)
+        var config = Mapster.TypeAdapterConfig.GlobalSettings;
+        config.Scan(Assembly.GetExecutingAssembly());
+        services.AddSingleton(config);
+        services.AddScoped<MapsterMapper.IMapper, MapsterMapper.ServiceMapper>();
 
         return services;
     }

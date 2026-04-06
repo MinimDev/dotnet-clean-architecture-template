@@ -80,6 +80,7 @@ public class UpdateProductCommandHandlerTests
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
         result.Error.ShouldContain($"Product with ID {productId} not found");
 
         _mockRepository.Verify(r => r.Update(It.IsAny<Product>()), Times.Never);

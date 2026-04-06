@@ -5,8 +5,12 @@
 @inject ISnackbar Snackbar
 @attribute [Authorize(Roles = "Admin")]
 
-<MudText Typo="Typo.h3" GutterBottom="true">User Management</MudText>
-<MudText Typo="Typo.subtitle1" Class="mb-4">Manage application users and their roles.</MudText>
+<div class="d-flex align-center justify-space-between mb-6">
+    <div>
+        <MudText Typo="Typo.h3" Class="font-weight-bold" Color="Color.Primary">User Management</MudText>
+        <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mt-1">Manage application users, assign roles, and control access.</MudText>
+    </div>
+</div>
 
 @if (_isLoading)
 {
@@ -14,35 +18,41 @@
 }
 else
 {
-    <MudDataGrid T="UserDto" Items="@_users" Dense="true" Hover="true" Striped="true" QuickFilter="@_quickFilter">
+    <MudDataGrid T="UserDto" Items="@_users" MultiSelection="true" Elevation="4" Dense="false" Hover="true" Striped="false"
+                 Class="rounded-xl border-solid border-2 mud-border-lines-default" 
+                 Style="background: var(--mud-palette-surface);" QuickFilter="@_quickFilter">
         <ToolBarContent>
-            <MudText Typo="Typo.h6">Registered Users</MudText>
+            <MudIcon Icon="@Icons.Material.Rounded.PeopleAlt" Color="Color.Primary" Class="mr-3" />
+            <MudText Typo="Typo.h6" Class="font-weight-bold">Registered Users</MudText>
             <MudSpacer />
             <MudTextField @bind-Value="_searchString" Placeholder="Search by Name or Email" Adornment="Adornment.Start" Immediate="true"
-                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                          AdornmentIcon="@Icons.Material.Rounded.Search" IconSize="Size.Medium" Class="mt-0" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
         </ToolBarContent>
         <Columns>
+            <SelectColumn T="UserDto" />
             <PropertyColumn Property="x => x.FullName" Title="Full Name" />
             <PropertyColumn Property="x => x.Email" Title="Email" />
             <TemplateColumn Title="Current Role" Sortable="false">
                 <CellTemplate>
                     @{
                         var role = context.Item.Roles.FirstOrDefault() ?? "None";
-                        var color = role == "Admin" ? Color.Error : Color.Info;
+                        var badgeColor = role == "Admin" ? "var(--mud-palette-error)" : "var(--mud-palette-info)";
+                        var badgeBg = role == "Admin" ? "rgba(var(--mud-palette-error-rgb), 0.1)" : "rgba(var(--mud-palette-info-rgb), 0.1)";
                     }
-                    <MudChip T="string" Color="@color" Size="Size.Small">@role</MudChip>
+                    <div style="background-color: @badgeBg; border-radius: 8px; padding: 4px 12px; display: inline-flex; align-items: center; border: 1px solid rgba(var(--mud-palette-lines-default-rgb), 0.3);">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background-color: @badgeColor; margin-right: 8px;"></div>
+                        <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Style="@($"color: {badgeColor}; text-transform: uppercase; font-size: 0.75rem;")">@role</MudText>
+                    </div>
                 </CellTemplate>
             </TemplateColumn>
             <TemplateColumn Title="Actions" Sortable="false">
                 <CellTemplate>
-                    <MudSelect T="string" Value="@(context.Item.Roles.FirstOrDefault() ?? "Member")" 
-                               Label="Change Role" 
-                               Variant="Variant.Outlined" 
-                               Margin="Margin.Dense" 
-                               ValueChanged="@(async (string val) => await UpdateRole(context.Item, val))">
-                        <MudSelectItem Value="@("Admin")" />
-                        <MudSelectItem Value="@("Member")" />
-                    </MudSelect>
+                    <MudMenu Icon="@Icons.Material.Rounded.MoreVert" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Variant="Variant.Flat">
+                        <MudMenuItem Icon="@Icons.Material.Rounded.Security" IconColor="Color.Error" OnClick="@(async () => await UpdateRole(context.Item, "Admin"))">Make Admin</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Rounded.PersonBasic" IconColor="Color.Info" OnClick="@(async () => await UpdateRole(context.Item, "Member"))">Make Member</MudMenuItem>
+                        <MudDivider />
+                        <MudMenuItem Icon="@Icons.Material.Rounded.DeleteOutline" IconColor="Color.Default">Remove User</MudMenuItem>
+                    </MudMenu>
                 </CellTemplate>
             </TemplateColumn>
         </Columns>

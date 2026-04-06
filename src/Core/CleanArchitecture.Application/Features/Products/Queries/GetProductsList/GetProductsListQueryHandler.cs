@@ -1,5 +1,6 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
+using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,16 +41,7 @@ public class GetProductsListQueryHandler : IRequestHandler<GetProductsListQuery,
             }
 
             // Project to DTO
-            var productDtos = query.Select(p => new ProductDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Price = p.Price,
-                Stock = p.Stock,
-                Status = p.Status.ToString(),
-                CreatedAt = p.CreatedAt
-            });
+            var productDtos = query.ProjectToType<ProductDto>();
 
             var paginatedList = await PaginatedList<ProductDto>.CreateAsync(
                 productDtos,
