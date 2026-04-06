@@ -92,7 +92,8 @@ builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStatePr
 builder.Services.AddScoped<AuthClient>();
 builder.Services.AddScoped<ProductsClient>();
 
-builder.Services.AddAuthorizationCore();
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddRazorComponents()
