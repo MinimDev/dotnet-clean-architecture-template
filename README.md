@@ -2,12 +2,12 @@
 
 A comprehensive, production-ready ASP.NET Core starter template implementing Clean Architecture principles with CQRS, MediatR, JWT Authentication, and modern API documentation.
 
-[![.NET](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/download)
-[![NuGet](https://img.shields.io/nuget/v/Minimdev.CleanArchitecture.Template.svg)](https://www.nuget.org/packages/Minimdev.CleanArchitecture.Template)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/Minimdev.CleanArchitecture.Template.svg)](https://www.nuget.org/packages/Minimdev.CleanArchitecture.Template)
-[![GitHub Stars](https://img.shields.io/github/stars/MinimDev/dotnet-clean-architecture-template.svg)](https://github.com/MinimDev/dotnet-clean-architecture-template/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/MinimDev/dotnet-clean-architecture-template.svg)](https://github.com/MinimDev/dotnet-clean-architecture-template/network)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![.NET 10.0](https://img.shields.io/badge/.NET-10.0-blue.svg?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/download)
+[![Mapster](https://img.shields.io/badge/Mapping-Mapster-blue?style=flat-square&logo=dynamic-dns)](https://github.com/MapsterMapper/Mapster)
+[![NuGet](https://img.shields.io/nuget/v/Minimdev.CleanArchitecture.Template.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/Minimdev.CleanArchitecture.Template)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Minimdev.CleanArchitecture.Template.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/Minimdev.CleanArchitecture.Template)
+[![GitHub Stars](https://img.shields.io/github/stars/MinimDev/dotnet-clean-architecture-template.svg?style=flat-square&logo=github)](https://github.com/MinimDev/dotnet-clean-architecture-template/stargazers)
+[![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 
 ## 🏗️ Project Structure
 
@@ -52,7 +52,7 @@ YourProject/
 - ✅ **ASP.NET Core Identity** - User management
 - ✅ **JWT Bearer Authentication** - Secure API authentication
 - ✅ **OpenTelemetry** - Observability and distributed tracing
-- ✅ **AutoMapper v12.0.1** - Object-to-object mapping
+- ✅ **Mapster v7.4.x** - High-performance object-to-object mapping
 - ✅ **FluentValidation** - Request validation
 - ✅ **Scalar UI** - Modern API documentation with JWT support
 - ✅ **Serilog** - Structured logging (Console + File)
@@ -308,7 +308,24 @@ public class CreateYourEntityCommandHandler
 }
 ```
 
-### 3. Create Controller (Presentation Layer)
+### 3. Add Mapping (Optional - Application Layer)
+
+Create a mapping configuration to handle DTO transformations. Mapster is configured to auto-scan for `IRegister` implementations.
+
+```csharp
+// src/Core/CleanArchitecture.Application/Features/YourFeature/Mappings/YourEntityMapping.cs
+public class YourEntityMapping : IRegister
+{
+    public void Register(TypeAdapterConfig config)
+    {
+        config.NewConfig<YourEntity, YourEntityDto>()
+            .Map(dest => dest.CustomProperty, src => src.Calculation())
+            .IgnoreNullValues(true);
+    }
+}
+```
+
+### 4. Create Controller (Presentation Layer)
 
 ```csharp
 [ApiController]
@@ -317,6 +334,8 @@ public class CreateYourEntityCommandHandler
 public class YourController : ControllerBase
 {
     private readonly IMediator _mediator;
+    
+    public YourController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateYourEntityCommand command)
