@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Mapster;
 
 namespace CleanArchitecture.WebAPI.Controllers;
 
@@ -36,22 +37,18 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(List<UserDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUsers()
     {
-        // 1. Ambil seluruh list tipe ApplicationUser (Bisa butuh pagination di masa depan)
+        // 1. Ambil seluruh list tipe ApplicationUser
         var users = await _userManager.Users.ToListAsync();
         
-        var userDtos = new List<UserDto>();
+        // 2. Map ke UserDto menggunakan Mapster (kecuali properti roles yang async)
+        var userDtos = users.Adapt<List<UserDto>>();
 
-        foreach (var user in users)
+        // 3. Modifikasi array Roles yang bersifat async
+        foreach (var dto in userDtos)
         {
+            var user = users.First(u => u.Id == dto.Id);
             var roles = await _userManager.GetRolesAsync(user);
-
-            userDtos.Add(new UserDto
-            {
-                Id = user.Id,
-                Email = user.Email ?? "",
-                FullName = user.FullName ?? "",
-                Roles = roles.ToList()
-            });
+            dto.Roles = roles.ToList();
         }
 
         return Ok(userDtos);

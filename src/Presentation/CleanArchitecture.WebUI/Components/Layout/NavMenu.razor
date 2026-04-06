@@ -1,4 +1,4 @@
-﻿@using CleanArchitecture.WebUI.Services
+@using CleanArchitecture.WebUI.Services
 @inject AuthClient AuthClient
 @inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
@@ -26,6 +26,22 @@
         </NotAuthorized>
     </AuthorizeView>
 </MudNavMenu>
+
+<style>
+    .mud-nav-link.active {
+        font-weight: 700;
+        background: linear-gradient(90deg, rgba(var(--mud-palette-primary-rgb), 0.15) 0%, rgba(var(--mud-palette-primary-rgb), 0) 100%);
+        border-left: 4px solid var(--mud-palette-primary);
+        color: var(--mud-palette-primary) !important;
+    }
+    .mud-nav-link {
+        border-left: 4px solid transparent; /* To prevent jumping when active */
+        transition: all 0.2s ease-in-out;
+    }
+    .mud-nav-link:hover:not(.active) {
+        background-color: rgba(var(--mud-palette-primary-rgb), 0.05);
+    }
+</style>
 
 @code {
     private async Task Logout()

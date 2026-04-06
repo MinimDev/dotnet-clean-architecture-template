@@ -5,10 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.0] - 2026-04-06
+
+### Added
+- Integrated Mapster mapping configurations (`IRegister`) with Auto-scan mechanism in Dependency Injection
+- Example custom mapping implementation (`ProductMappingConfig.cs`) projecting `Price` to `PriceDisplay` string
+- Aesthetic WebUI overhaul (Glassmorphism, dynamic mesh gradients, modern typography using Outfit/Inter, and interactive animations)
+- `MultiSelection` support and advanced UI layout for User Management Dashboard (`Users.razor`)
+- Custom Badges and Dot Indicators for user roles with premium SaaS look
+
+### Changed
+- Refactored `GetProductsListQueryHandler` and `GetProductByIdQueryHandler` to utilize Mapster's `ProjectToType<T>()` instead of manual mapping
+- Refactored `UsersController.GetUsers` to utilize Mapster's `.Adapt<List<UserDto>>()` mapping pattern
+- Improved Snackbar configuration: transitioned to `TopRight` position with non-duplicate and auto-close settings
+- Refined Sidebar navigation with gradient active-states and premium accents
+
+### Fixed
+- Resolved `InvalidOperationException` regarding `IAuthenticationService` by migrating from page-level `@attribute [Authorize]` to component-level `<AuthorizeView>`
+- Corrected child content parameter name ambiguity in `Users.razor` (Authentication Context vs DataGrid Context)
+
+## [1.3.1] - 2026-04-06
+
+### Fixed
+- JWT auth and WebUI fixes
 
 ## [1.3.0] - 2026-02-22
-
 ### Added
 - Role-Based Access Control (RBAC) implementation (Admin/Member roles)
 - User Management Dashboard in WebUI (View list and manage roles dynamically)
@@ -78,7 +99,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docker support
 - xUnit test projects
 
-[Unreleased]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.3.0...v1.3.1
+[1.3.0]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.1.5...v1.2.0
 [1.1.5]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.0.0...v1.1.4

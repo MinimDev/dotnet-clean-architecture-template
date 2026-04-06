@@ -1,42 +1,66 @@
 @using CleanArchitecture.WebUI.Services.Models
 
-<MudDialog>
-    <TitleContent>
-        <MudText Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.Inventory" Class="mr-3 mb-n1" />
-            @Product.Name
-        </MudText>
-    </TitleContent>
+<MudDialog DisableSidePadding="true" Class="overflow-hidden">
     <DialogContent>
-        <MudPaper Elevation="0" Class="pa-4 bg-light">
-            <MudGrid>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Price</MudText>
-                    <MudText Typo="Typo.body1" Class="font-weight-bold">@Product.Price.ToString("C2")</MudText>
+        <!-- Hero Section -->
+        <div style="@($"height: 180px; {GetGradient(Product.Id.ToString())} position: relative; margin-top: -16px;")" class="d-flex flex-column justify-center align-center mb-6">
+            <MudIcon Icon="@Icons.Material.Rounded.Inventory2" Style="font-size: 6rem; color: rgba(255,255,255,0.9); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));" />
+            <div style="position: absolute; bottom: -20px; left: 24px;">
+                <MudPaper Elevation="4" Class="pa-2 px-4 rounded-xl d-flex align-center gap-2 bg-surface">
+                    @if (Product.Status == "Active")
+                    {
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background-color: var(--mud-palette-success);"></div>
+                        <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Color="Color.Success">ACTIVE</MudText>
+                    }
+                    else
+                    {
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background-color: var(--mud-palette-warning);"></div>
+                        <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Color="Color.Warning">@Product.Status.ToUpper()</MudText>
+                    }
+                </MudPaper>
+            </div>
+        </div>
+
+        <!-- Details Section -->
+        <div class="px-6 pb-2">
+            <MudText Typo="Typo.h4" Class="font-weight-bold mb-2" Style="letter-spacing: -0.02em;">@Product.Name</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+                @(string.IsNullOrWhiteSpace(Product.Description) ? "No description provided." : Product.Description)
+            </MudText>
+
+            <MudGrid Spacing="3">
+                <MudItem xs="6">
+                    <MudPaper Elevation="0" Class="pa-4 rounded-xl" Style="background-color: var(--mud-palette-background-grey);">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="font-weight-medium text-uppercase mb-1">Price</MudText>
+                        <MudText Typo="Typo.h5" Color="Color.Primary" Class="font-weight-bold">
+                            @(Product.Price > 0 ? Product.PriceDisplay : "Free")
+                        </MudText>
+                    </MudPaper>
                 </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Stock</MudText>
-                    <MudText Typo="Typo.body1" Class="font-weight-bold">@Product.Stock units</MudText>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Status</MudText>
-                    <div>
-                        <MudChip T="string" Color="@(Product.Status == "Active" ? Color.Success : Color.Warning)" Size="Size.Small">@Product.Status</MudChip>
-                    </div>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Created At</MudText>
-                    <MudText Typo="Typo.body1">@Product.CreatedAt.ToString("MMM dd, yyyy HH:mm")</MudText>
+                <MudItem xs="6">
+                    <MudPaper Elevation="0" Class="pa-4 rounded-xl" Style="background-color: var(--mud-palette-background-grey);">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="font-weight-medium text-uppercase mb-1">Stock</MudText>
+                        <MudText Typo="Typo.h5" Color="Color.Default" Class="font-weight-bold">@Product.Stock <span style="font-size: 0.8rem; font-weight: normal; color: var(--mud-palette-text-secondary);">units</span></MudText>
+                    </MudPaper>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Description</MudText>
-                    <MudText Typo="Typo.body2">@(string.IsNullOrWhiteSpace(Product.Description) ? "No description provided." : Product.Description)</MudText>
+                    <MudPaper Elevation="0" Class="pa-4 rounded-xl d-flex align-center justify-space-between" Style="background-color: var(--mud-palette-background-grey);">
+                        <div class="d-flex align-center gap-3">
+                            <MudAvatar Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Medium">
+                                <MudIcon Icon="@Icons.Material.Rounded.Event" Size="Size.Small" />
+                            </MudAvatar>
+                            <div>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block font-weight-medium">Added to Inventory</MudText>
+                                <MudText Typo="Typo.body2" Class="font-weight-bold">@Product.CreatedAt.ToString("MMM dd, yyyy HH:mm")</MudText>
+                            </div>
+                        </div>
+                    </MudPaper>
                 </MudItem>
             </MudGrid>
-        </MudPaper>
+        </div>
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Close" Class="px-8 rounded-lg mb-2 mr-4 text-transform-none font-weight-bold">Close Details</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -45,6 +69,14 @@
 
     [Parameter]
     public ProductDto Product { get; set; } = new();
+
+    private string GetGradient(string id)
+    {
+        var hash = id.GetHashCode();
+        var hue1 = Math.Abs(hash % 360);
+        var hue2 = (hue1 + 40) % 360;
+        return $"background: linear-gradient(135deg, hsl({hue1}, 80%, 65%) 0%, hsl({hue2}, 70%, 50%) 100%);";
+    }
 
     private void Close()
     {

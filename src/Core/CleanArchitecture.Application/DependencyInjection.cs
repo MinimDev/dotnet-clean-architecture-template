@@ -1,20 +1,23 @@
 using System.Reflection;
+using CleanArchitecture.Application.Common.Behaviours;
 using FluentValidation;
+using Mapster;
+using MapsterMapper;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using CleanArchitecture.Application.Common.Behaviours;
 
 namespace CleanArchitecture.Application;
 
 /// <summary>
-/// Dependency Injection registration untuk Application layer
+///     Dependency Injection registration untuk Application layer
 /// </summary>
 public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         // Register MediatR
-        services.AddMediatR(cfg => {
+        services.AddMediatR(cfg =>
+        {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
         });
 
@@ -25,8 +28,11 @@ public static class DependencyInjection
         // Register FluentValidation validators
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-        // Register AutoMapper
-        services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        // Register Mapster (Optional explicit config if needed)
+        TypeAdapterConfig config = TypeAdapterConfig.GlobalSettings;
+        config.Scan(Assembly.GetExecutingAssembly());
+        services.AddSingleton(config);
+        services.AddScoped<IMapper, ServiceMapper>();
 
         return services;
     }

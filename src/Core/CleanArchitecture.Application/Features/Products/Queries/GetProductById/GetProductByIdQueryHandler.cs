@@ -1,5 +1,6 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
+using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,19 +25,7 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
             var product = await _context.Products
                 .AsNoTracking()
                 .Where(p => p.Id == request.Id)
-                .Select(p => new ProductDetailDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Stock = p.Stock,
-                    Status = p.Status.ToString(),
-                    CreatedAt = p.CreatedAt,
-                    CreatedBy = p.CreatedBy,
-                    ModifiedAt = p.ModifiedAt,
-                    ModifiedBy = p.ModifiedBy
-                })
+                .ProjectToType<ProductDetailDto>()
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (product == null)
