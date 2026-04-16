@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using CleanArchitecture.Infrastructure.Identity.Models;
 using CleanArchitecture.Infrastructure.Identity.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -55,11 +56,13 @@ public class AuthController : ControllerBase
         await _userManager.AddToRoleAsync(user, "Member");
 
         var roles = await _userManager.GetRolesAsync(user);
-        var token = await _tokenService.GenerateJwtToken(user);
+        var accessToken = await _tokenService.GenerateJwtToken(user);
+        var refreshToken = await _tokenService.GenerateRefreshTokenAsync(user.Id);
 
         return Ok(new AuthResponse
         {
-            Token = token,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
             Email = user.Email!,
             UserName = user.UserName!,
             Roles = roles.ToList()
@@ -67,7 +70,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Login user
+    /// Login user and receive access + refresh tokens
     /// </summary>
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -77,33 +80,66 @@ public class AuthController : ControllerBase
         var user = await _userManager.FindByEmailAsync(request.Email);
 
         if (user == null)
-        {
             return Unauthorized(new { message = "Invalid email or password" });
-        }
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
 
         if (!result.Succeeded)
-        {
             return Unauthorized(new { message = "Invalid email or password" });
-        }
 
         var roles = await _userManager.GetRolesAsync(user);
-        var token = await _tokenService.GenerateJwtToken(user);
+        var accessToken = await _tokenService.GenerateJwtToken(user);
+        var refreshToken = await _tokenService.GenerateRefreshTokenAsync(user.Id);
 
         return Ok(new AuthResponse
         {
-            Token = token,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
             Email = user.Email!,
             UserName = user.UserName!,
             Roles = roles.ToList()
         });
     }
+
+    /// <summary>
+    /// Get a new access token using a valid refresh token
+    /// </summary>
+    [HttpPost("refresh")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
+    {
+        var result = await _tokenService.RefreshAsync(request.RefreshToken);
+
+        if (result == null)
+            return Unauthorized(new { message = "Invalid or expired refresh token" });
+
+        return Ok(new RefreshResponse
+        {
+            AccessToken = result.Value.AccessToken,
+            RefreshToken = result.Value.RefreshToken
+        });
+    }
+
+    /// <summary>
+    /// Revoke a refresh token (logout)
+    /// </summary>
+    [HttpPost("revoke")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Revoke([FromBody] RefreshRequest request)
+    {
+        var revoked = await _tokenService.RevokeRefreshTokenAsync(request.RefreshToken);
+
+        if (!revoked)
+            return BadRequest(new { message = "Token not found or already revoked" });
+
+        return NoContent();
+    }
 }
 
-/// <summary>
-/// Register request model
-/// </summary>
+/// <summary>Register request model</summary>
 public class RegisterRequest
 {
     public string Email { get; set; } = string.Empty;
@@ -111,22 +147,32 @@ public class RegisterRequest
     public string FullName { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// Login request model
-/// </summary>
+/// <summary>Login request model</summary>
 public class LoginRequest
 {
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// Auth response model
-/// </summary>
+/// <summary>Refresh token request model</summary>
+public class RefreshRequest
+{
+    public string RefreshToken { get; set; } = string.Empty;
+}
+
+/// <summary>Auth response model — returned on login and register</summary>
 public class AuthResponse
 {
-    public string Token { get; set; } = string.Empty;
+    public string AccessToken { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public IList<string> Roles { get; set; } = new List<string>();
+}
+
+/// <summary>Response model for token refresh endpoint</summary>
+public class RefreshResponse
+{
+    public string AccessToken { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
 }

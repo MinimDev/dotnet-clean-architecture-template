@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-04-16
+
+### Added
+- **Refresh Token** system — `POST /api/v1/Auth/refresh` and `POST /api/v1/Auth/revoke` endpoints
+- `RefreshToken` entity persisted in IdentityDB with unique index and cascade delete
+- Automatic token rotation: every refresh issues a new pair and invalidates the old one
+- `AccessTokenExpiryMinutes` (default: 15 min) and `RefreshTokenExpiryDays` (default: 7 days) config keys
+- **Integration Tests** scaffold with `CustomWebApplicationFactory` (SQLite in-memory, no SQL Server required)
+- Auth integration tests: register, login, refresh rotation, invalid/expired token cases
+- Products integration tests: unauthenticated guard, JWT auth, Admin vs Member RBAC
+
+### Changed
+- `TokenService` refactored — now accepts `IdentityDbContext` to persist refresh tokens
+- `AuthResponse` renamed field `Token` → `AccessToken`; added `RefreshToken` field
+- `AuthorizationMessageHandler` in WebUI now intercepts 401 and performs silent refresh automatically
+- `AuthClient.LogoutAsync()` now revokes the refresh token server-side before clearing local state
+- `TokenProvider` extended: stores `RefreshToken` + `UpdateAccessToken()` for silent refresh flow
+- JWT configuration: `ExpirationInDays` replaced with `AccessTokenExpiryMinutes` + `RefreshTokenExpiryDays`
+
+### Migration
+```bash
+dotnet ef database update \
+  --project "src/Infrastructure/CleanArchitecture.Infrastructure.Identity" \
+  --startup-project "src/Presentation/CleanArchitecture.WebAPI" \
+  --context IdentityDbContext
+```
+
 ## [1.4.0] - 2026-04-06
 
 ### Added

@@ -231,8 +231,10 @@ dotnet run --project "src/Presentation/CleanArchitecture.WebAPI"
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/v1/Auth/register` | Register a new user |
-| `POST` | `/api/v1/Auth/login` | Login and receive a JWT token *(Rate limited: 10 req/min)* |
+| `POST` | `/api/v1/Auth/register` | Register a new user — returns `accessToken` + `refreshToken` |
+| `POST` | `/api/v1/Auth/login` | Login — returns `accessToken` + `refreshToken` *(Rate limited: 10 req/min)* |
+| `POST` | `/api/v1/Auth/refresh` | Exchange a valid refresh token for new token pair |
+| `POST` | `/api/v1/Auth/revoke` | Revoke refresh token (logout) *(Requires Auth)* |
 
 ### Products *(Requires Authentication)*
 
@@ -257,9 +259,12 @@ dotnet run --project "src/Presentation/CleanArchitecture.WebAPI"
 
 ### Authenticating in Scalar UI
 
-1. Call `POST /api/v1/Auth/login` and copy the returned JWT token
+1. Call `POST /api/v1/Auth/login` and copy the returned `accessToken`
 2. In **Scalar UI**, click **"Auth Type"** → select **"Bearer"**
-3. Paste your token *(without the "Bearer" prefix)*
+3. Paste your `accessToken` *(without the "Bearer" prefix)*
+
+> [!NOTE]
+> Access tokens expire in **15 minutes** by default. Use `POST /api/v1/Auth/refresh` to get a new pair without logging in again.
 
 ---
 
@@ -304,7 +309,8 @@ Key sections in `appsettings.json`:
     "Secret": "your-very-strong-secret-key-min-32-chars",
     "Issuer": "CleanArchitecture",
     "Audience": "CleanArchitectureUsers",
-    "ExpirationInDays": 7
+    "AccessTokenExpiryMinutes": 15,
+    "RefreshTokenExpiryDays": 7
   },
   "Cors": {
     "AllowedOrigins": ["http://localhost:3000", "https://localhost:5001"]

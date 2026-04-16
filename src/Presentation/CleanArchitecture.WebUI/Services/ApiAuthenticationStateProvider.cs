@@ -37,7 +37,12 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider, IDisp
                 var storedData = await _localStorage.GetAsync<AuthResponse>("userInfo");
                 if (storedData.Success && storedData.Value != null)
                 {
-                    _tokenProvider.SetToken(storedData.Value.Token, storedData.Value.UserName, storedData.Value.Email, storedData.Value.Roles);
+                    _tokenProvider.SetToken(
+                        storedData.Value.AccessToken,
+                        storedData.Value.RefreshToken,
+                        storedData.Value.UserName,
+                        storedData.Value.Email,
+                        storedData.Value.Roles);
                 }
             }
             catch

@@ -51,7 +51,12 @@ public class AuthClient
                 var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
                 if (authResponse != null)
                 {
-                    _tokenProvider.SetToken(authResponse.Token, authResponse.UserName, authResponse.Email, authResponse.Roles);
+                    _tokenProvider.SetToken(
+                        authResponse.AccessToken,
+                        authResponse.RefreshToken,
+                        authResponse.UserName,
+                        authResponse.Email,
+                        authResponse.Roles);
                     await _localStorage.SetAsync("userInfo", authResponse);
                     return Result.Success();
                 }
@@ -65,8 +70,24 @@ public class AuthClient
         }
     }
 
-    public async Task Logout()
+    public async Task LogoutAsync()
     {
+        // Revoke refresh token on server
+        if (!string.IsNullOrEmpty(_tokenProvider.RefreshToken))
+        {
+            try
+            {
+                await AddAuthorizationHeaderAsync();
+                await _httpClient.PostAsJsonAsync(
+                    "api/v1/Auth/revoke",
+                    new { RefreshToken = _tokenProvider.RefreshToken });
+            }
+            catch
+            {
+                // Best-effort — always clear local state
+            }
+        }
+
         _tokenProvider.ClearToken();
         await _localStorage.DeleteAsync("userInfo");
     }
@@ -94,9 +115,7 @@ public class AuthClient
             var response = await _httpClient.PutAsJsonAsync($"api/v1/Users/{Uri.EscapeDataString(email)}/roles", request);
 
             if (response.IsSuccessStatusCode)
-            {
                 return Result.Success();
-            }
 
             return Result.Failure("Failed to update user role");
         }

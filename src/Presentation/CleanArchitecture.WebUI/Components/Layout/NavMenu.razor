@@ -46,7 +46,7 @@
 @code {
     private async Task Logout()
     {
-        await AuthClient.Logout();
+        await AuthClient.LogoutAsync();
         NavigationManager.NavigateTo("/login");
     }
 }
