@@ -5,7 +5,7 @@
     <PackageId>Minimdev.CleanArchitecture.Template</PackageId>
     <Title>Clean Architecture Solution Template</Title>
     <Authors>Minimdev</Authors>
-    <Description>Clean Architecture Solution Template by Minimdev. Features ordered layers (Core, Infrastructure, Presentation), .NET 10 support, and full Visual Studio 2022 compatibility via 'dotnet new' or New Project dialog.</Description>
+    <Description>Clean Architecture Solution Template by Minimdev. Features layered architecture (Core, Infrastructure, Presentation), .NET 10 support, Refresh Token system, Integration Tests, and full Visual Studio 2022 &amp; 2026 compatibility via 'dotnet new' or New Project dialog.</Description>
     <PackageTags>clean-architecture;csharp;dotnet-new;template;solution</PackageTags>
     <TargetFramework>net10.0</TargetFramework>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
@@ -17,8 +17,8 @@
     <PackageProjectUrl>https://github.com/Minimdev/CleanArchitecture</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.4.0</Version>
-    <PackageReleaseNotes>v1.4.0: Major WebUI aesthetic overhaul (Glassmorphism), Mapster integration for optimized mapping, and improved authentication stability with AuthorizeView components.</PackageReleaseNotes>
+    <Version>1.5.0</Version>
+    <PackageReleaseNotes>v1.5.0: Refresh Token system with token rotation (POST /auth/refresh, POST /auth/revoke), Integration Tests with SQLite in-memory via WebApplicationFactory, auto-refresh on 401 in Blazor WebUI, and Visual Studio 2026 support.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
