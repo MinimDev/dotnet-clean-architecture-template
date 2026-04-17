@@ -116,20 +116,20 @@
 
     private readonly Typography _typography = new()
     {
-        Default = new Default()
+        Default = new DefaultTypography()
         {
             FontFamily = new[] { "Inter", "Helvetica", "Arial", "sans-serif" },
             FontSize = "0.95rem",
             LetterSpacing = "0.01em"
         },
-        H1 = new H1 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 700 },
-        H2 = new H2 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 700 },
-        H3 = new H3 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 700 },
-        H4 = new H4 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 600 },
-        H5 = new H5 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 600 },
-        H6 = new H6 { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = 600 },
-        Button = new Button { FontFamily = new[] { "Inter", "sans-serif" }, FontWeight = 600, TextTransform = "none" },
-        Subtitle1 = new Subtitle1 { FontFamily = new[] { "Inter", "sans-serif" }, FontWeight = 500 }
+        H1 = new H1Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "700" },
+        H2 = new H2Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "700" },
+        H3 = new H3Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "700" },
+        H4 = new H4Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "600" },
+        H5 = new H5Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "600" },
+        H6 = new H6Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "600" },
+        Button = new ButtonTypography { FontFamily = new[] { "Inter", "sans-serif" }, FontWeight = "600", TextTransform = "none" },
+        Subtitle1 = new Subtitle1Typography { FontFamily = new[] { "Inter", "sans-serif" }, FontWeight = "500" }
     };
 
     public string DarkLightModeButtonIcon => _isDarkMode switch

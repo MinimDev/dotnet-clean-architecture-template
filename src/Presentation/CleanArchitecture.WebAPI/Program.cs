@@ -20,7 +20,7 @@ using Hangfire.SqlServer;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using CleanArchitecture.WebAPI.Infrastructure;
-using Scalar.AspNetCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -216,15 +216,34 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
 
-    var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-    app.MapScalarApiReference(options =>
+    // Scalar API Reference UI (via CDN — avoids NuGet bundle version conflicts)
+    app.MapGet("/scalar/{documentName}", (string documentName) =>
     {
-        options
-            .WithTitle("Clean Architecture API")
-            .WithTheme(ScalarTheme.Purple)
-            .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
-            .WithEndpointPrefix("/scalar/{documentName}")
-            .WithOpenApiRoutePattern("/swagger/{documentName}/swagger.json");
+        var specUrl = $"/swagger/{documentName}/swagger.json";
+        var html = """
+            <!doctype html>
+            <html lang="en">
+            <head>
+                <title>Clean Architecture API</title>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <style>body { margin: 0; }</style>
+            </head>
+            <body>
+                <div id="app"></div>
+                <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+                <script>
+                    Scalar.createApiReference('#app', {
+                        url: '__SPEC_URL__',
+                        theme: 'purple',
+                        defaultHttpClient: { targetKey: 'c#', clientKey: 'httpclient' },
+                        authentication: { preferredSecurityScheme: 'Bearer' }
+                    })
+                </script>
+            </body>
+            </html>
+            """.Replace("__SPEC_URL__", specUrl);
+        return Results.Content(html, "text/html");
     });
 }
 

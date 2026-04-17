@@ -57,11 +57,13 @@ YourProject/
 - ✅ **JWT Bearer Authentication** — Stateless, secure API authentication
 - ✅ **Mapster v10.x** — High-performance object-to-object mapping
 - ✅ **FluentValidation** — Expressive and testable request validation
-- ✅ **Scalar UI** — Modern API documentation with JWT support
+- ✅ **Scalar UI** — Modern API documentation with JWT support *(served via CDN, no extra NuGet required)*
 - ✅ **OpenTelemetry** — Distributed tracing and observability (Console + OTLP exporters)
 - ✅ **xUnit** — Unit and integration testing framework
 
 ### 🚀 Key Capabilities
+- ✅ **Refresh Token** — Secure token rotation with `POST /api/v1/Auth/refresh` and revoke via `POST /api/v1/Auth/revoke`
+- ✅ **Integration Tests** — `WebApplicationFactory` with SQLite in-memory, no SQL Server required for testing
 - ✅ **Role-Based Access Control (RBAC)** — Pre-configured `Admin` and `Member` roles with authorization policies
 - ✅ **User Management Dashboard** — View users and modify roles dynamically from the UI
 - ✅ **API Versioning** — Versioned endpoints (`/api/v1/...`) via URL segment & request header
@@ -259,12 +261,14 @@ dotnet run --project "src/Presentation/CleanArchitecture.WebAPI"
 
 ### Authenticating in Scalar UI
 
-1. Call `POST /api/v1/Auth/login` and copy the returned `accessToken`
-2. In **Scalar UI**, click **"Auth Type"** → select **"Bearer"**
-3. Paste your `accessToken` *(without the "Bearer" prefix)*
+1. Open Scalar UI at `https://localhost:{port}/scalar/v1`
+2. Call `POST /api/v1/Auth/login` and copy the returned `accessToken`
+3. In **Scalar UI**, click **Authentication** → **Bearer Token** → paste your `accessToken`
 
 > [!NOTE]
 > Access tokens expire in **15 minutes** by default. Use `POST /api/v1/Auth/refresh` to get a new pair without logging in again.
+>
+> The Scalar UI is served via CDN (`cdn.jsdelivr.net`). An internet connection is required in development to load the UI assets.
 
 ---
 

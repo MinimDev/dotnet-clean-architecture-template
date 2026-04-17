@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-04-17
+
+### Fixed
+- **MudBlazor v9 breaking change** — `Typography` properties (`FontWeight`) changed from `int` to `string`; updated all heading/button/subtitle properties in `MainLayout.razor`
+- **Swashbuckle.AspNetCore v10 → v9** — `Microsoft.OpenApi` v3.x removed the `Microsoft.OpenApi.Models` namespace; downgraded to Swashbuckle v9.0.1 which is compatible with the existing `ConfigureSwaggerOptions.cs`
+- **Scalar API Reference UI** — `Scalar.AspNetCore` v2.14 bundles the wrong version of `scalar.js` (standalone auto-init instead of programmatic API), causing white screen. Replaced NuGet package with a lightweight CDN-based custom endpoint (`GET /scalar/{documentName}`) that calls `Scalar.createApiReference` directly
+
 ## [1.5.0] - 2026-04-16
 
 ### Added
@@ -126,7 +133,10 @@ dotnet ef database update \
 - Docker support
 - xUnit test projects
 
-[Unreleased]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.5.0...v1.5.1
+[1.5.0]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.1.5...v1.2.0

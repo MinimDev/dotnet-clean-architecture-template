@@ -290,7 +290,7 @@
 
     private async Task DeleteProduct(ProductDto product)
     {
-        bool? dialogResult = await DialogService.ShowMessageBox(
+        bool? dialogResult = await DialogService.ShowMessageBoxAsync(
             "Delete Product",
             $"Are you sure you want to delete {product.Name}?",
             yesText: "Delete", cancelText: "Cancel");

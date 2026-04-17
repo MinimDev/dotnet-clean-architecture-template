@@ -1,0 +1,4 @@
+  Determining projects to restore...
+  Restored D:\MPR\Dev REV\OneVision\CleanArchitechtureTemplateSolution\src\Presentation\CleanArchitecture.WebAPI\CleanArchitecture.WebAPI.csproj (in 3.94 sec).
+  Restored D:\MPR\Dev REV\OneVision\CleanArchitechtureTemplateSolution\tests\CleanArchitecture.Application.IntegrationTests\CleanArchitecture.Application.IntegrationTests.csproj (in 3.94 sec).
+  8 of 10 projects are up-to-date for restore.
