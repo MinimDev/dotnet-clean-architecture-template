@@ -17,8 +17,8 @@
     <PackageProjectUrl>https://github.com/Minimdev/CleanArchitecture</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.5.1</Version>
-    <PackageReleaseNotes>v1.5.1: Build compatibility fixes — MudBlazor v9 Typography FontWeight type (int→string), Swashbuckle.AspNetCore downgraded from v10 to v9 (OpenAPI v3 namespace breaking change), and Scalar API Reference UI replaced with CDN-based approach (Scalar.AspNetCore v2.14 bundle conflict).</PackageReleaseNotes>
+    <Version>1.5.2</Version>
+    <PackageReleaseNotes>v1.5.2: Swashbuckle.AspNetCore updated to v10 syntax, scalar API UI hosted locally, Hangfire test configuration fix.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

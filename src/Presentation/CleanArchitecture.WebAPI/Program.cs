@@ -175,32 +175,35 @@ builder.Services.AddOutputCache(options =>
 var hangfireConnectionString = builder.Configuration.GetConnectionString("HangfireConnection")
     ?? throw new InvalidOperationException("Hangfire connection string not found.");
 
-// Ensure Hangfire database exists before Hangfire tries to use it.
-var builderObj = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(hangfireConnectionString);
-var dbName = builderObj.InitialCatalog;
-builderObj.InitialCatalog = "master";
-using (var connection = new Microsoft.Data.SqlClient.SqlConnection(builderObj.ConnectionString))
+if (!builder.Environment.IsEnvironment("Testing"))
 {
-    connection.Open();
-    using var command = connection.CreateCommand();
-    command.CommandText = $"IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '{dbName}') CREATE DATABASE [{dbName}]";
-    command.ExecuteNonQuery();
-}
-
-builder.Services.AddHangfire(configuration => configuration
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UseSqlServerStorage(hangfireConnectionString, new SqlServerStorageOptions
+    // Ensure Hangfire database exists before Hangfire tries to use it.
+    var builderObj = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(hangfireConnectionString);
+    var dbName = builderObj.InitialCatalog;
+    builderObj.InitialCatalog = "master";
+    using (var connection = new Microsoft.Data.SqlClient.SqlConnection(builderObj.ConnectionString))
     {
-        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-        QueuePollInterval = TimeSpan.Zero,
-        UseRecommendedIsolationLevel = true,
-        DisableGlobalLocks = true
-    }));
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = $"IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '{dbName}') CREATE DATABASE [{dbName}]";
+        command.ExecuteNonQuery();
+    }
 
-builder.Services.AddHangfireServer();
+    builder.Services.AddHangfire(configuration => configuration
+        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UseSqlServerStorage(hangfireConnectionString, new SqlServerStorageOptions
+        {
+            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+            SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+            QueuePollInterval = TimeSpan.Zero,
+            UseRecommendedIsolationLevel = true,
+            DisableGlobalLocks = true
+        }));
+
+    builder.Services.AddHangfireServer();
+}
 
 // ─── Health Checks ────────────────────────────────────────────────────────────
 builder.Services.AddHealthChecks()
@@ -231,7 +234,7 @@ if (app.Environment.IsDevelopment())
             </head>
             <body>
                 <div id="app"></div>
-                <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+                <script src="/js/scalar.min.js"></script>
                 <script>
                     Scalar.createApiReference('#app', {
                         url: '__SPEC_URL__',
@@ -258,6 +261,7 @@ app.Use(async (context, next) =>
     await next();
 });
 
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseRateLimiter();
@@ -265,7 +269,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseOutputCache();
 
-app.UseHangfireDashboard("/hangfire");
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    app.UseHangfireDashboard("/hangfire");
+}
 
 app.MapControllers();
 
