@@ -15,13 +15,19 @@ if ($?) {
     $package = Get-ChildItem *.nupkg | Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if ($package) {
         Write-Host "📦 Package: $($package.Name)" -ForegroundColor Yellow
-        Write-Host "🚀 Pushing to NuGet..." -ForegroundColor Cyan
-        dotnet nuget push $package.FullName --source $Source --api-key $ApiKey
-        if ($?) {
-            Write-Host "✅ Published successfully!" -ForegroundColor Green
+        $confirm = Read-Host "Push to NuGet? (y/n)"
+        if ($confirm -eq 'y') {
+            Write-Host "🚀 Pushing to NuGet..." -ForegroundColor Cyan
+            dotnet nuget push $package.FullName --source $Source --api-key $ApiKey
+            if ($?) {
+                Write-Host "✅ Published successfully!" -ForegroundColor Green
+            }
+            else {
+                Write-Host "❌ Push failed." -ForegroundColor Red
+            }
         }
         else {
-            Write-Host "❌ Push failed." -ForegroundColor Red
+            Write-Host "⏭️  Push cancelled." -ForegroundColor Yellow
         }
     }
     else {
