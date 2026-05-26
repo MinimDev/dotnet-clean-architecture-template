@@ -486,6 +486,4 @@ This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for d
 
 ---
 
-<div align="center">
-  <strong>Built with ❤️ by <a href="https://github.com/MinimDev">MinimDev</a></strong>
-</div>
+**Built with ❤️ by [MinimDev](https://github.com/MinimDev)**

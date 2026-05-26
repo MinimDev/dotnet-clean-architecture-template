@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.3] - 2026-05-26
+
+### Changed
+- Minor updates and bug fixes.
+- General template improvements.
+
 ## [1.5.2] - 2026-04-29
 
 ### Changed
@@ -140,7 +146,8 @@ dotnet ef database update \
 - Docker support
 - xUnit test projects
 
-[Unreleased]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.5.2...HEAD
+[Unreleased]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.5.3...HEAD
+[1.5.3]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/MinimDev/dotnet-clean-architecture-template/compare/v1.4.0...v1.5.0

@@ -58,6 +58,11 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
                 entry.Entity.IsDeleted = true;
                 entry.Entity.DeletedAt = _dateTime.UtcNow;
                 entry.Entity.DeletedBy = _currentUserService.UserName ?? "System";
+
+                foreach (var ownedEntry in entry.References.Where(r => r.TargetEntry != null && r.TargetEntry.Metadata.IsOwned()))
+                {
+                    ownedEntry.TargetEntry!.State = EntityState.Unchanged;
+                }
             }
         }
     }
