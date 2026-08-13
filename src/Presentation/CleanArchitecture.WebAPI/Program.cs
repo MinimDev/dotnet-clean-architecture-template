@@ -3,6 +3,7 @@ using Asp.Versioning.ApiExplorer;
 using CleanArchitecture.Application;
 using CleanArchitecture.Infrastructure.Identity;
 using CleanArchitecture.Infrastructure.Identity.Models;
+using CleanArchitecture.Infrastructure.Messaging;
 using CleanArchitecture.Infrastructure.Persistence;
 using CleanArchitecture.Infrastructure.Shared;
 using CleanArchitecture.WebAPI.Middleware;
@@ -79,6 +80,12 @@ builder.Services.AddApplication();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddIdentityInfrastructure(builder.Configuration);
 builder.Services.AddSharedServices();
+
+// ─── Messaging (MassTransit) ─────────────────────────────────────────────────
+// Default transport: InMemory (tidak perlu broker eksternal).
+// Ubah "MassTransit:Transport" di appsettings.json ke "RabbitMQ" atau "ActiveMQ" untuk production.
+// Disable: set "MassTransit:Enabled": false
+builder.Services.AddMessaging(builder.Configuration);
 
 // ─── API Versioning ───────────────────────────────────────────────────────────
 builder.Services.AddApiVersioning(options =>
@@ -219,7 +226,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
 
-    // Scalar API Reference UI (via CDN — avoids NuGet bundle version conflicts)
+    // Scalar API Reference UI — served fully offline via local /js/scalar.min.js static file
     app.MapGet("/scalar/{documentName}", (string documentName) =>
     {
         var specUrl = $"/swagger/{documentName}/swagger.json";
@@ -240,7 +247,9 @@ if (app.Environment.IsDevelopment())
                         url: '__SPEC_URL__',
                         theme: 'purple',
                         defaultHttpClient: { targetKey: 'c#', clientKey: 'httpclient' },
-                        authentication: { preferredSecurityScheme: 'Bearer' }
+                        authentication: { preferredSecurityScheme: 'Bearer' },
+                        proxyUrl: '',
+                        telemetry: false
                     })
                 </script>
             </body>

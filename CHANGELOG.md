@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-08-13
+
+### Added
+- **MassTransit Message Bus** — New `CleanArchitecture.Infrastructure.Messaging` project integrating MassTransit v8
+  - **Transport switching** via single config key `"MassTransit:Transport"`:
+    - `"InMemory"` *(default)* — no external broker, runs anywhere out of the box
+    - `"RabbitMQ"` — AMQP production/staging broker (Management UI at `:15672`)
+    - `"ActiveMQ"` — Enterprise broker (Admin UI at `:8161`)
+  - **Enable/disable toggle** — set `"MassTransit:Enabled": false` to opt-out with zero code changes
+  - **Auto-discovery** — all `IConsumer<T>` classes in `Infrastructure.Messaging` assembly are registered automatically
+  - **`IEventBus` abstraction** in Application layer — keeps handlers fully decoupled from MassTransit
+  - **`ProductCreatedMessage`** integration message contract as canonical example in `Application/Common/Messages/`
+  - **`ProductCreatedConsumer`** — demonstrates the Bus → Hangfire handoff pattern (loose coupling)
+  - **`MassTransitEventBus`** — thin `IPublishEndpoint` wrapper implementing `IEventBus`
+
+### Changed
+- `CreateProductCommandHandler` — injects `IEventBus` and publishes `ProductCreatedMessage` after successful `SaveChangesAsync`
+- `docker-compose.yml` — added commented-out RabbitMQ and ActiveMQ service definitions (uncomment to use)
+- `Dockerfile` — added `COPY` for new `Infrastructure.Messaging.csproj` in build stage
+- `appsettings.json` — added `MassTransit` config section with all transport options and inline documentation
+- `README.md` — documented MassTransit feature, architecture layer, consumer guide, and transport switching
+
+### Architecture Notes
+- **Domain Event (MediatR)** ≠ **Integration Message (MassTransit)**:
+  - `IDomainEvent` + MediatR = in-process, same transaction, in-memory only
+  - `IEventBus` + MassTransit = async, cross-consumer, transport-agnostic
+- **Hangfire + MassTransit integration**: Consumer receives message → hands off to Hangfire for persistent, retry-able jobs
+
 ## [1.5.3] - 2026-05-26
 
 ### Changed

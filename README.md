@@ -57,7 +57,7 @@ YourProject/
 - ✅ **JWT Bearer Authentication** — Stateless, secure API authentication
 - ✅ **Mapster v10.x** — High-performance object-to-object mapping
 - ✅ **FluentValidation** — Expressive and testable request validation
-- ✅ **Scalar UI** — Modern API documentation with JWT support *(served via CDN, no extra NuGet required)*
+- ✅ **Scalar UI** — Modern API documentation with JWT support *(fully offline — `scalar.min.js` is bundled as a local static file with proxy and telemetry disabled)*
 - ✅ **OpenTelemetry** — Distributed tracing and observability (Console + OTLP exporters)
 - ✅ **xUnit** — Unit and integration testing framework
 
@@ -70,6 +70,7 @@ YourProject/
 - ✅ **Rate Limiting** — Built-in ASP.NET Core rate limiting (global & auth-specific limits)
 - ✅ **Response Caching** — Output caching configured for GET endpoints
 - ✅ **Background Jobs** — Hangfire integration with SQL Server storage & `/hangfire` dashboard
+- ✅ **Message Bus (MassTransit)** — Async messaging with switchable transports: **InMemory** (default), **RabbitMQ**, **ActiveMQ** — enabled via single config line
 - ✅ **Resilience (Polly)** — Retry and circuit-breaker policies via `Microsoft.Extensions.Http.Resilience`
 - ✅ **Email Service** — `IEmailService` abstraction with built-in `SmtpEmailService` implementation
 - ✅ **Audit Trails** — Automatic tracking of `CreatedAt` / `ModifiedAt` timestamps
@@ -267,8 +268,6 @@ dotnet run --project "src/Presentation/CleanArchitecture.WebAPI"
 
 > [!NOTE]
 > Access tokens expire in **15 minutes** by default. Use `POST /api/v1/Auth/refresh` to get a new pair without logging in again.
->
-> The Scalar UI is served via CDN (`cdn.jsdelivr.net`). An internet connection is required in development to load the UI assets.
 
 ---
 
@@ -430,6 +429,56 @@ public class YourController : ControllerBase
 }
 ```
 
+### 5. Add MassTransit Consumer (Messaging Layer)
+
+Contoh: react terhadap Domain Event yang dipublish secara **otomatis** oleh MediatR Pipeline `DomainEventPublishingBehaviour` setelah entitas sukses tersimpan.
+
+```csharp
+// src/Infrastructure/YourProject.Infrastructure.Messaging/Consumers/YourEntityCreatedConsumer.cs
+public sealed class YourEntityCreatedConsumer : IConsumer<YourEntityCreatedEvent>
+{
+    private readonly IBackgroundJobClient _hangfire;
+    private readonly ILogger<YourEntityCreatedConsumer> _logger;
+
+    public YourEntityCreatedConsumer(IBackgroundJobClient hangfire, ILogger<YourEntityCreatedConsumer> logger)
+    {
+        _hangfire = hangfire;
+        _logger = logger;
+    }
+
+    public Task Consume(ConsumeContext<YourEntityCreatedEvent> context)
+    {
+        _logger.LogInformation("Received: {Id}", context.Message.EntityId);
+
+        // Handoff ke Hangfire untuk proses berat (retry-able, persistent)
+        // _hangfire.Enqueue<INotificationService>(s =>
+        //     s.SendCreatedNotificationAsync(context.Message.EntityId, CancellationToken.None));
+
+        return Task.CompletedTask;
+    }
+}
+```
+
+> **Auto-discovery:** MassTransit akan otomatis menemukan semua class `IConsumer<T>` di project `Infrastructure.Messaging` — tidak perlu register manual. Dan setiap entitas yang didaftarkan event-nya via `AddDomainEvent()` akan dipublish otomatis tanpa kode tambahan di Handler Anda!
+
+### 6. Switch Message Transport
+
+Ubah satu baris di `appsettings.json`:
+
+```json
+{
+  "MassTransit": {
+    "Transport": "RabbitMQ"  // InMemory | RabbitMQ | ActiveMQ
+  }
+}
+```
+
+Atau via environment variable:
+```bash
+MassTransit__Transport=RabbitMQ
+MassTransit__RabbitMQ__Host=my-rabbit-server
+```
+
 ---
 
 ## 🔒 Security Checklist (Before Production)
@@ -451,10 +500,11 @@ public class YourController : ControllerBase
 | Layer | Project Suffix | Responsibility |
 |-------|---------------|----------------|
 | **Domain** | `*.Domain` | Entities, value objects, domain events, business rules |
-| **Application** | `*.Application` | Use cases, CQRS handlers, validators, interfaces |
+| **Application** | `*.Application` | Use cases, CQRS handlers, validators, interfaces, message contracts |
 | **Persistence** | `*.Infrastructure.Persistence` | EF Core, DbContext, migrations, repositories |
 | **Identity** | `*.Infrastructure.Identity` | ASP.NET Core Identity, JWT token service |
-| **Shared** | `*.Infrastructure.Shared` | Cross-cutting services (email, datetime, etc.) |
+| **Shared** | `*.Infrastructure.Shared` | Cross-cutting services (email, datetime, background queue) |
+| **Messaging** | `*.Infrastructure.Messaging` | MassTransit bus, consumers, transport configuration |
 | **WebAPI** | `*.WebAPI` | REST controllers, middleware pipeline, DI configuration |
 | **WebUI** | `*.WebUI` | Blazor Server interactive frontend |
 

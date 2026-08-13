@@ -31,13 +31,44 @@ services:
       - ASPNETCORE_URLS=http://+:8080;https://+:8081
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=CleanArchitectureDb;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=True;MultipleActiveResultSets=true
       - ConnectionStrings__IdentityConnection=Server=sqlserver;Database=CleanArchitectureIdentityDb;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=True;MultipleActiveResultSets=true
+      - ConnectionStrings__HangfireConnection=Server=sqlserver;Database=CleanArchitectureHangfireDb;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=True;MultipleActiveResultSets=true
       - Jwt__Secret=YourSuperSecretKeyForJWTTokenGenerationChangeThisInProduction!@#$$%
       - Jwt__Issuer=CleanArchitecture.WebAPI
       - Jwt__Audience=CleanArchitecture.Client
-      - Jwt__ExpirationInDays=7
+      - Jwt__AccessTokenExpiryMinutes=15
+      - Jwt__RefreshTokenExpiryDays=7
     depends_on:
       sqlserver:
         condition: service_healthy
 
 volumes:
   sqlserver-data:
+
+# ─── Optional: Message Brokers (MassTransit) ──────────────────────────────────
+# Uncomment the broker that matches "MassTransit:Transport" in appsettings.json.
+# Default transport is "InMemory" (no broker needed).
+
+#  # RabbitMQ — set MassTransit:Transport = "RabbitMQ" to use
+#  rabbitmq:
+#    image: rabbitmq:3-management
+#    ports:
+#      - "5672:5672"     # AMQP protocol port
+#      - "15672:15672"   # Management UI → http://localhost:15672 (guest/guest)
+#    environment:
+#      RABBITMQ_DEFAULT_USER: guest
+#      RABBITMQ_DEFAULT_PASS: guest
+#    healthcheck:
+#      test: rabbitmq-diagnostics -q ping
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+
+#  # ActiveMQ — set MassTransit:Transport = "ActiveMQ" to use
+#  activemq:
+#    image: apache/activemq-classic:latest
+#    ports:
+#      - "61616:61616"   # OpenWire protocol port
+#      - "8161:8161"     # Admin UI → http://localhost:8161 (admin/admin)
+#    environment:
+#      ACTIVEMQ_USERNAME: admin
+#      ACTIVEMQ_PASSWORD: admin

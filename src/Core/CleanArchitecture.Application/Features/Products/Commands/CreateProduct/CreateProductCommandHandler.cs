@@ -7,7 +7,7 @@ using MediatR;
 namespace CleanArchitecture.Application.Features.Products.Commands.CreateProduct;
 
 /// <summary>
-/// Handler untuk CreateProductCommand
+/// Handler untuk CreateProductCommand.
 /// </summary>
 public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Result<Guid>>
 {

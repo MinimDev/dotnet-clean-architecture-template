@@ -52,4 +52,34 @@ public class UnitOfWork : IUnitOfWork
     {
         return await _context.SaveChangesAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// Mengambil semua domain events dari entitas yang saat ini di-track oleh EF Core.
+    /// Dipanggil oleh Behaviour (seperti DomainEventPublishingBehaviour) setelah SaveChangesAsync sukses.
+    /// Metode ini memisahkan (decoupling) domain events dari siklus penyimpanan EF Core, 
+    /// sehingga event tidak diproses jika penyimpanan gagal.
+    /// </summary>
+    public IReadOnlyCollection<IDomainEvent> GetAndClearDomainEvents()
+    {
+        // 1. Cari semua entitas yang mewarisi BaseEntity dan memiliki minimal 1 domain event di antreannya.
+        var entitiesWithEvents = _context.ChangeTracker
+            .Entries<BaseEntity>()
+            .Where(e => e.Entity.DomainEvents.Any())
+            .Select(e => e.Entity)
+            .ToList();
+
+        // 2. Kumpulkan semua event tersebut ke dalam satu list (flattening).
+        var domainEvents = entitiesWithEvents
+            .SelectMany(e => e.DomainEvents)
+            .ToList();
+
+        // 3. Wajib: Bersihkan list event di tiap entitas setelah diambil agar tidak ter-publish berulang kali
+        // jika DbContext yang sama (Scoped) dipakai kembali di operasi selanjutnya.
+        foreach (var entity in entitiesWithEvents)
+        {
+            entity.ClearDomainEvents();
+        }
+
+        return domainEvents;
+    }
 }

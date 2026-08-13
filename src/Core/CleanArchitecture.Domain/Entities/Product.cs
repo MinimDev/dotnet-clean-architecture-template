@@ -48,6 +48,8 @@ public class Product : BaseAuditableEntity, ISoftDeletable
             Status = ProductStatus.Draft
         };
 
+        product.AddDomainEvent(new ProductCreatedEvent(product.Id, product.Name));
+
         return product;
     }
 

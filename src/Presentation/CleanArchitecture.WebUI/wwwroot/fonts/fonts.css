@@ -1,0 +1,91 @@
+/* Inter & Outfit — served locally, no CDN required */
+
+/* Inter 300 */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('Inter-300.ttf') format('truetype');
+}
+
+/* Inter 400 */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('Inter-400.ttf') format('truetype');
+}
+
+/* Inter 500 */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('Inter-500.ttf') format('truetype');
+}
+
+/* Inter 600 */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('Inter-600.ttf') format('truetype');
+}
+
+/* Inter 700 */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('Inter-700.ttf') format('truetype');
+}
+
+/* Outfit 400 */
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('Outfit-400.ttf') format('truetype');
+}
+
+/* Outfit 500 */
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('Outfit-500.ttf') format('truetype');
+}
+
+/* Outfit 600 */
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('Outfit-600.ttf') format('truetype');
+}
+
+/* Outfit 700 */
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('Outfit-700.ttf') format('truetype');
+}
+
+/* Outfit 800 */
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('Outfit-800.ttf') format('truetype');
+}

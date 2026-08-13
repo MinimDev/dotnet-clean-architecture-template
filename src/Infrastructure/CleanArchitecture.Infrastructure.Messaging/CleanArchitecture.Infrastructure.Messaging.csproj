@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\CleanArchitecture.Application\CleanArchitecture.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      MassTransit core + transports.
+      Hanya transport yang digunakan yang perlu di-install — semua sudah disertakan di template
+      agar user bisa langsung switch tanpa install manual.
+    -->
+    <PackageReference Include="MassTransit" Version="8.4.1" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.4.1" />
+    <PackageReference Include="MassTransit.ActiveMQ" Version="8.4.1" />
+    <!--
+      Explicit override untuk Apache.NMS.AMQP — patch critical vulnerability GHSA-4mjw-xr5x-prpc
+      yang ada di versi 2.2.0 yang di-pull secara transitive oleh MassTransit.ActiveMQ.
+    -->
+    <PackageReference Include="Apache.NMS.AMQP" Version="2.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <!--
+      Hangfire.Core diperlukan agar ProductCreatedConsumer bisa inject IBackgroundJobClient
+      untuk handoff ke Hangfire dari dalam consumer.
+    -->
+    <PackageReference Include="Hangfire.Core" Version="1.8.20" />
+  </ItemGroup>
+
+</Project>

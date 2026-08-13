@@ -14,7 +14,7 @@
     <ContentTargetFolders>content</ContentTargetFolders>
     <NoDefaultExcludes>true</NoDefaultExcludes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Minimdev/CleanArchitecture</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/MinimDev/dotnet-clean-architecture-template</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Version>1.5.3</Version>
