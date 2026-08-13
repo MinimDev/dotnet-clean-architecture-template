@@ -17,8 +17,8 @@
     <PackageProjectUrl>https://github.com/MinimDev/dotnet-clean-architecture-template</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.5.3</Version>
-    <PackageReleaseNotes>v1.5.3: Minor updates and bug fixes, general template improvements.</PackageReleaseNotes>
+    <Version>1.6.0</Version>
+    <PackageReleaseNotes>v1.6.0: Added MassTransit Message Bus with Auto-Publish MediatR Behaviour, transport switching (InMemory, RabbitMQ, ActiveMQ), and patched critical transitive vulnerabilities.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
