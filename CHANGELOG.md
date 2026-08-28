@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-08-28
+
+### Changed
+- **Hangfire Integration** — Refactored Hangfire background job examples to properly follow Clean Architecture. 
+  - Extracted job definitions to `IExampleJob` in the Application layer.
+  - Placed job logic inside `ExampleJob` in the Shared Infrastructure layer.
+  - Added step-by-step Hangfire implementation documentation in `README.md`.
+
 ## [1.6.0] - 2026-08-13
 
 ### Added

@@ -479,6 +479,53 @@ MassTransit__Transport=RabbitMQ
 MassTransit__RabbitMQ__Host=my-rabbit-server
 ```
 
+### 7. Add Background Job (Hangfire)
+
+Hangfire memungkinkan Anda untuk menjalankan *background tasks* (seperti mengirim email, generate laporan bulanan, dsb.) di luar request API utama.
+
+**1. Buat Interface Job (Application Layer)**
+```csharp
+// src/Core/CleanArchitecture.Application/Common/Interfaces/Jobs/IMyBackgroundJob.cs
+public interface IMyBackgroundJob
+{
+    Task ExecuteAsync(string data, CancellationToken cancellationToken);
+}
+```
+
+**2. Buat Implementasi Job (Infrastructure Layer)**
+```csharp
+// src/Infrastructure/CleanArchitecture.Infrastructure.Shared/Jobs/MyBackgroundJob.cs
+public class MyBackgroundJob : IMyBackgroundJob
+{
+    private readonly ILogger<MyBackgroundJob> _logger;
+    // Inject service apapun di sini (misal: IApplicationDbContext)
+
+    public MyBackgroundJob(ILogger<MyBackgroundJob> logger) => _logger = logger;
+
+    public async Task ExecuteAsync(string data, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Processing data: {Data}", data);
+        await Task.Delay(1000, cancellationToken); // Simulasi proses
+    }
+}
+```
+
+**3. Daftarkan di Dependency Injection**
+```csharp
+// src/Infrastructure/CleanArchitecture.Infrastructure.Shared/DependencyInjection.cs
+services.AddTransient<IMyBackgroundJob, MyBackgroundJob>();
+```
+
+**4. Jadwalkan Job (Presentation/API Layer atau CQRS Handler)**
+```csharp
+// Di dalam Controller atau CQRS Command Handler
+private readonly IBackgroundJobClient _backgroundJobClient;
+
+// ...
+_backgroundJobClient.Enqueue<IMyBackgroundJob>(job => 
+    job.ExecuteAsync("Hello Hangfire", CancellationToken.None));
+```
+
 ---
 
 ## 🔒 Security Checklist (Before Production)

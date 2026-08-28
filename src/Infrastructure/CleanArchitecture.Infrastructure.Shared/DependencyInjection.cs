@@ -21,6 +21,9 @@ public static class DependencyInjection
         // Email Service
         services.AddTransient<IEmailService, SmtpEmailService>();
 
+        // Background Jobs
+        services.AddTransient<CleanArchitecture.Application.Common.Interfaces.Jobs.IExampleJob, CleanArchitecture.Infrastructure.Shared.Jobs.ExampleJob>();
+
         return services;
     }
 }
