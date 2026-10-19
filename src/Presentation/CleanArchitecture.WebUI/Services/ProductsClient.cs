@@ -88,6 +88,9 @@ public class ProductsClient
         {
             using HttpRequestMessage request = await BuildRequestAsync(HttpMethod.Post, "api/v1/Products");
             request.Content = JsonContent.Create(command);
+            // Idempotency-Key: unique per form submission.
+            // Memastikan double-click atau retry tidak membuat data duplikat.
+            request.Headers.TryAddWithoutValidation("Idempotency-Key", Guid.NewGuid().ToString());
             using var response = await _httpClient.SendAsync(request);
             var result = await response.Content.ReadFromJsonAsync<Result<Guid>>();
             return result ?? new Result<Guid> { IsSuccess = false, Error = "No response" };
@@ -104,6 +107,7 @@ public class ProductsClient
         {
             using var request = await BuildRequestAsync(HttpMethod.Put, $"api/v1/Products/{id}");
             request.Content = JsonContent.Create(command);
+            request.Headers.TryAddWithoutValidation("Idempotency-Key", Guid.NewGuid().ToString());
             using var response = await _httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode) return Result.Success();
             var error = await response.Content.ReadAsStringAsync();
@@ -120,6 +124,7 @@ public class ProductsClient
         try
         {
             using var request = await BuildRequestAsync(HttpMethod.Delete, $"api/v1/Products/{id}");
+            request.Headers.TryAddWithoutValidation("Idempotency-Key", Guid.NewGuid().ToString());
             using var response = await _httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode) return Result.Success();
             var error = await response.Content.ReadAsStringAsync();

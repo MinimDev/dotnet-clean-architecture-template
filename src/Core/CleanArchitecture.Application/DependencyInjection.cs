@@ -22,9 +22,18 @@ public static class DependencyInjection
         });
 
         // Register Pipeline Behaviors
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
+        // URUTAN PENTING: MediatR menjalankan behaviour dari atas ke bawah.
+        // 1. IdempotencyBehaviour — intercept paling awal, short-circuit jika duplicate request
+        // 2. LoggingBehaviour — log setiap request yang lolos
+        // 3. ValidationBehaviour — validasi input
+        // 4. DomainEventPublishingBehaviour — publish domain events setelah handler selesai
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(IdempotencyBehaviour<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(DomainEventPublishingBehaviour<,>));
+
+        // Default fallback untuk IdempotencyKeyAccessor jika tidak di-override oleh presentation layer (WebAPI)
+        Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddTransient<CleanArchitecture.Application.Common.Interfaces.IIdempotencyKeyAccessor, CleanArchitecture.Application.Common.Interfaces.NullIdempotencyKeyAccessor>(services);
 
         // Register FluentValidation validators
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());

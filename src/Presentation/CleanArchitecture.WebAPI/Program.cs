@@ -72,6 +72,7 @@ builder.Services.AddOpenTelemetry()
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<CleanArchitecture.Application.Common.Interfaces.IIdempotencyKeyAccessor, CleanArchitecture.WebAPI.Services.HttpIdempotencyKeyAccessor>();
 
 // Add Application Layer
 builder.Services.AddApplication();
@@ -108,12 +109,14 @@ builder.Services.AddApiVersioning(options =>
 var rateLimitConfig = builder.Configuration.GetSection("RateLimiting");
 builder.Services.AddRateLimiter(options =>
 {
+    var isTesting = builder.Environment.IsEnvironment("Testing");
+
     // Global fixed window policy
     options.AddFixedWindowLimiter("fixed", limiterOptions =>
     {
         limiterOptions.Window = TimeSpan.FromSeconds(
             rateLimitConfig.GetValue("WindowSeconds", 60));
-        limiterOptions.PermitLimit =
+        limiterOptions.PermitLimit = isTesting ? 10000 :
             rateLimitConfig.GetValue("PermitLimit", 100);
         limiterOptions.QueueLimit =
             rateLimitConfig.GetValue("QueueLimit", 0);
@@ -125,7 +128,7 @@ builder.Services.AddRateLimiter(options =>
     {
         limiterOptions.Window = TimeSpan.FromSeconds(
             rateLimitConfig.GetValue("Auth:WindowSeconds", 60));
-        limiterOptions.PermitLimit =
+        limiterOptions.PermitLimit = isTesting ? 10000 :
             rateLimitConfig.GetValue("Auth:PermitLimit", 10);
         limiterOptions.QueueLimit = 0;
     });
@@ -308,40 +311,43 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 
 try
 {
-    using (var scope = app.Services.CreateScope())
+    if (!app.Environment.IsEnvironment("Testing"))
     {
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-        // Seed Roles
-        var roles = new[] { "Admin", "Member" };
-        foreach (var role in roles)
+        using (var scope = app.Services.CreateScope())
         {
-            if (!await roleManager.RoleExistsAsync(role))
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+            // Seed Roles
+            var roles = new[] { "Admin", "Member" };
+            foreach (var role in roles)
             {
-                await roleManager.CreateAsync(new IdentityRole(role));
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
             }
-        }
 
-        // Seed default admin
-        if (await userManager.FindByEmailAsync("admin@localhost") == null)
-        {
-            var admin = new ApplicationUser { UserName = "admin@localhost", Email = "admin@localhost", FullName = "System Administrator" };
-            var result = await userManager.CreateAsync(admin, "Admin123!");
-            if (result.Succeeded)
+            // Seed default admin
+            if (await userManager.FindByEmailAsync("admin@localhost") == null)
             {
-                await userManager.AddToRoleAsync(admin, "Admin");
+                var admin = new ApplicationUser { UserName = "admin@localhost", Email = "admin@localhost", FullName = "System Administrator" };
+                var result = await userManager.CreateAsync(admin, "Admin123!");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(admin, "Admin");
+                }
             }
-        }
 
-        // Seed default member
-        if (await userManager.FindByEmailAsync("member@localhost") == null)
-        {
-            var member = new ApplicationUser { UserName = "member@localhost", Email = "member@localhost", FullName = "Regular Member" };
-            var result = await userManager.CreateAsync(member, "Member123!");
-            if (result.Succeeded)
+            // Seed default member
+            if (await userManager.FindByEmailAsync("member@localhost") == null)
             {
-                await userManager.AddToRoleAsync(member, "Member");
+                var member = new ApplicationUser { UserName = "member@localhost", Email = "member@localhost", FullName = "Regular Member" };
+                var result = await userManager.CreateAsync(member, "Member123!");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(member, "Member");
+                }
             }
         }
     }

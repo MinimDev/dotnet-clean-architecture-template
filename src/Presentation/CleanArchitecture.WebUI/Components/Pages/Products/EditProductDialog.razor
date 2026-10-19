@@ -63,22 +63,32 @@
 
     private async Task Submit()
     {
-        await _form.Validate();
-        if (_form.IsValid)
-        {
-            _isSaving = true;
-            var result = await Client.UpdateProductAsync(Product.Id, Command);
-            _isSaving = false;
+        // Guard: cegah double-submit.
+        if (_isSaving) return;
+        _isSaving = true;
+        StateHasChanged();
 
-            if (result.IsSuccess)
-            {
-                Snackbar.Add("Product updated successfully", Severity.Success);
-                MudDialog.Close(DialogResult.Ok(true));
-            }
-            else
-            {
-                Snackbar.Add($"Failed to update product: {result.Error}", Severity.Error);
-            }
+        await _form.Validate();
+
+        if (!_form.IsValid)
+        {
+            _isSaving = false;
+            StateHasChanged();
+            return;
+        }
+
+        var result = await Client.UpdateProductAsync(Product.Id, Command);
+
+        if (result.IsSuccess)
+        {
+            Snackbar.Add("Product updated successfully", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add($"Failed to update product: {result.Error}", Severity.Error);
+            _isSaving = false;
+            StateHasChanged();
         }
     }
 }

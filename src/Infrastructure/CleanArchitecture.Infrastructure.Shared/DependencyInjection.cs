@@ -24,6 +24,12 @@ public static class DependencyInjection
         // Background Jobs
         services.AddTransient<CleanArchitecture.Application.Common.Interfaces.Jobs.IExampleJob, CleanArchitecture.Infrastructure.Shared.Jobs.ExampleJob>();
 
+        // Idempotency Service
+        // Menggunakan IMemoryCache (single-instance). Untuk multi-instance/cluster,
+        // ganti dengan IDistributedCache (Redis) di class RedisIdempotencyService.
+        services.AddMemoryCache();
+        services.AddSingleton<IIdempotencyService, IdempotencyService>();
+
         return services;
     }
 }

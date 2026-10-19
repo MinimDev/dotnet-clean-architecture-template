@@ -47,29 +47,37 @@
 
     private async Task Submit()
     {
+        // Guard: cegah double-submit.
+        // _isSaving harus di-set TRUE sebelum operasi async apapun,
+        // agar klik kedua langsung ditolak sebelum validasi pun dimulai.
+        if (_isSaving) return;
+        _isSaving = true;
+        StateHasChanged();
+
         await form.Validate();
 
-        if (form.IsValid)
+        if (!form.IsValid)
         {
-            _isSaving = true;
+            _isSaving = false;
             StateHasChanged();
+            return;
+        }
 
-            var result = await Client.CreateProductAsync(command);
+        var result = await Client.CreateProductAsync(command);
 
-            if (result.IsSuccess)
+        if (result.IsSuccess)
+        {
+            Snackbar.Add("Product created successfully", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(result.Data));
+        }
+        else
+        {
+            foreach (var error in result.Errors)
             {
-                Snackbar.Add("Product created successfully", Severity.Success);
-                MudDialog.Close(DialogResult.Ok(result.Data));
+                Snackbar.Add(error, Severity.Error);
             }
-            else
-            {
-                foreach (var error in result.Errors)
-                {
-                    Snackbar.Add(error, Severity.Error);
-                }
-                _isSaving = false;
-                StateHasChanged();
-            }
+            _isSaving = false;
+            StateHasChanged();
         }
     }
 }

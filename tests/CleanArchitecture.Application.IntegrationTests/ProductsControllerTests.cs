@@ -78,6 +78,60 @@ public class ProductsControllerTests : IClassFixture<CustomWebApplicationFactory
         ((int)response.StatusCode).ShouldBeInRange(200, 201);
     }
 
+    // ─── Idempotency Key ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task CreateProduct_WithSameIdempotencyKey_ReturnsSameCachedResultWithoutDuplication()
+    {
+        var token = await GetAccessTokenAsync("testadmin@test.com", "Admin123!");
+        var idempotencyKey = Guid.NewGuid().ToString();
+
+        var requestPayload = new
+        {
+            Name = $"Idempotency-{Guid.NewGuid():N}",
+            Price = 299.99,
+            Description = "Testing idempotency key header"
+        };
+
+        // First request with Idempotency-Key
+        using var request1 = new HttpRequestMessage(HttpMethod.Post, "api/v1/Products")
+        {
+            Content = JsonContent.Create(requestPayload)
+        };
+        request1.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        request1.Headers.Add("Idempotency-Key", idempotencyKey);
+
+        var response1 = await _client.SendAsync(request1);
+        ((int)response1.StatusCode).ShouldBeInRange(200, 201);
+        var body1 = await response1.Content.ReadFromJsonAsync<CleanArchitecture.Application.Common.Models.Result<Guid>>();
+        body1.ShouldNotBeNull();
+        body1.IsSuccess.ShouldBeTrue();
+        var createdProductId = body1.Data;
+
+        // Second request with THE SAME Idempotency-Key (simulating double submit)
+        using var request2 = new HttpRequestMessage(HttpMethod.Post, "api/v1/Products")
+        {
+            Content = JsonContent.Create(requestPayload)
+        };
+        request2.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        request2.Headers.Add("Idempotency-Key", idempotencyKey);
+
+        var response2 = await _client.SendAsync(request2);
+        ((int)response2.StatusCode).ShouldBeInRange(200, 201);
+        var body2 = await response2.Content.ReadFromJsonAsync<CleanArchitecture.Application.Common.Models.Result<Guid>>();
+        body2.ShouldNotBeNull();
+        body2.IsSuccess.ShouldBeTrue();
+        body2.Data.ShouldBe(createdProductId);
+
+        // Verify only 1 product exists with this specific name
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var listResponse = await _client.GetAsync($"api/v1/Products?searchTerm={requestPayload.Name}");
+        listResponse.EnsureSuccessStatusCode();
+        var listBody = await listResponse.Content.ReadFromJsonAsync<CleanArchitecture.Application.Common.Models.Result<CleanArchitecture.Application.Common.Models.PaginatedList<CleanArchitecture.Application.Features.Products.Queries.GetProductsList.ProductDto>>>();
+        listBody.ShouldNotBeNull();
+        listBody.Data!.TotalCount.ShouldBe(1);
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────────────────────
 
     private async Task<string> GetAccessTokenAsync(string email, string password)

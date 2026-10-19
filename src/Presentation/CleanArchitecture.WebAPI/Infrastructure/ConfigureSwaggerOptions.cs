@@ -48,6 +48,9 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
                 new List<string>()
             }
         });
+
+        // Add Idempotency-Key header support to mutating HTTP methods in Swagger UI / Scalar
+        options.OperationFilter<IdempotencyKeyOperationFilter>();
     }
 
     private static OpenApiInfo CreateInfoForApiVersion(ApiVersionDescription description)
@@ -65,5 +68,31 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
         }
 
         return info;
+    }
+}
+
+/// <summary>
+/// Operation filter to document the optional <c>Idempotency-Key</c> header on mutating HTTP endpoints (POST, PUT, DELETE, PATCH).
+/// </summary>
+public class IdempotencyKeyOperationFilter : IOperationFilter
+{
+    public void Apply(OpenApiOperation operation, OperationFilterContext context)
+    {
+        var httpMethod = context.ApiDescription.HttpMethod;
+        if (httpMethod is "POST" or "PUT" or "DELETE" or "PATCH")
+        {
+            operation.Parameters ??= new List<IOpenApiParameter>();
+            operation.Parameters.Add(new OpenApiParameter
+            {
+                Name = "Idempotency-Key",
+                In = ParameterLocation.Header,
+                Required = false,
+                Description = "Optional unique request identifier (UUID/GUID) to prevent duplicate processing on retries or double submits.",
+                Schema = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.String
+                }
+            });
+        }
     }
 }

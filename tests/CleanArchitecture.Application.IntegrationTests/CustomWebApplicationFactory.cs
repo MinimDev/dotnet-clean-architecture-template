@@ -4,9 +4,11 @@ using CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 
 namespace CleanArchitecture.Application.IntegrationTests;
 
@@ -16,9 +18,10 @@ namespace CleanArchitecture.Application.IntegrationTests;
 /// </summary>
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    // Unique DB name per factory instance to avoid test interference
     private readonly string _applicationDbName = $"TestAppDb_{Guid.NewGuid()}";
     private readonly string _identityDbName = $"TestIdentityDb_{Guid.NewGuid()}";
+    private SqliteConnection? _appConnection;
+    private SqliteConnection? _identityConnection;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -26,22 +29,39 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            // ── Replace ApplicationDbContext (SQL Server → SQLite in-memory) ──────────
-            services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
-            services.RemoveAll<ApplicationDbContext>();
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite($"Data Source={_applicationDbName};Mode=Memory;Cache=Shared"));
+            // ── Remove previous DbContext and SqlServer registrations ──
+            var descriptorsToRemove = services.Where(d =>
+                d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>) ||
+                d.ServiceType == typeof(DbContextOptions<IdentityDbContext>) ||
+                d.ServiceType == typeof(ApplicationDbContext) ||
+                d.ServiceType == typeof(IdentityDbContext) ||
+                d.ServiceType.FullName?.Contains("DbContextOptions") == true ||
+                d.ServiceType.FullName?.Contains("SqlServer") == true ||
+                d.ImplementationType?.FullName?.Contains("SqlServer") == true ||
+                d.ServiceType.Assembly.GetName().Name?.Contains("SqlServer") == true ||
+                d.ImplementationType?.Assembly.GetName().Name?.Contains("SqlServer") == true
+            ).ToList();
 
-            // ── Replace IdentityDbContext (SQL Server → SQLite in-memory) ─────────────
-            services.RemoveAll<DbContextOptions<IdentityDbContext>>();
-            services.RemoveAll<IdentityDbContext>();
+            foreach (var d in descriptorsToRemove)
+                services.Remove(d);
+
+            _appConnection = new SqliteConnection($"Data Source={_applicationDbName};Mode=Memory;Cache=Shared");
+            _appConnection.Open();
+
+            _identityConnection = new SqliteConnection($"Data Source={_identityDbName};Mode=Memory;Cache=Shared");
+            _identityConnection.Open();
+
+            services.AddDbContext<ApplicationDbContext>((sp, options) =>
+            {
+                var interceptor = sp.GetRequiredService<CleanArchitecture.Infrastructure.Persistence.Interceptors.AuditableEntityInterceptor>();
+                options.UseSqlite(_appConnection);
+                options.AddInterceptors(interceptor);
+            });
+
             services.AddDbContext<IdentityDbContext>(options =>
-                options.UseSqlite($"Data Source={_identityDbName};Mode=Memory;Cache=Shared"));
+                options.UseSqlite(_identityConnection));
 
-            // ── Skip Hangfire (requires real SQL Server) ──────────────────────────────
-            // Hangfire is registered in Program.cs before builder.Build(), so we patch
-            // the connection string check by overriding the Hangfire storage to in-memory.
-            // The simplest approach: remove Hangfire-related hosted services.
+            // ── Skip Hangfire ───────────────────────────────────────────────────────────
             var hangfireDescriptors = services
                 .Where(d => d.ServiceType.Namespace != null &&
                             d.ServiceType.Namespace.StartsWith("Hangfire"))
@@ -49,20 +69,23 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             foreach (var d in hangfireDescriptors)
                 services.Remove(d);
         });
+    }
 
-        builder.ConfigureServices(async services =>
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        var host = builder.Build();
+        host.Start();
+
+        using (var scope = host.Services.CreateScope())
         {
-            var sp = services.BuildServiceProvider();
-
-            using var scope = sp.CreateScope();
             var scopedSp = scope.ServiceProvider;
 
-            // Ensure databases are created
+            // Ensure SQLite databases are created
             var appDb = scopedSp.GetRequiredService<ApplicationDbContext>();
-            await appDb.Database.EnsureCreatedAsync();
+            appDb.Database.EnsureCreated();
 
             var identityDb = scopedSp.GetRequiredService<IdentityDbContext>();
-            await identityDb.Database.EnsureCreatedAsync();
+            identityDb.Database.EnsureCreated();
 
             // Seed roles and test users
             var roleManager = scopedSp.GetRequiredService<RoleManager<IdentityRole>>();
@@ -70,12 +93,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
             foreach (var role in new[] { "Admin", "Member" })
             {
-                if (!await roleManager.RoleExistsAsync(role))
-                    await roleManager.CreateAsync(new IdentityRole(role));
+                if (!roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
+                    roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
             }
 
-            // Test admin user
-            if (await userManager.FindByEmailAsync("testadmin@test.com") == null)
+            if (userManager.FindByEmailAsync("testadmin@test.com").GetAwaiter().GetResult() == null)
             {
                 var admin = new ApplicationUser
                 {
@@ -83,13 +105,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     Email = "testadmin@test.com",
                     FullName = "Test Admin"
                 };
-                var result = await userManager.CreateAsync(admin, "Admin123!");
+                var result = userManager.CreateAsync(admin, "Admin123!").GetAwaiter().GetResult();
                 if (result.Succeeded)
-                    await userManager.AddToRoleAsync(admin, "Admin");
+                    userManager.AddToRoleAsync(admin, "Admin").GetAwaiter().GetResult();
             }
 
-            // Test member user
-            if (await userManager.FindByEmailAsync("testmember@test.com") == null)
+            if (userManager.FindByEmailAsync("testmember@test.com").GetAwaiter().GetResult() == null)
             {
                 var member = new ApplicationUser
                 {
@@ -97,10 +118,22 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     Email = "testmember@test.com",
                     FullName = "Test Member"
                 };
-                var result = await userManager.CreateAsync(member, "Member123!");
+                var result = userManager.CreateAsync(member, "Member123!").GetAwaiter().GetResult();
                 if (result.Succeeded)
-                    await userManager.AddToRoleAsync(member, "Member");
+                    userManager.AddToRoleAsync(member, "Member").GetAwaiter().GetResult();
             }
-        });
+        }
+
+        return host;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        if (disposing)
+        {
+            _appConnection?.Dispose();
+            _identityConnection?.Dispose();
+        }
     }
 }

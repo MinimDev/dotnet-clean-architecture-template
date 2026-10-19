@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace CleanArchitecture.Application.Common.Models;
 
 /// <summary>
@@ -11,7 +13,8 @@ public class Result<T>
     public string? Error { get; private set; }
     public List<string> Errors { get; private set; } = new();
 
-    private Result(bool isSuccess, T? data, string? error, List<string>? errors = null)
+    [JsonConstructor]
+    public Result(bool isSuccess, T? data, string? error, List<string>? errors = null)
     {
         IsSuccess = isSuccess;
         Data = data;
@@ -44,7 +47,8 @@ public class Result
     public string? Error { get; private set; }
     public List<string> Errors { get; private set; } = new();
 
-    private Result(bool isSuccess, string? error, List<string>? errors = null)
+    [JsonConstructor]
+    public Result(bool isSuccess, string? error, List<string>? errors = null)
     {
         IsSuccess = isSuccess;
         Error = error;
