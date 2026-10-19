@@ -10,6 +10,7 @@ namespace CleanArchitecture.Application.Common.Interfaces;
 public interface IApplicationDbContext
 {
     DbSet<Product> Products { get; }
+    DbSet<AuditLog> AuditLogs { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -11,6 +11,7 @@
         <Authorized>
             <MudNavGroup Title="System" Icon="@Icons.Material.Filled.Settings" Expanded="false">
                 <MudNavLink Href="users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+                <MudNavLink Href="audit-logs" Icon="@Icons.Material.Filled.History">Audit Logs</MudNavLink>
                 <MudNavLink Href="@($"{Configuration["ApiBaseUrl"]}/hangfire")" Target="_blank" Icon="@Icons.Material.Filled.Schedule">Background Jobs</MudNavLink>
                 <MudNavLink Href="@($"{Configuration["ApiBaseUrl"]}/scalar/v1")" Target="_blank" Icon="@Icons.Material.Filled.Api">Scalar UI</MudNavLink>
             </MudNavGroup>

@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0-beta] - 2026-10-19
+
+### Added
+- **Automated Audit Trail System** — Comprehensive change tracking across all domain entities without polluting handlers or domain logic:
+  - `AuditLog` entity in `CleanArchitecture.Domain.Entities` storing `EntityName`, `Action` (Created, Updated, Deleted), `PrimaryKey`, `OldValues` (JSON), `NewValues` (JSON), `AffectedColumns`, `UserId`, `UserName`, and UTC `Timestamp`.
+  - `IApplicationDbContext.AuditLogs` DbSet registration with indexed columns (`EntityName`, `Action`, `Timestamp`, `UserId`).
+  - Extended `AuditableEntityInterceptor` in `Infrastructure.Persistence` to automatically capture inserted, updated, and soft-deleted entities into `AuditLogs` in the exact same atomic database transaction.
+  - EF Core migration `AddAuditLogs` with cross-provider support (SQL Server and SQLite).
+  - MediatR query `GetAuditLogsQuery` with filtering (`EntityName`, `Action`, `UserId`, date range) and pagination via `PaginatedList<AuditLogDto>`.
+  - `AuditLogsController` in WebAPI with `[Authorize(Roles = "Admin")]` and rate limiting.
+  - Interactive, modern WebUI page (`AuditLogs.razor`) featuring:
+    - Real-time action filtering (All, Created, Updated, Deleted chips)
+    - Side-by-side collapsible visual diff viewer (Old Values strikethrough vs New Values highlight)
+    - Primary key and affected columns badges
+    - Skeleton loading and empty state illustrations
+    - Sidebar link in `NavMenu.razor` under the System menu for Administrators
+  - Full automated test coverage: `GetAuditLogsQueryValidatorTests` (unit) and `AuditLogsControllerTests` (integration).
+
+## [1.7.0-alpha] - 2026-10-19
+
+### Added
+- **Idempotency Key Support** — MediatR pipeline behaviour (`IdempotencyBehaviour<TRequest, TResponse>`) to prevent duplicate transactions (double-submit, network retries):
+  - `IIdempotencyService` in Application layer for caching responses with configurable TTL (`Idempotency:CacheDurationHours`, default 24h).
+  - `IIdempotencyKeyAccessor` abstraction to isolate ASP.NET Core `HttpContext` from the Application layer.
+  - `HttpIdempotencyKeyAccessor` in WebAPI layer extracting `Idempotency-Key` header from HTTP requests.
+  - `IdempotencyService` implementation using `IMemoryCache` in `Infrastructure.Shared`.
+  - Swagger/Scalar documentation via `IdempotencyKeyOperationFilter` showing the optional `Idempotency-Key` header on all mutating endpoints (`POST`, `PUT`, `DELETE`, `PATCH`).
+  - Unit tests in `CleanArchitecture.Application.UnitTests` (`IdempotencyBehaviourTests`).
+  - End-to-end integration test in `CleanArchitecture.Application.IntegrationTests` verifying duplicate submission prevention.
+
+### Changed
+- **Blazor WebUI Double-Submit Protection**:
+  - `CreateProductDialog.razor`: Guard `if (_isSaving) return;` at the very first line before validation to prevent rapid double-click submissions.
+  - `EditProductDialog.razor`: Double-submit prevention with loading feedback.
+  - `ProductsClient.cs`: Automatically injects a unique `Idempotency-Key` header per mutation request.
+- **Integration Test Infrastructure**:
+  - Fixed database provider clash between SQL Server and SQLite in `CustomWebApplicationFactory`.
+  - Relaxed rate limiting in `Program.cs` during `Testing` environment to prevent 429 false-positives in automated test suites.
+  - Added `[JsonConstructor]` to `Result<T>` and parameterless constructor to `PaginatedList<T>` for seamless JSON deserialization.
+
 ## [1.6.1] - 2026-08-28
 
 ### Changed

@@ -100,6 +100,7 @@ builder.Services.AddScoped<TokenProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthClient>();
 builder.Services.AddScoped<ProductsClient>();
+builder.Services.AddScoped<AuditLogsClient>();
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();

@@ -62,6 +62,7 @@ YourProject/
 - ✅ **xUnit** — Unit and integration testing framework
 
 ### 🚀 Key Capabilities
+- ✅ **Idempotency Key & Double-Submit Protection** — MediatR pipeline behaviour with `Idempotency-Key` header support to prevent duplicate transactions (e.g. double-clicks, network retries) with automatic caching and short-circuiting.
 - ✅ **Refresh Token** — Secure token rotation with `POST /api/v1/Auth/refresh` and revoke via `POST /api/v1/Auth/revoke`
 - ✅ **Integration Tests** — `WebApplicationFactory` with SQLite in-memory, no SQL Server required for testing
 - ✅ **Role-Based Access Control (RBAC)** — Pre-configured `Admin` and `Member` roles with authorization policies
@@ -73,7 +74,7 @@ YourProject/
 - ✅ **Message Bus (MassTransit)** — Async messaging with switchable transports: **InMemory** (default), **RabbitMQ**, **ActiveMQ** — enabled via single config line
 - ✅ **Resilience (Polly)** — Retry and circuit-breaker policies via `Microsoft.Extensions.Http.Resilience`
 - ✅ **Email Service** — `IEmailService` abstraction with built-in `SmtpEmailService` implementation
-- ✅ **Audit Trails** — Automatic tracking of `CreatedAt` / `ModifiedAt` timestamps
+- ✅ **Audit Trail System** — Comprehensive database mutation tracking into a dedicated `AuditLogs` table capturing Created, Updated, and Deleted actions with JSON property diffs (OldValues vs NewValues), affected columns, user metadata, and an interactive timeline WebUI with side-by-side diff comparison.
 - ✅ **Soft Delete** — Global EF Core query filters for logical record deletion
 - ✅ **Health Checks** — Database connectivity monitoring endpoint
 - ✅ **Global Exception Handling** — Centralized middleware for consistent error responses

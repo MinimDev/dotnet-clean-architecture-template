@@ -17,8 +17,8 @@
     <PackageProjectUrl>https://github.com/MinimDev/dotnet-clean-architecture-template</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.6.1</Version>
-    <PackageReleaseNotes>v1.6.1: Refactored Hangfire Background Jobs implementation to follow Clean Architecture principles (Separation of Concerns via IExampleJob in Application Layer) and updated README with Hangfire setup guide.</PackageReleaseNotes>
+    <Version>1.7.0-beta</Version>
+    <PackageReleaseNotes>v1.7.0-beta: Added Idempotency-Key pipeline behavior to prevent duplicate mutations and automated Audit Trail system with interactive WebUI timeline and visual diff viewer.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

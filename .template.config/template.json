@@ -23,6 +23,7 @@
             ".template.config/**",
             ".git/**",
             ".github/**",
+            "docs/**",
             "*.nupkg",
             "*.nuspec",
             "*.csproj",
