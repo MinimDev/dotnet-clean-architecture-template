@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0-rc2] - 2026-10-20
+
+### Added
+- **In-App Notification System** — Centralized notification infrastructure supporting targeted user alerts and system-wide broadcast events:
+  - `Notification` entity in `CleanArchitecture.Domain.Entities` with `Title`, `Message`, `Type` (Info, Success, Warning, Error), `UserId` (null for broadcast), `IsRead`, `ActionUrl`, `CreatedAt`, and `ReadAt`.
+  - `NotificationCreatedEvent` domain event dispatched upon creation.
+  - `INotificationService` abstraction in Application layer with `SendAsync`, `BroadcastAsync`, `MarkAsReadAsync`, `MarkAllAsReadAsync`, and `GetUnreadCountAsync`.
+  - `NotificationService` implementation in `Infrastructure.Shared` registered as scoped service.
+  - MediatR CQRS features: `GetNotificationsQuery` (with pagination & unread filter), `GetUnreadCountQuery`, `MarkNotificationAsReadCommand`, and `MarkAllNotificationsAsReadCommand`.
+  - `NotificationsController` in WebAPI with endpoints for retrieving notifications, unread count, and marking notifications as read.
+  - Event-driven integrations:
+    - MassTransit `ProductCreatedConsumer` automatically broadcasts in-app notification when a new product is added.
+    - Hangfire `ExampleJob` automatically broadcasts in-app notification upon background task completion.
+  - Modern WebUI Notification Panel & Topbar Bell:
+    - Notification bell icon in `MainLayout.razor` with dynamic unread badge counter.
+    - Glassmorphism slide-down `NotificationPanel.razor` with relative time ("Just now", "5m ago"), unread indicators, type icons, and one-click mark-as-read with auto-navigation.
+    - Periodic background unread polling (every 30s) when user is authenticated.
+  - Full automated test coverage: `GetNotificationsQueryValidatorTests` (unit) and `NotificationsControllerTests` (integration).
+
 ## [1.7.0-rc1] - 2026-10-20
 
 ### Added

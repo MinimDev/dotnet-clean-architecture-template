@@ -1,4 +1,8 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@using CleanArchitecture.WebUI.Services
+@inject NotificationsClient NotificationsClient
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -10,7 +14,21 @@
         <MudText Typo="Typo.h5" Class="ml-3 font-weight-bold" Color="Color.Primary">Application</MudText>
         <MudSpacer />
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" Edge="Edge.End" />
+        
+        <AuthorizeView>
+            <Authorized>
+                <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true" Class="ml-1">
+                    <ActivatorContent Context="menuContext">
+                        <MudBadge Content="@_unreadCount" Color="Color.Error" Overlap="true" Visible="@(_unreadCount > 0)">
+                            <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" Edge="Edge.End" />
+                        </MudBadge>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <NotificationPanel OnUnreadCountChanged="@((cnt) => { _unreadCount = cnt; StateHasChanged(); })" />
+                    </ChildContent>
+                </MudMenu>
+            </Authorized>
+        </AuthorizeView>
     </MudAppBar>
     <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
@@ -31,10 +49,12 @@
     private bool _drawerOpen = true;
     private bool _isDarkMode = false;
     private MudTheme? _theme = null;
+    private int _unreadCount = 0;
+    private CancellationTokenSource? _cts;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
 
         _theme = new()
         {
@@ -47,6 +67,48 @@
                 AppbarHeight = "72px"
             }
         };
+
+        _cts = new CancellationTokenSource();
+        _ = PollUnreadCountAsync(_cts.Token);
+    }
+
+    private async Task PollUnreadCountAsync(CancellationToken ct)
+    {
+        await RefreshUnreadCountAsync();
+
+        try
+        {
+            using var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+            while (await periodicTimer.WaitForNextTickAsync(ct))
+            {
+                await RefreshUnreadCountAsync();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Normal shutdown
+        }
+    }
+
+    private async Task RefreshUnreadCountAsync()
+    {
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            if (auth.User.Identity?.IsAuthenticated == true)
+            {
+                var result = await NotificationsClient.GetUnreadCountAsync();
+                if (result.IsSuccess)
+                {
+                    _unreadCount = result.Data;
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+        }
+        catch
+        {
+            // Ignore background polling errors
+        }
     }
 
     private void DrawerToggle()
@@ -137,6 +199,12 @@
         true => Icons.Material.Rounded.AutoMode,
         false => Icons.Material.Outlined.DarkMode,
     };
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+    }
 }
 
 

@@ -1,0 +1,284 @@
+@using CleanArchitecture.WebUI.Services
+@using CleanArchitecture.WebUI.Services.Models
+@inject NotificationsClient Client
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<div class="notification-dropdown-panel" style="width: 380px; max-width: 90vw;">
+    <!-- Panel Header -->
+    <div class="d-flex align-center justify-space-between pa-3 border-b border-solid" style="border-color: var(--mud-palette-lines-default) !important;">
+        <div class="d-flex align-center gap-2">
+            <MudIcon Icon="@Icons.Material.Filled.Notifications" Size="Size.Small" Color="Color.Primary" />
+            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">Notifications</MudText>
+            @if (_unreadCount > 0)
+            {
+                <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold px-2 py-0" Style="height: 20px;">
+                    @_unreadCount new
+                </MudChip>
+            }
+        </div>
+        <div class="d-flex align-center gap-1">
+            @if (_unreadCount > 0)
+            {
+                <MudTooltip Text="Mark all as read">
+                    <MudIconButton Icon="@Icons.Material.Filled.DoneAll" Size="Size.Small" Color="Color.Primary" OnClick="MarkAllAsReadAsync" Disabled="@_isLoading" />
+                </MudTooltip>
+            }
+            <MudTooltip Text="Refresh">
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" Color="Color.Default" OnClick="LoadNotificationsAsync" Disabled="@_isLoading" />
+            </MudTooltip>
+        </div>
+    </div>
+
+    <!-- Panel Body -->
+    <div class="notification-list-container" style="max-height: 420px; overflow-y: auto;">
+        @if (_isLoading)
+        {
+            <div class="pa-4">
+                @for (int i = 0; i < 3; i++)
+                {
+                    <div class="d-flex gap-3 mb-3">
+                        <MudSkeleton SkeletonType="SkeletonType.Circle" Width="36px" Height="36px" />
+                        <div style="flex: 1;">
+                            <MudSkeleton SkeletonType="SkeletonType.Text" Width="60%" />
+                            <MudSkeleton SkeletonType="SkeletonType.Text" Width="90%" />
+                            <MudSkeleton SkeletonType="SkeletonType.Text" Width="40%" />
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else if (_notifications.Count == 0)
+        {
+            <div class="pa-6 text-center d-flex flex-column align-center justify-center">
+                <div class="empty-icon-box mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.NotificationsNone" Size="Size.Large" Color="Color.Secondary" />
+                </div>
+                <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Color="Color.Primary">You're all caught up! 🎉</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">No notifications at the moment.</MudText>
+            </div>
+        }
+        else
+        {
+            <MudList T="NotificationDto" Dense="true" Class="pa-0">
+                @foreach (var item in _notifications)
+                {
+                    <MudListItem OnClick="@(() => OnItemClick(item))"
+                                 Class="@($"notification-item pa-3 border-b border-solid {(!item.IsRead ? "notification-unread" : "")}")"
+                                 Style="border-color: var(--mud-palette-lines-default) !important;">
+                        <div class="d-flex align-start gap-3 w-100">
+                            <!-- Type Icon -->
+                            <div class="notification-icon-wrapper mt-1">
+                                <MudIcon Icon="@GetTypeIcon(item.Type)" Color="@GetTypeColor(item.Type)" Size="Size.Medium" />
+                            </div>
+
+                            <!-- Content -->
+                            <div style="flex: 1; min-width: 0;">
+                                <div class="d-flex align-center justify-space-between gap-1 mb-1">
+                                    <MudText Typo="Typo.body2" Class="@($"text-truncate font-weight-bold {(item.IsRead ? "text-secondary" : "")}")">
+                                        @item.Title
+                                    </MudText>
+                                    @if (!item.IsRead)
+                                    {
+                                        <span class="unread-dot"></span>
+                                    }
+                                </div>
+                                <MudText Typo="Typo.caption" Class="d-block text-secondary message-clamp">
+                                    @item.Message
+                                </MudText>
+                                <div class="d-flex align-center justify-space-between mt-1">
+                                    <span class="text-caption text-secondary" style="font-size: 0.72rem;">
+                                        @GetRelativeTime(item.CreatedAt)
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(item.ActionUrl))
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" Color="Color.Primary" Class="action-icon" />
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </MudListItem>
+                }
+            </MudList>
+        }
+    </div>
+
+    <!-- Panel Footer -->
+    <div class="pa-2 text-center border-t border-solid bg-surface" style="border-color: var(--mud-palette-lines-default) !important;">
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.75rem;">
+            Showing last @_notifications.Count notifications
+        </MudText>
+    </div>
+</div>
+
+<style>
+    .notification-dropdown-panel {
+        background: var(--mud-palette-surface);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+
+    .notification-item {
+        transition: background-color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .notification-item:hover {
+        background-color: rgba(var(--mud-palette-primary-rgb), 0.05) !important;
+    }
+
+    .notification-unread {
+        background-color: rgba(var(--mud-palette-primary-rgb), 0.04);
+    }
+
+    .unread-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--mud-palette-primary);
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .empty-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(var(--mud-palette-secondary-rgb), 0.08);
+    }
+
+    .message-clamp {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+    }
+
+    .action-icon {
+        opacity: 0.6;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .notification-item:hover .action-icon {
+        opacity: 1;
+        transform: translateX(2px);
+    }
+</style>
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnUnreadCountChanged { get; set; }
+
+    private List<NotificationDto> _notifications = new();
+    private int _unreadCount = 0;
+    private bool _isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadNotificationsAsync();
+    }
+
+    public async Task LoadNotificationsAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var result = await Client.GetNotificationsAsync(pageNumber: 1, pageSize: 15);
+            if (result.IsSuccess && result.Data != null)
+            {
+                _notifications = result.Data.Items;
+                _unreadCount = _notifications.Count(n => !n.IsRead);
+                await OnUnreadCountChanged.InvokeAsync(_unreadCount);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading notifications: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task MarkAllAsReadAsync()
+    {
+        try
+        {
+            var result = await Client.MarkAllAsReadAsync();
+            if (result.IsSuccess)
+            {
+                foreach (var n in _notifications)
+                {
+                    n.IsRead = true;
+                }
+                _unreadCount = 0;
+                await OnUnreadCountChanged.InvokeAsync(0);
+                Snackbar.Add("All notifications marked as read", Severity.Info);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task OnItemClick(NotificationDto item)
+    {
+        if (!item.IsRead)
+        {
+            item.IsRead = true;
+            _unreadCount = Math.Max(0, _unreadCount - 1);
+            await OnUnreadCountChanged.InvokeAsync(_unreadCount);
+            await Client.MarkAsReadAsync(item.Id);
+        }
+
+        await OnClose.InvokeAsync();
+
+        if (!string.IsNullOrEmpty(item.ActionUrl))
+        {
+            Navigation.NavigateTo(item.ActionUrl);
+        }
+    }
+
+    private string GetTypeIcon(NotificationType type)
+    {
+        return type switch
+        {
+            NotificationType.Success => Icons.Material.Filled.CheckCircle,
+            NotificationType.Warning => Icons.Material.Filled.Warning,
+            NotificationType.Error => Icons.Material.Filled.Error,
+            _ => Icons.Material.Filled.Info
+        };
+    }
+
+    private Color GetTypeColor(NotificationType type)
+    {
+        return type switch
+        {
+            NotificationType.Success => Color.Success,
+            NotificationType.Warning => Color.Warning,
+            NotificationType.Error => Color.Error,
+            _ => Color.Info
+        };
+    }
+
+    private string GetRelativeTime(DateTime createdAt)
+    {
+        var span = DateTime.UtcNow - createdAt;
+        if (span.TotalMinutes < 1) return "Just now";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
+        if (span.TotalDays < 7) return $"{(int)span.TotalDays}d ago";
+        return createdAt.ToString("MMM dd, yyyy");
+    }
+}

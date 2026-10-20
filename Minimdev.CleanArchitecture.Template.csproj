@@ -17,8 +17,8 @@
     <PackageProjectUrl>https://github.com/MinimDev/dotnet-clean-architecture-template</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.7.0-rc1</Version>
-    <PackageReleaseNotes>v1.7.0-rc1: Added dynamic App Settings &amp; Feature Flags management with in-memory caching (IMemoryCache), transparent fallback to IConfiguration, and interactive Blazor WebUI admin panel.</PackageReleaseNotes>
+    <Version>1.7.0-rc2</Version>
+    <PackageReleaseNotes>v1.7.0-rc2: Added in-app Notification system with INotificationService, targeted alerts and broadcasts, MassTransit/Hangfire demo producers, and modern WebUI topbar notification bell with interactive slide-down panel.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

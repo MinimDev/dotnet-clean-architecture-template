@@ -76,6 +76,7 @@ YourProject/
 - ✅ **Email Service** — `IEmailService` abstraction with built-in `SmtpEmailService` implementation
 - ✅ **Audit Trail System** — Comprehensive database mutation tracking into a dedicated `AuditLogs` table capturing Created, Updated, and Deleted actions with JSON property diffs (OldValues vs NewValues), affected columns, user metadata, and an interactive timeline WebUI with side-by-side diff comparison.
 - ✅ **Dynamic App Settings & Feature Flags** — Centralized runtime configuration stored in the database with in-memory caching (`IMemoryCache`), automatic fallback to `IConfiguration` (`appsettings.json`), read-only guards, automatic audit tracking, and an interactive Blazor WebUI admin panel for runtime adjustments without redeployment.
+- ✅ **In-App Notification System** — Event-driven notification framework with `INotificationService` supporting targeted user notifications and system-wide broadcasts (integrated with MassTransit consumers and Hangfire background jobs), with real-time-like polling, unread count badges, and an interactive glassmorphism slide-down notification panel in Blazor WebUI.
 - ✅ **Soft Delete** — Global EF Core query filters for logical record deletion
 - ✅ **Health Checks** — Database connectivity monitoring endpoint
 - ✅ **Global Exception Handling** — Centralized middleware for consistent error responses

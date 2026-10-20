@@ -102,6 +102,7 @@ builder.Services.AddScoped<AuthClient>();
 builder.Services.AddScoped<ProductsClient>();
 builder.Services.AddScoped<AuditLogsClient>();
 builder.Services.AddScoped<AppSettingsClient>();
+builder.Services.AddScoped<NotificationsClient>();
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();

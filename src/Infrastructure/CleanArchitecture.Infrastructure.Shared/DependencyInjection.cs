@@ -33,6 +33,9 @@ public static class DependencyInjection
         // App Settings & Feature Flags Service (with MemoryCache & Configuration fallback)
         services.AddSingleton<IAppSettingsService, DbAppSettingsService>();
 
+        // In-App Notification Service
+        services.AddScoped<INotificationService, NotificationService>();
+
         return services;
     }
 }
