@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0-rc1] - 2026-10-20
+
+### Added
+- **Dynamic App Settings & Feature Flags Management** — Runtime application configuration and feature toggles stored in the database with caching, fallback, and administrative controls:
+  - `AppSetting` domain entity in `CleanArchitecture.Domain.Entities` inheriting `BaseAuditableEntity`, encapsulating `Key`, `Value`, `DataType` (string/boolean/number), `Description`, `Group` (General/Features/Security/System), and `IsReadOnly` safety guard.
+  - `AppSettingChangedEvent` domain event dispatched when configuration values change.
+  - `IAppSettingsService` abstraction in Application layer with typed `GetAsync<T>`, `IsFeatureEnabledAsync`, and `SetAsync` methods.
+  - `DbAppSettingsService` implementation in `Infrastructure.Shared` with in-memory caching (`IMemoryCache`), automatic cache invalidation upon updates, and transparent fallback to `IConfiguration` (`appsettings.json`).
+  - MediatR CQRS features: `GetAppSettingsQuery`, `GetAppSettingByKeyQuery`, and `UpdateAppSettingCommand` with `UpdateAppSettingCommandValidator`.
+  - EF Core configuration `AppSettingConfiguration` with unique index on `Key`, index on `Group`, and seeded default settings (`General.ApplicationName`, `General.SupportEmail`, `Features.ProductExport.Enabled`, `Features.AuditLogging.Enabled`, `Features.Registration.Enabled`, `Security.MaxFailedAccessAttempts`, `Security.SessionTimeoutMinutes`, `System.Environment`).
+  - `AppSettingsController` in WebAPI with `[Authorize(Roles = "Admin")]` and rate limiting.
+  - Interactive Admin WebUI page (`AppSettings.razor`) featuring:
+    - Group category filtering chips (`All`, `General`, `Features`, `Security`, `System`)
+    - Real-time search by setting key or description
+    - Dynamic editor controls based on `DataType`: instant `MudSwitch` toggles for booleans, `MudTextField` with save buttons for numbers and strings
+    - Lock indicators and disabled inputs for `IsReadOnly` settings
+    - Unsaved changes indicator and instant snackbar feedback
+    - Sidebar link in `NavMenu.razor` under the System menu for Administrators
+  - Full automated test coverage: `UpdateAppSettingCommandValidatorTests` (unit) and `AppSettingsControllerTests` (integration verifying CRUD, authorization, read-only guards, data type validation, and automatic Phase 2 audit trail logging).
+
 ## [1.7.0-beta] - 2026-10-19
 
 ### Added

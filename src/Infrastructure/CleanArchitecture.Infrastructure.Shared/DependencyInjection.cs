@@ -30,6 +30,9 @@ public static class DependencyInjection
         services.AddMemoryCache();
         services.AddSingleton<IIdempotencyService, IdempotencyService>();
 
+        // App Settings & Feature Flags Service (with MemoryCache & Configuration fallback)
+        services.AddSingleton<IAppSettingsService, DbAppSettingsService>();
+
         return services;
     }
 }

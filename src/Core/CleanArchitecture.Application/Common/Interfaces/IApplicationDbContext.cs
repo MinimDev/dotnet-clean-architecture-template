@@ -11,6 +11,7 @@ public interface IApplicationDbContext
 {
     DbSet<Product> Products { get; }
     DbSet<AuditLog> AuditLogs { get; }
+    DbSet<AppSetting> AppSettings { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

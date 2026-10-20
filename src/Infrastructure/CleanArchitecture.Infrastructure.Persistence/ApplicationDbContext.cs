@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Product> Products => Set<Product>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<AppSetting> AppSettings => Set<AppSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -17,8 +17,8 @@
     <PackageProjectUrl>https://github.com/MinimDev/dotnet-clean-architecture-template</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.7.0-beta</Version>
-    <PackageReleaseNotes>v1.7.0-beta: Added Idempotency-Key pipeline behavior to prevent duplicate mutations and automated Audit Trail system with interactive WebUI timeline and visual diff viewer.</PackageReleaseNotes>
+    <Version>1.7.0-rc1</Version>
+    <PackageReleaseNotes>v1.7.0-rc1: Added dynamic App Settings &amp; Feature Flags management with in-memory caching (IMemoryCache), transparent fallback to IConfiguration, and interactive Blazor WebUI admin panel.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

@@ -101,6 +101,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStatePr
 builder.Services.AddScoped<AuthClient>();
 builder.Services.AddScoped<ProductsClient>();
 builder.Services.AddScoped<AuditLogsClient>();
+builder.Services.AddScoped<AppSettingsClient>();
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();

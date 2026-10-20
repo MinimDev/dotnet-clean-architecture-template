@@ -173,7 +173,7 @@ Extend `AuditableEntityInterceptor` yang sudah ada untuk capture detail perubaha
 **Target Versi:** `v1.7.0-rc1`  
 **Estimasi:** 1 sesi  
 **Branch:** `feat/app-settings`  
-**Status:** ⬜ Belum Mulai
+**Status:** ✅ Selesai
 
 ### 🎯 Tujuan
 Admin bisa mengubah konfigurasi aplikasi dan feature flags melalui UI tanpa perlu redeploy.
@@ -181,7 +181,7 @@ Admin bisa mengubah konfigurasi aplikasi dan feature flags melalui UI tanpa perl
 ### ✅ Checklist
 
 #### A. Domain Layer
-- [ ] **BUAT** `Domain/Entities/AppSetting.cs`
+- [x] **BUAT** `Domain/Entities/AppSetting.cs`
   ```csharp
   public class AppSetting : BaseAuditableEntity
   {
@@ -193,10 +193,10 @@ Admin bisa mengubah konfigurasi aplikasi dan feature flags melalui UI tanpa perl
       public bool IsReadOnly { get; private set; } // lock setting dari UI
   }
   ```
-- [ ] **BUAT** `Domain/Events/AppSettingChangedEvent.cs`
+- [x] **BUAT** `Domain/Events/AppSettingChangedEvent.cs`
 
 #### B. Application Layer
-- [ ] **BUAT** `Common/Interfaces/IAppSettingsService.cs`
+- [x] **BUAT** `Common/Interfaces/IAppSettingsService.cs`
   ```csharp
   public interface IAppSettingsService
   {
@@ -207,21 +207,21 @@ Admin bisa mengubah konfigurasi aplikasi dan feature flags melalui UI tanpa perl
       Task<IReadOnlyList<AppSettingDto>> GetAllAsync(string? group = null);
   }
   ```
-- [ ] **BUAT** `Features/AppSettings/` — Commands: `UpdateAppSetting`; Queries: `GetAppSettings`, `GetAppSettingByKey`
+- [x] **BUAT** `Features/AppSettings/` — Commands: `UpdateAppSetting`; Queries: `GetAppSettings`, `GetAppSettingByKey`
 
 #### C. Infrastructure Layer
-- [ ] **BUAT** `Services/DbAppSettingsService.cs`
+- [x] **BUAT** `Services/DbAppSettingsService.cs`
   - Read dari DB, cache in-memory via `IMemoryCache`
   - Invalidate cache otomatis saat `SetAsync` dipanggil
   - Fallback ke `IConfiguration` (appsettings.json) jika key tidak ditemukan di DB
 
 #### D. Persistence
-- [ ] **BUAT** `Configurations/AppSettingConfiguration.cs` — Unique index pada `Key`
-- [ ] **BUAT** Migration: `AddAppSettings`
-- [ ] **BUAT** Seeder: default settings awal (General, Email, Features)
+- [x] **BUAT** `Configurations/AppSettingConfiguration.cs` — Unique index pada `Key`
+- [x] **BUAT** Migration: `AddAppSettings`
+- [x] **BUAT** Seeder: default settings awal (General, Email, Features)
 
 #### E. WebUI — Settings Admin Panel (Premium Design)
-- [ ] **BUAT** `Components/Pages/Settings/AppSettings.razor`
+- [x] **BUAT** `Components/Pages/Settings/AppSettings.razor`
   - Tampilan card per group (accordion / tab navigation)
   - Inline edit: click value → input field muncul langsung (no dialog)
   - Toggle switch untuk DataType="boolean"
@@ -230,7 +230,7 @@ Admin bisa mengubah konfigurasi aplikasi dan feature flags melalui UI tanpa perl
   - Lock icon untuk IsReadOnly settings
   - Save confirmation dengan Snackbar
   - Search/filter settings by key atau description
-- [ ] **UBAH** `MainLayout.razor` — tambah link "Settings" di sidebar
+- [x] **UBAH** `NavMenu.razor` — tambah link "App Settings" di sidebar (Admin only)
 
 ---
 
