@@ -571,6 +571,13 @@ Contributions are very welcome! Please follow the steps below:
 
 ---
 
+## 📦 Release & Publishing Process
+
+Detailed guidelines for versioning, release management, and GitHub tag protection rules are documented in:
+👉 **[Release Process & Tag Protection Guide](docs/RELEASE_PROCESS.md)**
+
+---
+
 ## 📄 License
 
 This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
