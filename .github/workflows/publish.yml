@@ -3,12 +3,15 @@ name: Publish to NuGet
 on:
   push:
     tags:
-      - 'v*.*.*'   # Trigger on version tags: v1.2.0, v1.3.0, etc.
+      - 'v*'   # Trigger on version tags: v1.7.0, v1.7.0-beta, etc.
 
 jobs:
   publish:
     name: Pack & Publish
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write    # Required for requesting the OIDC JWT token from GitHub
+      contents: write    # Required for creating GitHub Releases
 
     steps:
       - name: Checkout
@@ -32,11 +35,17 @@ jobs:
       - name: Pack
         run: dotnet pack Minimdev.CleanArchitecture.Template.csproj --configuration Release -o ./artifacts
 
+      - name: NuGet Login (OIDC)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: MinimDev
+
       - name: Publish to NuGet
         run: |
           dotnet nuget push ./artifacts/*.nupkg \
             --source https://api.nuget.org/v3/index.json \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} \
             --skip-duplicate
 
       - name: Create GitHub Release
