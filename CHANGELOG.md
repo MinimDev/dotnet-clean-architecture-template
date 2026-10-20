@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `IAppSettingsService` abstraction in Application layer with typed `GetAsync<T>`, `IsFeatureEnabledAsync`, and `SetAsync` methods.
   - `DbAppSettingsService` implementation in `Infrastructure.Shared` with in-memory caching (`IMemoryCache`), automatic cache invalidation upon updates, and transparent fallback to `IConfiguration` (`appsettings.json`).
   - MediatR CQRS features: `GetAppSettingsQuery`, `GetAppSettingByKeyQuery`, and `UpdateAppSettingCommand` with `UpdateAppSettingCommandValidator`.
-  - EF Core configuration `AppSettingConfiguration` with unique index on `Key`, index on `Group`, and seeded default settings (`General.ApplicationName`, `General.SupportEmail`, `Features.ProductExport.Enabled`, `Features.AuditLogging.Enabled`, `Features.Registration.Enabled`, `Security.MaxFailedAccessAttempts`, `Security.SessionTimeoutMinutes`, `System.Environment`).
+  - EF Core configuration `AppSettingConfiguration` with unique index on `Key`, index on `Group`, and seeded default settings (`General.ApplicationName`, `General.SupportEmail`, `Features.ProductExport.Enabled`, `Features.AuditLogging.Enabled`, `Features.Registration.Enabled`, `Security.MaxFailedAccessAttempts`, `Security.SessionTimeoutMinutes`, `System.TemplateVersion`).
   - `AppSettingsController` in WebAPI with `[Authorize(Roles = "Admin")]` and rate limiting.
   - Interactive Admin WebUI page (`AppSettings.razor`) featuring:
     - Group category filtering chips (`All`, `General`, `Features`, `Security`, `System`)

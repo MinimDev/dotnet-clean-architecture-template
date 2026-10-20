@@ -56,7 +56,7 @@ public class AppSettingsControllerTests : IClassFixture<CustomWebApplicationFact
         result.Data.Count.ShouldBeGreaterThanOrEqualTo(8);
         result.Data.ShouldContain(s => s.Key == "General.ApplicationName");
         result.Data.ShouldContain(s => s.Key == "Features.ProductExport.Enabled");
-        result.Data.ShouldContain(s => s.Key == "System.Environment");
+        result.Data.ShouldContain(s => s.Key == "System.TemplateVersion");
     }
 
     [Fact]
@@ -141,10 +141,10 @@ public class AppSettingsControllerTests : IClassFixture<CustomWebApplicationFact
     {
         var token = await GetAccessTokenAsync("testadmin@test.com", "Admin123!");
 
-        // System.Environment is read-only
-        using var putRequest = new HttpRequestMessage(HttpMethod.Put, "api/v1/AppSettings/System.Environment")
+        // System.TemplateVersion is read-only
+        using var putRequest = new HttpRequestMessage(HttpMethod.Put, "api/v1/AppSettings/System.TemplateVersion")
         {
-            Content = JsonContent.Create(new { Value = "Staging" })
+            Content = JsonContent.Create(new { Value = "2.0.0" })
         };
         putRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 

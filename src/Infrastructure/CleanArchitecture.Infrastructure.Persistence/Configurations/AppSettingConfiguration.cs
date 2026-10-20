@@ -128,10 +128,10 @@ public class AppSettingConfiguration : IEntityTypeConfiguration<AppSetting>
             new
             {
                 Id = Guid.Parse("11111111-1111-1111-1111-111111111108"),
-                Key = "System.Environment",
-                Value = "Production",
+                Key = "System.TemplateVersion",
+                Value = "1.7.0",
                 DataType = "string",
-                Description = "System hosting runtime profile (read-only system configuration)",
+                Description = "Clean Architecture solution template version (read-only system configuration)",
                 Group = "System",
                 IsReadOnly = true,
                 CreatedAt = seedTime,
