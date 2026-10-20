@@ -56,7 +56,8 @@ public class AuthClient
                         authResponse.RefreshToken,
                         authResponse.UserName,
                         authResponse.Email,
-                        authResponse.Roles);
+                        authResponse.Roles,
+                        authResponse.Permissions);
                     await _localStorage.SetAsync("userInfo", authResponse);
                     return Result.Success();
                 }
@@ -118,6 +119,53 @@ public class AuthClient
                 return Result.Success();
 
             return Result.Failure("Failed to update user role");
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure(ex.Message);
+        }
+    }
+
+    public async Task<Result<Dictionary<string, List<string>>>> GetAllPermissionsAsync()
+    {
+        await AddAuthorizationHeaderAsync();
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<Dictionary<string, List<string>>>("api/v1/Users/permissions");
+            return Result<Dictionary<string, List<string>>>.Success(response ?? new Dictionary<string, List<string>>());
+        }
+        catch (Exception ex)
+        {
+            return Result<Dictionary<string, List<string>>>.Failure(ex.Message);
+        }
+    }
+
+    public async Task<Result<List<string>>> GetRolePermissionsAsync(string roleName)
+    {
+        await AddAuthorizationHeaderAsync();
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<List<string>>($"api/v1/Users/roles/{Uri.EscapeDataString(roleName)}/permissions");
+            return Result<List<string>>.Success(response ?? new List<string>());
+        }
+        catch (Exception ex)
+        {
+            return Result<List<string>>.Failure(ex.Message);
+        }
+    }
+
+    public async Task<Result> UpdateRolePermissionsAsync(string roleName, List<string> permissions)
+    {
+        await AddAuthorizationHeaderAsync();
+        try
+        {
+            var request = new UpdateRolePermissionsRequest { Permissions = permissions };
+            var response = await _httpClient.PutAsJsonAsync($"api/v1/Users/roles/{Uri.EscapeDataString(roleName)}/permissions", request);
+
+            if (response.IsSuccessStatusCode)
+                return Result.Success();
+
+            return Result.Failure("Failed to update role permissions");
         }
         catch (Exception ex)
         {

@@ -122,6 +122,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 if (result.Succeeded)
                     userManager.AddToRoleAsync(member, "Member").GetAwaiter().GetResult();
             }
+
+            // Seed Role Permissions
+            var permissionService = scopedSp.GetRequiredService<CleanArchitecture.Application.Common.Interfaces.IPermissionService>();
+            permissionService.UpdateRolePermissionsAsync("Admin", CleanArchitecture.Application.Common.Security.Permissions.GetAll()).GetAwaiter().GetResult();
+            permissionService.UpdateRolePermissionsAsync("Member", new[] { CleanArchitecture.Application.Common.Security.Permissions.Products.View }).GetAwaiter().GetResult();
         }
 
         return host;

@@ -18,15 +18,18 @@ public class TokenService
     private readonly IConfiguration _configuration;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IdentityDbContext _identityDbContext;
+    private readonly CleanArchitecture.Application.Common.Interfaces.IPermissionService _permissionService;
 
     public TokenService(
         IConfiguration configuration,
         UserManager<ApplicationUser> userManager,
-        IdentityDbContext identityDbContext)
+        IdentityDbContext identityDbContext,
+        CleanArchitecture.Application.Common.Interfaces.IPermissionService permissionService)
     {
         _configuration = configuration;
         _userManager = userManager;
         _identityDbContext = identityDbContext;
+        _permissionService = permissionService;
     }
 
     /// <summary>
@@ -47,6 +50,13 @@ public class TokenService
         foreach (var role in userRoles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        // Tambahkan claims permission granular
+        var permissions = await _permissionService.GetPermissionsForUserAsync(user.Id);
+        foreach (var permission in permissions)
+        {
+            claims.Add(new Claim("permission", permission));
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]!));

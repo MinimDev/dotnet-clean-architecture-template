@@ -349,6 +349,20 @@ try
                     await userManager.AddToRoleAsync(member, "Member");
                 }
             }
+
+            // Seed Role Permissions
+            var permissionService = scope.ServiceProvider.GetRequiredService<CleanArchitecture.Application.Common.Interfaces.IPermissionService>();
+            var adminPerms = await permissionService.GetPermissionsForRoleAsync("Admin");
+            if (adminPerms.Count == 0)
+            {
+                await permissionService.UpdateRolePermissionsAsync("Admin", CleanArchitecture.Application.Common.Security.Permissions.GetAll());
+            }
+
+            var memberPerms = await permissionService.GetPermissionsForRoleAsync("Member");
+            if (memberPerms.Count == 0)
+            {
+                await permissionService.UpdateRolePermissionsAsync("Member", new[] { CleanArchitecture.Application.Common.Security.Permissions.Products.View });
+            }
         }
     }
 

@@ -13,9 +13,9 @@
 |---|---|---|---|
 | 1 | Idempotency Key + Double-Submit Fix | ✅ Selesai | `feat/idempotency-key` |
 | 2 | Audit Trail Table | ✅ Selesai | `feat/audit-trail` |
-| 3 | App Settings / Feature Flags | ⬜ Belum Mulai | `feat/app-settings` |
-| 4 | Notification System (In-App) | ⬜ Belum Mulai | `feat/notification-system` |
-| 5 | Permission-Based Access Control | ⬜ Belum Mulai | `feat/pbac` |
+| 3 | App Settings / Feature Flags | ✅ Selesai | `feat/app-settings` |
+| 4 | Notification System (In-App) | ✅ Selesai | `feat/notification-system` |
+| 5 | Permission-Based Access Control | ✅ Selesai | `feat/pbac` |
 
 **Status Legend:** ⬜ Belum Mulai · 🔄 Sedang Dikerjakan · ✅ Selesai · 🚧 Blocked
 
@@ -321,7 +321,7 @@ Notifikasi in-app yang bisa dipublikasi dari mana saja (Hangfire, Consumer, Hand
 **Target Versi:** `v1.7.0`  
 **Estimasi:** 2 sesi  
 **Branch:** `feat/pbac`  
-**Status:** ⬜ Belum Mulai  
+**Status:** ✅ Selesai  
 **Dependency:** Phase 3 (App Settings) harus selesai terlebih dahulu
 
 ### 🎯 Tujuan
@@ -330,7 +330,7 @@ Mengganti hardcoded `[Authorize(Roles = "Admin")]` dengan permission granular pe
 ### ✅ Checklist
 
 #### A. Application Layer — Permission Constants
-- [ ] **BUAT** `Common/Security/Permissions.cs`
+- [x] **BUAT** `Common/Security/Permissions.cs`
   ```csharp
   public static class Permissions
   {
@@ -345,6 +345,7 @@ Mengganti hardcoded `[Authorize(Roles = "Admin")]` dengan permission granular pe
       {
           public const string View        = "Permissions.Users.View";
           public const string ManageRoles = "Permissions.Users.ManageRoles";
+          public const string ManagePermissions = "Permissions.Users.ManagePermissions";
       }
       public static class AuditLogs
       {
@@ -357,11 +358,12 @@ Mengganti hardcoded `[Authorize(Roles = "Admin")]` dengan permission granular pe
       }
       public static class Notifications
       {
+          public const string View   = "Permissions.Notifications.View";
           public const string Manage = "Permissions.Notifications.Manage";
       }
   }
   ```
-- [ ] **BUAT** `Common/Security/HasPermissionAttribute.cs`
+- [x] **BUAT** `Common/Security/HasPermissionAttribute.cs`
   ```csharp
   [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
   public class HasPermissionAttribute : AuthorizeAttribute
@@ -369,43 +371,44 @@ Mengganti hardcoded `[Authorize(Roles = "Admin")]` dengan permission granular pe
       public HasPermissionAttribute(string permission) : base(permission) { }
   }
   ```
-- [ ] **BUAT** `Common/Security/PermissionAuthorizationHandler.cs`
-- [ ] **UBAH** `DependencyInjection.cs` — register `IAuthorizationHandler`
+- [x] **BUAT** `Common/Security/PermissionAuthorizationHandler.cs`
+- [x] **BUAT** `Common/Security/PermissionPolicyProvider.cs`
+- [x] **UBAH** `DependencyInjection.cs` — register `IAuthorizationHandler`, `IAuthorizationPolicyProvider`, dan `IPermissionService`
 
 #### B. Identity Layer — Role-Permission Mapping
-- [ ] **BUAT** `Models/RolePermission.cs`
+- [x] **BUAT** `Models/RolePermission.cs`
   ```csharp
   public class RolePermission
   {
-      public string RoleId { get; set; }
+      public int Id { get; set; }
+      public string RoleName { get; set; }
       public string Permission { get; set; }  // nilai dari Permissions.* constants
   }
   ```
-- [ ] **BUAT** `Services/PermissionService.cs`
-  - `GetPermissionsForUserAsync(string userId)` → List<string> permission strings
+- [x] **BUAT** `Services/PermissionService.cs`
+  - `GetPermissionsForRoleAsync(string roleName)` → List<string> permission strings
   - Claims-based: permissions di-inject sebagai claims ke JWT saat login/refresh
-  - Cache per userId dengan invalidation saat permissions berubah
-- [ ] **UBAH** `TokenService.cs` — sertakan permission claims di JWT
+  - Cache per roleName dengan `IMemoryCache` dan auto-invalidation saat permissions berubah
+- [x] **UBAH** `TokenService.cs` — sertakan permission claims (`"permission"`) di JWT
 
 #### C. Persistence (IdentityDB)
-- [ ] **BUAT** `Migration: AddRolePermissions` di Identity project
-- [ ] **BUAT** Seeder default:
+- [x] **BUAT** `Migration: AddRolePermissions` di Identity project
+- [x] **BUAT** Seeder default:
   - Role `Admin` → semua permissions
   - Role `Member` → `Products.View` saja
 
 #### D. WebAPI — Update All Controllers
-- [ ] **UBAH** `ProductsController.cs` — ganti ke `[HasPermission(Permissions.Products.Create)]` dll
-- [ ] **UBAH** `UsersController.cs` — ganti ke `[HasPermission(Permissions.Users.View)]`
-- [ ] **UBAH** `AuditLogsController.cs` — `[HasPermission(Permissions.AuditLogs.View)]`
-- [ ] **UBAH** `JobsController.cs` — tetap Admin-only lewat permission
+- [x] **UBAH** `ProductsController.cs` — ganti ke `[HasPermission(Permissions.Products.*)]`
+- [x] **UBAH** `UsersController.cs` — ganti ke `[HasPermission(Permissions.Users.*)]` dan tambah endpoint PBAC
+- [x] **UBAH** `AuditLogsController.cs` — `[HasPermission(Permissions.AuditLogs.View)]`
+- [x] **UBAH** `AppSettingsController.cs` — `[HasPermission(Permissions.AppSettings.*)]`
 
 #### E. WebUI — User Management Enhancement
-- [ ] **UBAH** `Users.razor`
-  - Tambah tab "Permissions" per role (accordion)
+- [x] **UBAH** `Users.razor`
+  - Tab "Users List" & Tab "Role Permissions (PBAC)"
   - Checkbox tree grouped by category (`Products`, `Users`, dll.)
-  - Save/Reset per role
-  - Visual indicator: active permissions per user di user list
-- [ ] Sidebar: hide/show menu items berdasarkan permission user yang sedang login
+  - Save/Reset per role dengan instant feedback snackbar
+- [x] Sidebar: hide/show menu items berdasarkan permission user yang sedang login via `TokenProvider.HasPermission(...)`
 
 ---
 

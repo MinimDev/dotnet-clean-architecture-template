@@ -2,38 +2,61 @@
 @using CleanArchitecture.WebUI.Services
 @using CleanArchitecture.WebUI.Services.Models
 @inject AuthClient Client
+@inject TokenProvider TokenProvider
 @inject ISnackbar Snackbar
 
-<AuthorizeView Roles="Admin">
-    <Authorized Context="authContext">
-        <div class="d-flex align-center justify-space-between mb-6">
-            <div>
-                <MudText Typo="Typo.h3" Class="font-weight-bold" Color="Color.Primary">User Management</MudText>
-                <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mt-1">Manage application users, assign roles, and control access.</MudText>
-            </div>
-        </div>
+<div class="d-flex align-center justify-space-between mb-6">
+    <div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Color="Color.Primary">User & Access Management</MudText>
+        <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mt-1">
+            Kelola data pengguna, penetapan peran (Role), dan matriks hak akses granular (PBAC).
+        </MudText>
+    </div>
+</div>
 
-        @if (_isLoading)
+<MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4" Color="Color.Surface">
+    <!-- TAB 1: USERS LIST -->
+    <MudTabPanel Text="Users List" Icon="@Icons.Material.Rounded.People">
+        @if (_isLoadingUsers)
         {
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <div class="pa-6 text-center">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <MudText Typo="Typo.caption" Class="d-block mt-2 text-secondary">Loading users data...</MudText>
+            </div>
         }
         else
         {
-            <MudDataGrid T="UserDto" Items="@_users" MultiSelection="true" Elevation="4" Dense="false" Hover="true" Striped="false"
-                         Class="rounded-xl border-solid border-2 mud-border-lines-default" 
-                         Style="background: var(--mud-palette-surface);" QuickFilter="@_quickFilter">
+            <MudDataGrid T="UserDto" Items="@_users" Elevation="0" Dense="false" Hover="true"
+                         Class="rounded-xl border-solid border-1 mud-border-lines-default"
+                         QuickFilter="@_quickFilter">
                 <ToolBarContent>
-                    <MudIcon Icon="@Icons.Material.Rounded.PeopleAlt" Color="Color.Primary" Class="mr-3" />
-                    <MudText Typo="Typo.h6" Class="font-weight-bold">Registered Users</MudText>
+                    <MudIcon Icon="@Icons.Material.Rounded.PersonSearch" Color="Color.Primary" Class="mr-3" />
+                    <MudText Typo="Typo.h6" Class="font-weight-bold">Registered Users (@_users.Count)</MudText>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_searchString" Placeholder="Search by Name or Email" Adornment="Adornment.Start" Immediate="true"
-                                  AdornmentIcon="@Icons.Material.Rounded.Search" IconSize="Size.Medium" Class="mt-0" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="_searchString"
+                                  Placeholder="Search by Name or Email"
+                                  Adornment="Adornment.Start"
+                                  Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Rounded.Search"
+                                  IconSize="Size.Medium"
+                                  Class="mt-0"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Style="max-width: 320px;" />
                 </ToolBarContent>
                 <Columns>
-                    <SelectColumn T="UserDto" />
-                    <PropertyColumn Property="x => x.FullName" Title="Full Name" />
+                    <PropertyColumn Property="x => x.FullName" Title="Full Name">
+                        <CellTemplate>
+                            <div class="d-flex align-center gap-3">
+                                <MudAvatar Color="Color.Primary" Size="Size.Small">
+                                    @(string.IsNullOrEmpty(context.Item.FullName) ? "?" : context.Item.FullName[0].ToString().ToUpperInvariant())
+                                </MudAvatar>
+                                <span class="font-weight-bold">@context.Item.FullName</span>
+                            </div>
+                        </CellTemplate>
+                    </PropertyColumn>
                     <PropertyColumn Property="x => x.Email" Title="Email" />
-                    <TemplateColumn Title="Current Role" Sortable="false">
+                    <TemplateColumn Title="Assigned Role" Sortable="false">
                         <CellTemplate>
                             @{
                                 var role = context.Item.Roles.FirstOrDefault() ?? "None";
@@ -49,10 +72,8 @@
                     <TemplateColumn Title="Actions" Sortable="false">
                         <CellTemplate>
                             <MudMenu Icon="@Icons.Material.Rounded.MoreVert" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                                <MudMenuItem Icon="@Icons.Material.Rounded.Security" IconColor="Color.Error" OnClick="@(() => UpdateRole(context.Item, "Admin"))">Make Admin</MudMenuItem>
-                                <MudMenuItem Icon="@Icons.Material.Rounded.Person" IconColor="Color.Info" OnClick="@(() => UpdateRole(context.Item, "Member"))">Make Member</MudMenuItem>
-                                <MudDivider />
-                                <MudMenuItem Icon="@Icons.Material.Rounded.DeleteOutline" IconColor="Color.Default">Remove User</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Rounded.Security" IconColor="Color.Error" OnClick="@(() => UpdateRole(context.Item, "Admin"))">Assign Admin</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Rounded.Person" IconColor="Color.Info" OnClick="@(() => UpdateRole(context.Item, "Member"))">Assign Member</MudMenuItem>
                             </MudMenu>
                         </CellTemplate>
                     </TemplateColumn>
@@ -62,34 +83,157 @@
                 </PagerContent>
             </MudDataGrid>
         }
-    </Authorized>
-    <NotAuthorized>
-        <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mt-4 rounded-lg">
-            Akses Ditolak: Anda tidak memiliki izin untuk mengelola user.
-        </MudAlert>
-    </NotAuthorized>
-</AuthorizeView>
+    </MudTabPanel>
+
+    <!-- TAB 2: ROLE PERMISSIONS MATRIX (PBAC) -->
+    <MudTabPanel Text="Role Permissions (PBAC)" Icon="@Icons.Material.Rounded.Shield">
+        <div class="d-flex align-center justify-space-between flex-wrap gap-4 mb-4 mt-2">
+            <div style="min-width: 240px;">
+                <MudSelect T="string"
+                           Label="Select Role"
+                           Value="@_selectedRole"
+                           ValueChanged="OnRoleChanged"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("Admin")">Admin (Superadmin)</MudSelectItem>
+                    <MudSelectItem Value="@("Member")">Member</MudSelectItem>
+                </MudSelect>
+            </div>
+
+            <div class="d-flex align-center gap-2">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           Size="Size.Small"
+                           OnClick="GrantAllPermissions"
+                           Disabled="@_isSavingPermissions">
+                    Grant All
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Error"
+                           Size="Size.Small"
+                           OnClick="RevokeAllPermissions"
+                           Disabled="@_isSavingPermissions">
+                    Revoke All
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Size="Size.Small"
+                           StartIcon="@Icons.Material.Filled.Save"
+                           OnClick="SaveRolePermissionsAsync"
+                           Disabled="@_isSavingPermissions">
+                    @(_isSavingPermissions ? "Saving..." : "Save Permissions")
+                </MudButton>
+            </div>
+        </div>
+
+        @if (_selectedRole == "Admin")
+        {
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-4 rounded-lg">
+                <strong>Catatan Superadmin:</strong> Role <code>Admin</code> secara default memiliki akses penuh ke seluruh modul sistem. Anda tetap dapat mengonfigurasi permission eksplisit di bawah ini.
+            </MudAlert>
+        }
+
+        @if (_isLoadingPermissions)
+        {
+            <div class="pa-6 text-center">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <MudText Typo="Typo.caption" Class="d-block mt-2 text-secondary">Loading permissions matrix...</MudText>
+            </div>
+        }
+        else
+        {
+            <MudGrid Spacing="3">
+                @foreach (var category in _allPermissions)
+                {
+                    var isAllCategoryChecked = category.Value.All(p => _activePermissions.Contains(p));
+                    var checkedCount = category.Value.Count(p => _activePermissions.Contains(p));
+
+                    <MudItem xs="12" md="6">
+                        <MudCard Elevation="2" Class="rounded-xl border-solid border-1 mud-border-lines-default h-100">
+                            <MudCardHeader Class="pb-2 border-b border-solid" Style="border-color: var(--mud-palette-lines-default) !important;">
+                                <CardHeaderAvatar>
+                                    <MudAvatar Color="@GetCategoryColor(category.Key)" Size="Size.Small">
+                                        <MudIcon Icon="@GetCategoryIcon(category.Key)" Size="Size.Small" />
+                                    </MudAvatar>
+                                </CardHeaderAvatar>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@category.Key</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @checkedCount of @category.Value.Count permissions active
+                                    </MudText>
+                                </CardHeaderContent>
+                                <CardHeaderActions>
+                                    <MudButton Variant="Variant.Text"
+                                               Size="Size.Small"
+                                               Color="Color.Primary"
+                                               OnClick="@(() => ToggleCategoryPermissions(category.Value, !isAllCategoryChecked))"
+                                               Class="text-transform-none"
+                                               Style="font-size: 0.75rem;">
+                                        @(isAllCategoryChecked ? "Deselect All" : "Select All")
+                                    </MudButton>
+                                </CardHeaderActions>
+                            </MudCardHeader>
+                            <MudCardContent Class="pt-2">
+                                <MudList T="string" Dense="true" Class="pa-0">
+                                    @foreach (var perm in category.Value)
+                                    {
+                                        var isChecked = _activePermissions.Contains(perm);
+                                        <MudListItem T="string" Class="px-1 py-1">
+                                            <div class="d-flex align-center justify-space-between w-100">
+                                                <div>
+                                                    <MudText Typo="Typo.body2" Class="font-weight-medium">
+                                                        @FormatPermissionName(perm)
+                                                    </MudText>
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.7rem;">
+                                                        @perm
+                                                    </MudText>
+                                                </div>
+                                                <MudSwitch T="bool"
+                                                           Value="@isChecked"
+                                                           ValueChanged="@((val) => TogglePermission(perm, val))"
+                                                           Color="Color.Primary" />
+                                            </div>
+                                        </MudListItem>
+                                    }
+                                </MudList>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </MudTabPanel>
+</MudTabs>
 
 @code {
     private List<UserDto> _users = new();
-    private bool _isLoading = true;
+    private bool _isLoadingUsers = true;
     private string _searchString = "";
+
+    // PBAC State
+    private string _selectedRole = "Admin";
+    private bool _isLoadingPermissions = true;
+    private bool _isSavingPermissions = false;
+    private Dictionary<string, List<string>> _allPermissions = new();
+    private HashSet<string> _activePermissions = new(StringComparer.OrdinalIgnoreCase);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             await LoadUsers();
+            await LoadAllPermissions();
+            await LoadRolePermissions(_selectedRole);
         }
     }
 
     private async Task LoadUsers()
     {
-        _isLoading = true;
-        StateHasChanged(); // Trigger render to show the loading indicator
+        _isLoadingUsers = true;
+        StateHasChanged();
 
         var result = await Client.GetUsersAsync();
-        
         if (result.IsSuccess && result.Data != null)
         {
             _users = result.Data;
@@ -98,9 +242,106 @@
         {
             Snackbar.Add($"Failed to load users: {result.Error}", Severity.Error);
         }
-        
-        _isLoading = false;
-        StateHasChanged(); // Trigger render to display the loaded data
+
+        _isLoadingUsers = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadAllPermissions()
+    {
+        var result = await Client.GetAllPermissionsAsync();
+        if (result.IsSuccess && result.Data != null)
+        {
+            _allPermissions = result.Data;
+        }
+        else
+        {
+            // Fallback ke grup lokal jika endpoint gagal
+            _allPermissions = new Dictionary<string, List<string>>(Permissions.GetGrouped());
+        }
+    }
+
+    private async Task LoadRolePermissions(string roleName)
+    {
+        _isLoadingPermissions = true;
+        StateHasChanged();
+
+        var result = await Client.GetRolePermissionsAsync(roleName);
+        if (result.IsSuccess && result.Data != null)
+        {
+            _activePermissions = new HashSet<string>(result.Data, StringComparer.OrdinalIgnoreCase);
+        }
+        else
+        {
+            Snackbar.Add($"Failed to load permissions for {roleName}: {result.Error}", Severity.Error);
+        }
+
+        _isLoadingPermissions = false;
+        StateHasChanged();
+    }
+
+    private async Task OnRoleChanged(string newRole)
+    {
+        _selectedRole = newRole;
+        await LoadRolePermissions(newRole);
+    }
+
+    private void TogglePermission(string permission, bool active)
+    {
+        if (active)
+        {
+            _activePermissions.Add(permission);
+        }
+        else
+        {
+            _activePermissions.Remove(permission);
+        }
+    }
+
+    private void ToggleCategoryPermissions(List<string> categoryPerms, bool selectAll)
+    {
+        foreach (var p in categoryPerms)
+        {
+            if (selectAll)
+                _activePermissions.Add(p);
+            else
+                _activePermissions.Remove(p);
+        }
+    }
+
+    private void GrantAllPermissions()
+    {
+        foreach (var group in _allPermissions.Values)
+        {
+            foreach (var p in group)
+            {
+                _activePermissions.Add(p);
+            }
+        }
+    }
+
+    private void RevokeAllPermissions()
+    {
+        _activePermissions.Clear();
+    }
+
+    private async Task SaveRolePermissionsAsync()
+    {
+        _isSavingPermissions = true;
+        StateHasChanged();
+
+        var result = await Client.UpdateRolePermissionsAsync(_selectedRole, _activePermissions.ToList());
+        if (result.IsSuccess)
+        {
+            Snackbar.Add($"Permissions for role '{_selectedRole}' successfully saved!", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add($"Failed to save permissions: {result.Error}", Severity.Error);
+        }
+
+        _isSavingPermissions = false;
+        StateHasChanged();
     }
 
     private async Task UpdateRole(UserDto user, string newRole)
@@ -113,19 +354,42 @@
         if (result.IsSuccess)
         {
             Snackbar.Add($"Role for {user.Email} successfully updated to {newRole}", Severity.Success);
-            
-            // Update the local model so the UI reflects the change without a full reload
             user.Roles.Clear();
             user.Roles.Add(newRole);
         }
         else
         {
             Snackbar.Add($"Failed to update role: {result.Error}", Severity.Error);
-            
-            // Reload user list to restore original state if failed
             await LoadUsers();
         }
     }
+
+    private string FormatPermissionName(string permission)
+    {
+        // e.g. "Permissions.Products.Create" -> "Create"
+        var parts = permission.Split('.');
+        return parts.Length > 2 ? parts[^1] : permission;
+    }
+
+    private string GetCategoryIcon(string category) => category switch
+    {
+        "Products" => Icons.Material.Filled.Inventory,
+        "Users" => Icons.Material.Filled.People,
+        "Audit Logs" => Icons.Material.Filled.History,
+        "App Settings" => Icons.Material.Filled.Tune,
+        "Notifications" => Icons.Material.Filled.Notifications,
+        _ => Icons.Material.Filled.Security
+    };
+
+    private Color GetCategoryColor(string category) => category switch
+    {
+        "Products" => Color.Primary,
+        "Users" => Color.Info,
+        "Audit Logs" => Color.Warning,
+        "App Settings" => Color.Secondary,
+        "Notifications" => Color.Success,
+        _ => Color.Default
+    };
 
     private Func<UserDto, bool> _quickFilter => x =>
     {

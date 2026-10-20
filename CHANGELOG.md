@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-10-20
+
+### Added
+- **Permission-Based Access Control (PBAC)** — Enterprise granular security model replacing static role strings with dynamic, permission-based policies:
+  - Granular permission constants defined in `CleanArchitecture.Application.Common.Security.Permissions` across functional modules (`Products`, `Users`, `AuditLogs`, `AppSettings`, `Notifications`), complete with `GetAll()` and `GetGrouped()` reflection-free helper methods.
+  - Declarative `[HasPermission(...)]` authorization attribute in Application layer allowing seamless decoration on API controllers and endpoints.
+  - Dynamic authorization policy provider `PermissionPolicyProvider` implementing `IAuthorizationPolicyProvider` to dynamically synthesize authorization policies on-demand without tedious manual policy configuration in `Program.cs`.
+  - `PermissionAuthorizationHandler` implementing `AuthorizationHandler<PermissionRequirement>` with automatic superadmin bypass (users in role `"Admin"` inherently possess all permissions).
+  - Role-Permission database mapping via `RolePermission` entity in `CleanArchitecture.Infrastructure.Identity.Models` with unique compound indexing on `(RoleName, Permission)`.
+  - `IPermissionService` contract and `PermissionService` implementation in Identity layer backed by in-memory caching (`IMemoryCache`) with automatic cache invalidation on permission updates.
+  - Claims-based JWT enrichment: `TokenService` appends permission claims (`"permission"`) to JWT access tokens during login and refresh operations, eliminating redundant database roundtrips during HTTP request processing.
+  - PBAC API management endpoints in `UsersController`:
+    - `GET /api/v1/Users/permissions` — retrieves all system permissions grouped by module.
+    - `GET /api/v1/Users/roles/{roleName}/permissions` — retrieves active permissions for a role.
+    - `PUT /api/v1/Users/roles/{roleName}/permissions` — updates permissions assigned to a role.
+  - WebAPI endpoint guard modernization:
+    - `ProductsController`: guarded with `[HasPermission(Permissions.Products.*)]`.
+    - `UsersController`: guarded with `[HasPermission(Permissions.Users.*)]`.
+    - `AuditLogsController`: guarded with `[HasPermission(Permissions.AuditLogs.View)]`.
+    - `AppSettingsController`: guarded with `[HasPermission(Permissions.AppSettings.*)]`.
+  - Interactive WebUI Role & Permission Management (`Users.razor`):
+    - Tabbed interface separating "Users List" (with roles badges, search, and role edit dialog) and "Role Permissions (PBAC)".
+    - Role Permissions Matrix featuring role selector, module accordion cards, granular permission checkboxes, toggle all per group, and instant save with snackbar feedback.
+    - Dynamic sidebar menu in `NavMenu.razor` filtering links based on active user permissions via `TokenProvider.HasPermission(...)`.
+  - Full automated test coverage: `PermissionsTests` (unit testing constants & groupings) and `UsersControllerTests` (integration testing PBAC endpoints, 403 Forbidden enforcement on unauthorized roles, and dynamic permission updates).
+
 ## [1.7.0-rc2] - 2026-10-20
 
 ### Added

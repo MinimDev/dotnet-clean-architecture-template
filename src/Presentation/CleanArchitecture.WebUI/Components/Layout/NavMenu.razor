@@ -1,23 +1,44 @@
+@using CleanArchitecture.WebUI.Services.Models
 @using CleanArchitecture.WebUI.Services
+@implements IDisposable
 @inject AuthClient AuthClient
+@inject TokenProvider TokenProvider
 @inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
 
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    <MudNavLink Href="products" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inventory">Products</MudNavLink>
     
-    <AuthorizeView Roles="Admin">
-        <Authorized>
-            <MudNavGroup Title="System" Icon="@Icons.Material.Filled.Settings" Expanded="false">
-                <MudNavLink Href="users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+    @if (TokenProvider.HasPermission(Permissions.Products.View))
+    {
+        <MudNavLink Href="products" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inventory">Products</MudNavLink>
+    }
+    
+    @if (TokenProvider.Roles.Contains("Admin") || 
+         TokenProvider.HasPermission(Permissions.Users.View) ||
+         TokenProvider.HasPermission(Permissions.AuditLogs.View) ||
+         TokenProvider.HasPermission(Permissions.AppSettings.View))
+    {
+        <MudNavGroup Title="System" Icon="@Icons.Material.Filled.Settings" Expanded="false">
+            @if (TokenProvider.HasPermission(Permissions.Users.View))
+            {
+                <MudNavLink Href="users" Icon="@Icons.Material.Filled.People">Users & Permissions</MudNavLink>
+            }
+            @if (TokenProvider.HasPermission(Permissions.AuditLogs.View))
+            {
                 <MudNavLink Href="audit-logs" Icon="@Icons.Material.Filled.History">Audit Logs</MudNavLink>
+            }
+            @if (TokenProvider.HasPermission(Permissions.AppSettings.View))
+            {
                 <MudNavLink Href="settings" Icon="@Icons.Material.Filled.Tune">App Settings</MudNavLink>
+            }
+            @if (TokenProvider.Roles.Contains("Admin"))
+            {
                 <MudNavLink Href="@($"{Configuration["ApiBaseUrl"]}/hangfire")" Target="_blank" Icon="@Icons.Material.Filled.Schedule">Background Jobs</MudNavLink>
                 <MudNavLink Href="@($"{Configuration["ApiBaseUrl"]}/scalar/v1")" Target="_blank" Icon="@Icons.Material.Filled.Api">Scalar UI</MudNavLink>
-            </MudNavGroup>
-        </Authorized>
-    </AuthorizeView>
+            }
+        </MudNavGroup>
+    }
     
     <AuthorizeView>
         <Authorized>
@@ -46,11 +67,19 @@
 </style>
 
 @code {
+    protected override void OnInitialized()
+    {
+        TokenProvider.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        TokenProvider.OnChange -= StateHasChanged;
+    }
+
     private async Task Logout()
     {
         await AuthClient.LogoutAsync();
         NavigationManager.NavigateTo("/login");
     }
 }
-
-

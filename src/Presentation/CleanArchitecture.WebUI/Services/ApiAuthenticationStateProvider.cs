@@ -42,7 +42,8 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider, IDisp
                         storedData.Value.RefreshToken,
                         storedData.Value.UserName,
                         storedData.Value.Email,
-                        storedData.Value.Roles);
+                        storedData.Value.Roles,
+                        storedData.Value.Permissions);
                 }
             }
             catch
@@ -66,6 +67,14 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider, IDisp
                 foreach (var role in _tokenProvider.Roles)
                 {
                     claims.Add(new Claim(ClaimTypes.Role, role));
+                }
+            }
+
+            if (_tokenProvider.Permissions != null)
+            {
+                foreach (var permission in _tokenProvider.Permissions)
+                {
+                    claims.Add(new Claim("permission", permission));
                 }
             }
 

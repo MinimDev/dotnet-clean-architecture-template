@@ -67,9 +67,17 @@ public static class DependencyInjection
         .AddDefaultTokenProviders()
         .AddSignInManager();
 
+        // Memory cache for permission lookups
+        services.AddMemoryCache();
+
         // Register services
+        services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<TokenService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        // Register Dynamic Permission Authorization Provider & Handler
+        services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationPolicyProvider, Security.PermissionPolicyProvider>();
+        services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, Security.PermissionAuthorizationHandler>();
 
         return services;
     }

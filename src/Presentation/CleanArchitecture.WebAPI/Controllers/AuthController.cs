@@ -20,15 +20,18 @@ public class AuthController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly TokenService _tokenService;
+    private readonly CleanArchitecture.Application.Common.Interfaces.IPermissionService _permissionService;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        TokenService tokenService)
+        TokenService tokenService,
+        CleanArchitecture.Application.Common.Interfaces.IPermissionService permissionService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
+        _permissionService = permissionService;
     }
 
     /// <summary>
@@ -56,6 +59,7 @@ public class AuthController : ControllerBase
         await _userManager.AddToRoleAsync(user, "Member");
 
         var roles = await _userManager.GetRolesAsync(user);
+        var permissions = await _permissionService.GetPermissionsForUserAsync(user.Id);
         var accessToken = await _tokenService.GenerateJwtToken(user);
         var refreshToken = await _tokenService.GenerateRefreshTokenAsync(user.Id);
 
@@ -65,7 +69,8 @@ public class AuthController : ControllerBase
             RefreshToken = refreshToken,
             Email = user.Email!,
             UserName = user.UserName!,
-            Roles = roles.ToList()
+            Roles = roles.ToList(),
+            Permissions = permissions.ToList()
         });
     }
 
@@ -88,6 +93,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid email or password" });
 
         var roles = await _userManager.GetRolesAsync(user);
+        var permissions = await _permissionService.GetPermissionsForUserAsync(user.Id);
         var accessToken = await _tokenService.GenerateJwtToken(user);
         var refreshToken = await _tokenService.GenerateRefreshTokenAsync(user.Id);
 
@@ -97,7 +103,8 @@ public class AuthController : ControllerBase
             RefreshToken = refreshToken,
             Email = user.Email!,
             UserName = user.UserName!,
-            Roles = roles.ToList()
+            Roles = roles.ToList(),
+            Permissions = permissions.ToList()
         });
     }
 
@@ -168,6 +175,7 @@ public class AuthResponse
     public string Email { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public IList<string> Roles { get; set; } = new List<string>();
+    public IList<string> Permissions { get; set; } = new List<string>();
 }
 
 /// <summary>Response model for token refresh endpoint</summary>

@@ -65,8 +65,8 @@ YourProject/
 - ✅ **Idempotency Key & Double-Submit Protection** — MediatR pipeline behaviour with `Idempotency-Key` header support to prevent duplicate transactions (e.g. double-clicks, network retries) with automatic caching and short-circuiting.
 - ✅ **Refresh Token** — Secure token rotation with `POST /api/v1/Auth/refresh` and revoke via `POST /api/v1/Auth/revoke`
 - ✅ **Integration Tests** — `WebApplicationFactory` with SQLite in-memory, no SQL Server required for testing
-- ✅ **Role-Based Access Control (RBAC)** — Pre-configured `Admin` and `Member` roles with authorization policies
-- ✅ **User Management Dashboard** — View users and modify roles dynamically from the UI
+- ✅ **Permission-Based Access Control (PBAC)** — Enterprise granular security model replacing static role strings with dynamic permission policies (`[HasPermission(...)]`), dynamic `IAuthorizationPolicyProvider`, cached role-permission mapping with `IMemoryCache`, superadmin bypass for `Admin`, and an interactive Role Permissions Matrix in Blazor WebUI.
+- ✅ **User Management & PBAC Dashboard** — Manage users, assign roles, and configure module permissions dynamically from the WebUI
 - ✅ **API Versioning** — Versioned endpoints (`/api/v1/...`) via URL segment & request header
 - ✅ **Rate Limiting** — Built-in ASP.NET Core rate limiting (global & auth-specific limits)
 - ✅ **Response Caching** — Output caching configured for GET endpoints
@@ -242,15 +242,48 @@ dotnet run --project "src/Presentation/CleanArchitecture.WebAPI"
 | `POST` | `/api/v1/Auth/refresh` | Exchange a valid refresh token for new token pair |
 | `POST` | `/api/v1/Auth/revoke` | Revoke refresh token (logout) *(Requires Auth)* |
 
-### Products *(Requires Authentication)*
+### Products *(Requires Authentication & Permission)*
+
+| Method | Endpoint | Description | Required Permission |
+|--------|----------|-------------|---------------------|
+| `GET`    | `/api/v1/Products`      | Get paginated list *(Output Cached: 30s)* | `Permissions.Products.View` |
+| `GET`    | `/api/v1/Products/{id}` | Get product by ID *(Output Cached: 60s)* | `Permissions.Products.View` |
+| `POST`   | `/api/v1/Products`      | Create a new product | `Permissions.Products.Create` |
+| `PUT`    | `/api/v1/Products/{id}` | Update an existing product | `Permissions.Products.Edit` |
+| `DELETE` | `/api/v1/Products/{id}` | Delete a product | `Permissions.Products.Delete` |
+
+### Users & Permissions (PBAC) *(Requires Authentication & Permission)*
+
+| Method | Endpoint | Description | Required Permission |
+|--------|----------|-------------|---------------------|
+| `GET` | `/api/v1/Users` | Get list of all users and their assigned roles | `Permissions.Users.View` |
+| `PUT` | `/api/v1/Users/{email}/roles` | Update assigned role for a user | `Permissions.Users.ManageRoles` |
+| `GET` | `/api/v1/Users/permissions` | Get all system permissions grouped by module | `Permissions.Users.View` |
+| `GET` | `/api/v1/Users/roles/{roleName}/permissions` | Get active permissions for a specific role | `Permissions.Users.View` |
+| `PUT` | `/api/v1/Users/roles/{roleName}/permissions` | Update permissions assigned to a role | `Permissions.Users.ManagePermissions` |
+
+### Dynamic App Settings *(Requires Authentication & Permission)*
+
+| Method | Endpoint | Description | Required Permission |
+|--------|----------|-------------|---------------------|
+| `GET` | `/api/v1/AppSettings` | Get all configuration settings (filterable by group) | `Permissions.AppSettings.View` |
+| `GET` | `/api/v1/AppSettings/{key}` | Get setting details by key | `Permissions.AppSettings.View` |
+| `PUT` | `/api/v1/AppSettings/{key}` | Update setting value | `Permissions.AppSettings.Edit` |
+
+### In-App Notifications *(Requires Authentication)*
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET`    | `/api/v1/Products`      | Get paginated list *(Output Cached: 30s)* |
-| `GET`    | `/api/v1/Products/{id}` | Get product by ID *(Output Cached: 60s)* |
-| `POST`   | `/api/v1/Products`      | Create a new product |
-| `PUT`    | `/api/v1/Products/{id}` | Update an existing product |
-| `DELETE` | `/api/v1/Products/{id}` | Delete a product |
+| `GET` | `/api/v1/Notifications` | Get paginated list of user and broadcast notifications |
+| `GET` | `/api/v1/Notifications/unread-count` | Get unread notification counter |
+| `PATCH` | `/api/v1/Notifications/{id}/read` | Mark a specific notification as read |
+| `PATCH` | `/api/v1/Notifications/read-all` | Mark all notifications as read |
+
+### Audit Logs *(Requires Authentication & Permission)*
+
+| Method | Endpoint | Description | Required Permission |
+|--------|----------|-------------|---------------------|
+| `GET` | `/api/v1/AuditLogs` | Query audit trail with entity, action, date, & user filters | `Permissions.AuditLogs.View` |
 
 ### Background Jobs *(Requires Authentication)*
 

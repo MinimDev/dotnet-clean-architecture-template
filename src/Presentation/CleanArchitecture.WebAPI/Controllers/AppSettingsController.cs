@@ -1,9 +1,11 @@
 using Asp.Versioning;
 using CleanArchitecture.Application.Common.Models;
+using CleanArchitecture.Application.Common.Security;
 using CleanArchitecture.Application.Features.AppSettings.Commands.UpdateAppSetting;
 using CleanArchitecture.Application.Features.AppSettings.DTOs;
 using CleanArchitecture.Application.Features.AppSettings.Queries.GetAppSettingByKey;
 using CleanArchitecture.Application.Features.AppSettings.Queries.GetAppSettings;
+using CleanArchitecture.Infrastructure.Identity.Security;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +14,9 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace CleanArchitecture.WebAPI.Controllers;
 
 /// <summary>
-/// API Controller untuk mengelola konfigurasi aplikasi dan Feature Flags secara dinamis (Admin Only).
+/// API Controller untuk mengelola konfigurasi aplikasi dan Feature Flags secara dinamis
 /// </summary>
-[Authorize(Roles = "Admin")]
+[Authorize]
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]
@@ -32,6 +34,7 @@ public class AppSettingsController : ControllerBase
     /// Mendapatkan daftar semua konfigurasi aplikasi (opsional filter berdasarkan grup).
     /// </summary>
     [HttpGet]
+    [HasPermission(Permissions.AppSettings.View)]
     [ProducesResponseType(typeof(Result<List<AppSettingDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -49,6 +52,7 @@ public class AppSettingsController : ControllerBase
     /// Mendapatkan detail konfigurasi aplikasi berdasarkan Key.
     /// </summary>
     [HttpGet("{key}")]
+    [HasPermission(Permissions.AppSettings.View)]
     [ProducesResponseType(typeof(Result<AppSettingDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAppSettingByKey(string key)
@@ -65,6 +69,7 @@ public class AppSettingsController : ControllerBase
     /// Memperbarui nilai konfigurasi aplikasi.
     /// </summary>
     [HttpPut("{key}")]
+    [HasPermission(Permissions.AppSettings.Edit)]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateAppSetting(string key, [FromBody] UpdateAppSettingRequest body)

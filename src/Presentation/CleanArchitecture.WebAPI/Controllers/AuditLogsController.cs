@@ -1,6 +1,8 @@
 using Asp.Versioning;
 using CleanArchitecture.Application.Common.Models;
+using CleanArchitecture.Application.Common.Security;
 using CleanArchitecture.Application.Features.AuditLogs.Queries.GetAuditLogs;
+using CleanArchitecture.Infrastructure.Identity.Security;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +11,10 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace CleanArchitecture.WebAPI.Controllers;
 
 /// <summary>
-/// API Controller untuk melihat rekaman Audit Trail / riwayat perubahan data (Admin Only).
+/// API Controller untuk melihat rekaman Audit Trail / riwayat perubahan data
 /// </summary>
-[Authorize(Roles = "Admin")]
+[Authorize]
+[HasPermission(Permissions.AuditLogs.View)]
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]

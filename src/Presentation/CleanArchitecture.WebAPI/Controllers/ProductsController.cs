@@ -1,9 +1,11 @@
 using Asp.Versioning;
+using CleanArchitecture.Application.Common.Security;
 using CleanArchitecture.Application.Features.Products.Commands.CreateProduct;
 using CleanArchitecture.Application.Features.Products.Commands.DeleteProduct;
 using CleanArchitecture.Application.Features.Products.Queries.GetProductById;
 using CleanArchitecture.Application.Features.Products.Queries.GetProductsList;
 using CleanArchitecture.Domain.Enums;
+using CleanArchitecture.Infrastructure.Identity.Security;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +35,7 @@ public class ProductsController : ControllerBase
     /// Get paginated list of products
     /// </summary>
     [HttpGet]
+    [HasPermission(Permissions.Products.View)]
     [OutputCache(PolicyName = "products")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProducts(
@@ -61,6 +64,7 @@ public class ProductsController : ControllerBase
     /// Get product by ID
     /// </summary>
     [HttpGet("{id}")]
+    [HasPermission(Permissions.Products.View)]
     [OutputCache(Duration = 60)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -79,7 +83,7 @@ public class ProductsController : ControllerBase
     /// Create a new product
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [HasPermission(Permissions.Products.Create)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command)
@@ -96,7 +100,7 @@ public class ProductsController : ControllerBase
     /// Update a product by id
     /// </summary>
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [HasPermission(Permissions.Products.Edit)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -122,7 +126,7 @@ public class ProductsController : ControllerBase
     /// Delete a product by id
     /// </summary>
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [HasPermission(Permissions.Products.Delete)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteProduct(Guid id)

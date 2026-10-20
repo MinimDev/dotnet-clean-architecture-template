@@ -17,8 +17,8 @@
     <PackageProjectUrl>https://github.com/MinimDev/dotnet-clean-architecture-template</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.7.0-rc2</Version>
-    <PackageReleaseNotes>v1.7.0-rc2: Added in-app Notification system with INotificationService, targeted alerts and broadcasts, MassTransit/Hangfire demo producers, and modern WebUI topbar notification bell with interactive slide-down panel.</PackageReleaseNotes>
+    <Version>1.7.0</Version>
+    <PackageReleaseNotes>v1.7.0 GA: Comprehensive production-ready template release featuring Permission-Based Access Control (PBAC) with dynamic policy provider and role permission matrix, In-App Notification system with interactive topbar bell panel, App Settings / Feature Flags management with in-memory caching, Enhanced Audit Logs with timeline and diff views, and resilient UI double-submit guards.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

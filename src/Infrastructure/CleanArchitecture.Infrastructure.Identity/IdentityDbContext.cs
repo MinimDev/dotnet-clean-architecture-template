@@ -15,6 +15,7 @@ public class IdentityDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -37,6 +38,15 @@ public class IdentityDbContext : IdentityDbContext<ApplicationUser>
                   .WithMany(u => u.RefreshTokens)
                   .HasForeignKey(e => e.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // RolePermission configuration
+        builder.Entity<RolePermission>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.RoleName).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Permission).HasMaxLength(200).IsRequired();
+            entity.HasIndex(e => new { e.RoleName, e.Permission }).IsUnique();
         });
     }
 }

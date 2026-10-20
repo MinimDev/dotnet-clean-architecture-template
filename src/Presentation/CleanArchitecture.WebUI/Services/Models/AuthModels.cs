@@ -20,6 +20,7 @@ public class AuthResponse
     public string Email { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public IList<string> Roles { get; set; } = new List<string>();
+    public IList<string> Permissions { get; set; } = new List<string>();
 }
 
 public class UserDto
@@ -34,3 +35,9 @@ public class UpdateUserRoleRequest
 {
     public string Role { get; set; } = string.Empty;
 }
+
+public class UpdateRolePermissionsRequest
+{
+    public List<string> Permissions { get; set; } = new();
+}
+
