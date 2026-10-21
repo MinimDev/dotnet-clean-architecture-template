@@ -5,42 +5,137 @@
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
-<MudGrid Justify="Justify.Center" Class="mt-8">
-    <MudItem xs="12" sm="8" md="4">
-        <MudPaper Class="pa-4">
-            <MudText Typo="Typo.h5" GutterBottom="true" Align="Align.Center">Login</MudText>
+<PageTitle>Sign In - Clean Architecture Template</PageTitle>
+
+<div class="d-flex justify-center align-center min-vh-100 py-8 px-4">
+    <div style="width: 100%; max-width: 440px;">
+        <MudCard Elevation="0" Class="rounded-2xl glass-panel pa-6 pa-sm-8 hover-lift position-relative overflow-hidden">
+            <!-- Header Brand -->
+            <div class="text-center mb-6">
+                <div class="d-inline-flex align-center justify-center rounded-2xl mb-3" 
+                     style="width: 56px; height: 56px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);">
+                    <MudIcon Icon="@Icons.Material.Filled.Layers" Style="color: white; font-size: 2rem;" />
+                </div>
+                <MudText Typo="Typo.h4" Class="font-weight-bold text-gradient-primary" Style="letter-spacing: -0.02em;">
+                    Clean Architecture
+                </MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                    Sign in to your enterprise workspace
+                </MudText>
+            </div>
+
             <MudForm @ref="form" @bind-IsValid="@success">
-                <MudTextField T="string" Label="Email" Required="true" RequiredError="Email is required!" @bind-Value="email" InputType="InputType.Email" />
-                <MudTextField T="string" Label="Password" Required="true" RequiredError="Password is required!" @bind-Value="password" InputType="InputType.Password" />
-                
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" FullWidth="true" OnClick="Submit" Disabled="@(!success)">Login</MudButton>
+                <!-- Email Field -->
+                <MudTextField T="string" Label="Email Address" Required="true" RequiredError="Email address is required!"
+                              @bind-Value="email" InputType="InputType.Email" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Rounded.Email"
+                              Class="mb-4 rounded-xl" Margin="Margin.Dense" />
+
+                <!-- Password Field -->
+                <MudTextField T="string" Label="Password" Required="true" RequiredError="Password is required!"
+                              @bind-Value="password" 
+                              InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.End" 
+                              AdornmentIcon="@(_showPassword ? Icons.Material.Rounded.VisibilityOff : Icons.Material.Rounded.Visibility)"
+                              OnAdornmentClick="TogglePasswordVisibility"
+                              AdornmentAriaLabel="Toggle Password Visibility"
+                              Class="mb-2 rounded-xl" Margin="Margin.Dense" />
+
+                <!-- Demo Account Quick Fill Section -->
+                <div class="pa-3 rounded-xl my-4" style="background: rgba(var(--mud-palette-primary-rgb), 0.05); border: 1px dashed var(--mud-palette-lines-default);">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block font-weight-bold mb-2">
+                        Quick-Fill Demo Credentials:
+                    </MudText>
+                    <div class="d-flex gap-2">
+                        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" Class="rounded-lg flex-grow-1"
+                                   OnClick='() => FillCredentials("admin@localhost", "Admin123!")'>
+                            👑 Admin
+                        </MudButton>
+                        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary" Class="rounded-lg flex-grow-1"
+                                   OnClick='() => FillCredentials("member@localhost", "Member123!")'>
+                            👤 Member
+                        </MudButton>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true"
+                           OnClick="Submit" Disabled="@(_isLoading)"
+                           Class="rounded-xl py-3 font-weight-bold hover-lift"
+                           Style="box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);">
+                    @if (_isLoading)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <span class="ms-2">Signing in...</span>
+                    }
+                    else
+                    {
+                        <span>Sign In</span>
+                    }
+                </MudButton>
             </MudForm>
-        </MudPaper>
-    </MudItem>
-</MudGrid>
+
+            <MudDivider Class="my-6" />
+
+            <!-- Security Badges Footer -->
+            <div class="d-flex justify-center align-center gap-4 text-center">
+                <div class="d-flex align-center gap-1">
+                    <MudIcon Icon="@Icons.Material.Rounded.VpnKey" Size="Size.Small" Color="Color.Secondary" />
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">JWT + Refresh</MudText>
+                </div>
+                <div class="d-flex align-center gap-1">
+                    <MudIcon Icon="@Icons.Material.Rounded.Shield" Size="Size.Small" Color="Color.Secondary" />
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">PBAC Guarded</MudText>
+                </div>
+            </div>
+        </MudCard>
+    </div>
+</div>
 
 @code {
     private MudForm form = default!;
     private bool success;
     private string email = "";
     private string password = "";
+    private bool _showPassword = false;
+    private bool _isLoading = false;
+
+    private void TogglePasswordVisibility()
+    {
+        _showPassword = !_showPassword;
+    }
+
+    private void FillCredentials(string userEmail, string userPassword)
+    {
+        email = userEmail;
+        password = userPassword;
+    }
 
     private async Task Submit()
     {
-        await form.Validate();
+        await form.ValidateAsync();
 
         if (form.IsValid)
         {
-            var result = await AuthClient.LoginAsync(email, password);
+            _isLoading = true;
+            try
+            {
+                var result = await AuthClient.LoginAsync(email, password);
 
-            if (result.IsSuccess)
-            {
-                Snackbar.Add("Login successful", Severity.Success);
-                NavigationManager.NavigateTo("/");
+                if (result.IsSuccess)
+                {
+                    Snackbar.Add("Signed in successfully!", Severity.Success);
+                    NavigationManager.NavigateTo("/");
+                }
+                else
+                {
+                    Snackbar.Add(result.Error ?? "Authentication failed. Please check your credentials.", Severity.Error);
+                }
             }
-            else
+            finally
             {
-                Snackbar.Add(result.Error ?? "Login failed", Severity.Error);
+                _isLoading = false;
             }
         }
     }

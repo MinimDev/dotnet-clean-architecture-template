@@ -30,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Role Permissions Matrix featuring role selector, module accordion cards, granular permission checkboxes, toggle all per group, and instant save with snackbar feedback.
     - Dynamic sidebar menu in `NavMenu.razor` filtering links based on active user permissions via `TokenProvider.HasPermission(...)`.
   - Full automated test coverage: `PermissionsTests` (unit testing constants & groupings) and `UsersControllerTests` (integration testing PBAC endpoints, 403 Forbidden enforcement on unauthorized roles, and dynamic permission updates).
+- **Enterprise WebUI/UX Overhaul** — Premium visual upgrade and design system modernization across the entire Blazor frontend:
+  - Custom design tokens in `wwwroot/css/app.css` including glassmorphism cards (`glass-panel`), card hover lift physics (`hover-lift`), animated glow badges (`pulse-dot`), text gradients, and sleek custom scrollbars.
+  - Redesigned Topbar (`MainLayout.razor`): features gradient brand icon, system online status pill with live pulse animation, dark/light mode toggle with smooth transition, notification bell, and user avatar with interactive dropdown profile menu.
+  - Enterprise Sidebar (`NavMenu.razor`): categorized into "Main", "Management", and "Developer Tools" with section headers, active route pill styling, and authenticated user footer card.
+  - Revamped Executive Dashboard (`Home.razor`): gradient hero welcome banner, 4 KPI metric cards (PBAC Security, Catalog CQRS, Audit Trail, Async Workers), layered architecture explorer, and developer launchpad for instant access to Scalar OpenAPI and Hangfire.
+  - Redesigned Auth Screen (`Login.razor`): glassmorphism login card, password reveal toggle, loading spinner state, and quick-fill demo buttons for Admin and Member accounts.
+  - Modernized Product Catalog (`Products.razor`): PBAC dynamic guards for Create/Edit/Delete actions, card hover physics, and zero-inventory SVG empty states.
 
 ## [1.7.0-rc2] - 2026-10-20
 

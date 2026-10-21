@@ -6,63 +6,115 @@
 @inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
 
-<MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    
-    @if (TokenProvider.HasPermission(Permissions.Products.View))
-    {
-        <MudNavLink Href="products" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inventory">Products</MudNavLink>
-    }
-    
-    @if (TokenProvider.Roles.Contains("Admin") || 
-         TokenProvider.HasPermission(Permissions.Users.View) ||
-         TokenProvider.HasPermission(Permissions.AuditLogs.View) ||
-         TokenProvider.HasPermission(Permissions.AppSettings.View))
-    {
-        <MudNavGroup Title="System" Icon="@Icons.Material.Filled.Settings" Expanded="false">
+<div class="d-flex flex-column justify-space-between h-100 pa-2">
+    <MudNavMenu Class="pa-2">
+        <!-- Main Navigation Section -->
+        <div class="nav-section-title">Main</div>
+        
+        <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Rounded.Dashboard" Class="nav-item-modern">
+            Dashboard
+        </MudNavLink>
+        
+        @if (TokenProvider.HasPermission(Permissions.Products.View))
+        {
+            <MudNavLink Href="products" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.Inventory2" Class="nav-item-modern">
+                Products
+            </MudNavLink>
+        }
+        
+        <!-- Management & Administration Section -->
+        @if (TokenProvider.Roles.Contains("Admin") || 
+             TokenProvider.HasPermission(Permissions.Users.View) ||
+             TokenProvider.HasPermission(Permissions.AuditLogs.View) ||
+             TokenProvider.HasPermission(Permissions.AppSettings.View))
+        {
+            <div class="nav-section-title mt-4">Management</div>
+            
             @if (TokenProvider.HasPermission(Permissions.Users.View))
             {
-                <MudNavLink Href="users" Icon="@Icons.Material.Filled.People">Users & Permissions</MudNavLink>
+                <MudNavLink Href="users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.AdminPanelSettings" Class="nav-item-modern">
+                    Users & PBAC
+                </MudNavLink>
             }
             @if (TokenProvider.HasPermission(Permissions.AuditLogs.View))
             {
-                <MudNavLink Href="audit-logs" Icon="@Icons.Material.Filled.History">Audit Logs</MudNavLink>
+                <MudNavLink Href="audit-logs" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.HistoryEdu" Class="nav-item-modern">
+                    Audit Trail
+                </MudNavLink>
             }
             @if (TokenProvider.HasPermission(Permissions.AppSettings.View))
             {
-                <MudNavLink Href="settings" Icon="@Icons.Material.Filled.Tune">App Settings</MudNavLink>
+                <MudNavLink Href="settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Rounded.Tune" Class="nav-item-modern">
+                    App Settings
+                </MudNavLink>
             }
-            @if (TokenProvider.Roles.Contains("Admin"))
-            {
-                <MudNavLink Href="@($"{Configuration["ApiBaseUrl"]}/hangfire")" Target="_blank" Icon="@Icons.Material.Filled.Schedule">Background Jobs</MudNavLink>
-                <MudNavLink Href="@($"{Configuration["ApiBaseUrl"]}/scalar/v1")" Target="_blank" Icon="@Icons.Material.Filled.Api">Scalar UI</MudNavLink>
-            }
-        </MudNavGroup>
-    }
-    
-    <AuthorizeView>
-        <Authorized>
-             <MudNavLink OnClick="Logout" Icon="@Icons.Material.Filled.Logout">Logout (@context.User.Identity?.Name)</MudNavLink>
-        </Authorized>
-        <NotAuthorized>
-            <MudNavLink Href="login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
-        </NotAuthorized>
-    </AuthorizeView>
-</MudNavMenu>
+        }
+
+        <!-- Developer Section -->
+        @if (TokenProvider.Roles.Contains("Admin"))
+        {
+            <div class="nav-section-title mt-4">Developer Tools</div>
+            
+            <MudNavLink Href="@($"{Configuration["ApiBaseUrl"]}/hangfire")" Target="_blank" Icon="@Icons.Material.Rounded.PendingActions" Class="nav-item-modern">
+                Hangfire Jobs
+            </MudNavLink>
+            <MudNavLink Href="@($"{Configuration["ApiBaseUrl"]}/scalar/v1")" Target="_blank" Icon="@Icons.Material.Rounded.Api" Class="nav-item-modern">
+                Scalar OpenAPI
+            </MudNavLink>
+        }
+    </MudNavMenu>
+
+    <!-- Bottom User Card / Auth Footer -->
+    <div class="pa-2 mt-auto">
+        <AuthorizeView>
+            <Authorized>
+                <MudPaper Elevation="0" Class="pa-3 rounded-xl d-flex align-center justify-space-between" Style="background: rgba(var(--mud-palette-primary-rgb), 0.05); border: 1px solid var(--mud-palette-lines-default);">
+                    <div class="d-flex align-center gap-2 overflow-hidden mr-2">
+                        <MudAvatar Color="Color.Primary" Size="Size.Small">
+                            @(string.IsNullOrEmpty(context.User.Identity?.Name) ? "U" : context.User.Identity.Name[0].ToString().ToUpperInvariant())
+                        </MudAvatar>
+                        <div class="overflow-hidden" style="min-width: 0;">
+                            <MudText Typo="Typo.body2" Class="font-weight-bold text-truncate" Style="line-height: 1.2;">
+                                @(context.User.Identity?.Name)
+                            </MudText>
+                            <span class="status-pill pa-0" style="font-size: 0.65rem; color: var(--mud-palette-primary);">
+                                @(TokenProvider.Roles.FirstOrDefault() ?? "Authenticated")
+                            </span>
+                        </div>
+                    </div>
+                    <MudTooltip Text="Sign Out">
+                        <MudIconButton Icon="@Icons.Material.Rounded.Logout" Size="Size.Small" Color="Color.Default" OnClick="Logout" Class="hover-lift" />
+                    </MudTooltip>
+                </MudPaper>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" StartIcon="@Icons.Material.Rounded.Login"
+                           OnClick='() => NavigationManager.NavigateTo("login")' Class="rounded-xl">
+                    Sign In
+                </MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</div>
 
 <style>
-    .mud-nav-link.active {
-        font-weight: 700;
-        background: linear-gradient(90deg, rgba(var(--mud-palette-primary-rgb), 0.15) 0%, rgba(var(--mud-palette-primary-rgb), 0) 100%);
-        border-left: 4px solid var(--mud-palette-primary);
+    .nav-item-modern {
+        border-radius: 10px !important;
+        margin-bottom: 4px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 500;
+    }
+    
+    .nav-item-modern.active {
+        font-weight: 600;
+        background: linear-gradient(90deg, rgba(var(--mud-palette-primary-rgb), 0.15) 0%, rgba(var(--mud-palette-primary-rgb), 0.05) 100%) !important;
         color: var(--mud-palette-primary) !important;
+        box-shadow: inset 3px 0 0 0 var(--mud-palette-primary);
     }
-    .mud-nav-link {
-        border-left: 4px solid transparent; /* To prevent jumping when active */
-        transition: all 0.2s ease-in-out;
-    }
-    .mud-nav-link:hover:not(.active) {
-        background-color: rgba(var(--mud-palette-primary-rgb), 0.05);
+    
+    .nav-item-modern:hover:not(.active) {
+        background-color: rgba(var(--mud-palette-text-primary-rgb), 0.04);
+        transform: translateX(3px);
     }
 </style>
 

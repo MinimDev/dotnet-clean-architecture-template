@@ -5,10 +5,13 @@
 @inject AuditLogsClient Client
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject TokenProvider TokenProvider
 
-<AuthorizeView Roles="Admin">
+<AuthorizeView>
     <Authorized>
-        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
+        @if (TokenProvider.HasPermission(Permissions.AuditLogs.View))
+        {
+            <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
             <!-- Header Section -->
             <MudPaper Elevation="0" Class="pa-4 mb-6" Style="background-color: transparent;">
                 <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
@@ -326,12 +329,22 @@
                 </div>
             }
         </MudContainer>
+        }
+        else
+        {
+            <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12">
+                <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="pa-8 rounded-xl shadow-sm">
+                    <MudText Typo="Typo.h5" Class="font-weight-bold mb-2">Permission Required</MudText>
+                    <MudText>Anda memerlukan izin 'Permissions.AuditLogs.View' untuk melihat rekaman Audit Trail.</MudText>
+                </MudAlert>
+            </MudContainer>
+        }
     </Authorized>
     <NotAuthorized>
         <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12">
             <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Class="pa-8 rounded-xl shadow-sm">
-                <MudText Typo="Typo.h5" Class="font-weight-bold mb-2">Access Denied</MudText>
-                <MudText>Anda memerlukan hak akses Administrator untuk melihat rekaman Audit Trail.</MudText>
+                <MudText Typo="Typo.h5" Class="font-weight-bold mb-2">Access Required</MudText>
+                <MudText>Silakan login terlebih dahulu untuk mengakses rekaman Audit Trail.</MudText>
             </MudAlert>
         </MudContainer>
     </NotAuthorized>

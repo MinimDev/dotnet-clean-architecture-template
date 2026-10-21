@@ -4,10 +4,13 @@
 @inject AppSettingsClient Client
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject TokenProvider TokenProvider
 
-<AuthorizeView Roles="Admin">
+<AuthorizeView>
     <Authorized>
-        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
+        @if (TokenProvider.HasPermission(Permissions.AppSettings.View))
+        {
+            <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
             <!-- Header Section -->
             <MudPaper Elevation="0" Class="pa-4 mb-6" Style="background-color: transparent;">
                 <MudGrid Justify="Justify.SpaceBetween" Class="align-center">
@@ -244,17 +247,33 @@
                 }
             }
         </MudContainer>
+        }
+        else
+        {
+            <MudContainer MaxWidth="MaxWidth.Small" Class="pa-8 text-center">
+                <MudPaper Class="pa-8 rounded-xl" Elevation="2">
+                    <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Warning" Class="mb-4" />
+                    <MudText Typo="Typo.h5" Color="Color.Warning" Class="font-weight-bold mb-2">Permission Required</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
+                        Anda memerlukan izin 'Permissions.AppSettings.View' untuk melihat atau mengelola konfigurasi aplikasi.
+                    </MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="rounded-lg">
+                        Return to Dashboard
+                    </MudButton>
+                </MudPaper>
+            </MudContainer>
+        }
     </Authorized>
     <NotAuthorized>
         <MudContainer MaxWidth="MaxWidth.Small" Class="pa-8 text-center">
             <MudPaper Class="pa-8 rounded-xl" Elevation="3">
                 <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Error" Class="mb-4" />
-                <MudText Typo="Typo.h5" Color="Color.Error" Class="font-weight-bold mb-2">Access Denied</MudText>
+                <MudText Typo="Typo.h5" Color="Color.Error" Class="font-weight-bold mb-2">Sign In Required</MudText>
                 <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
-                    You do not have administrative privileges to view or manage application settings.
+                    Silakan login terlebih dahulu untuk mengakses halaman pengaturan aplikasi.
                 </MudText>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="rounded-lg">
-                    Return to Dashboard
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/login" Class="rounded-lg">
+                    Sign In
                 </MudButton>
             </MudPaper>
         </MudContainer>

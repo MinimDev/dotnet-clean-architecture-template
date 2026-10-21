@@ -4,6 +4,7 @@
 @inject ProductsClient Client
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject TokenProvider TokenProvider
 
 <AuthorizeView>
     <Authorized>
@@ -25,16 +26,15 @@
                                               Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
                                               Class="rounded-lg bg-surface"></MudTextField>
                             </MudItem>
-                            <AuthorizeView Roles="Admin">
-                                <Authorized Context="adminContext">
-                                    <MudItem xs="12" sm="4" md="4">
-                                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" 
-                                                   OnClick="CreateProduct" Size="Size.Large" Class="rounded-lg full-width">
-                                            New Product
-                                        </MudButton>
-                                    </MudItem>
-                                </Authorized>
-                            </AuthorizeView>
+                            @if (TokenProvider.HasPermission(Permissions.Products.Create))
+                            {
+                                <MudItem xs="12" sm="4" md="4">
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" 
+                                               OnClick="CreateProduct" Size="Size.Large" Class="rounded-lg full-width hover-lift">
+                                        New Product
+                                    </MudButton>
+                                </MudItem>
+                            }
                         </MudGrid>
                     </MudItem>
                 </MudGrid>
@@ -74,13 +74,12 @@
                     </svg>
                     <MudText Typo="Typo.h5" Color="Color.Default" Class="font-weight-bold mb-3" Style="letter-spacing: -0.02em;">No Products Found</MudText>
                     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-8 max-w-sm">You haven't added any products to your inventory yet. Let's create your first product to get started!</MudText>
-                    <AuthorizeView Roles="Admin">
-                        <Authorized Context="adminContext">
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Class="px-8 py-3 rounded-lg font-weight-bold shadow-sm" StartIcon="@Icons.Material.Rounded.Add" OnClick="CreateProduct">
-                                Create Your First Product
-                            </MudButton>
-                        </Authorized>
-                    </AuthorizeView>
+                    @if (TokenProvider.HasPermission(Permissions.Products.Create))
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Class="px-8 py-3 rounded-lg font-weight-bold shadow-sm hover-lift" StartIcon="@Icons.Material.Rounded.Add" OnClick="CreateProduct">
+                            Create Your First Product
+                        </MudButton>
+                    }
                 </MudPaper>
             }
             else
@@ -134,16 +133,18 @@
                                 </MudCardContent>
 
                                 <MudCardActions Class="pa-4 pt-0 d-flex justify-end gap-2">
-                                    <AuthorizeView Roles="Admin">
-                                        <Authorized Context="adminContext">
-                                            <MudTooltip Text="Edit Product">
-                                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small" Class="rounded-lg hover-bg-primary" OnClick="@(() => EditProduct(product))" />
-                                            </MudTooltip>
-                                            <MudTooltip Text="Delete Product">
-                                                <MudIconButton Icon="@Icons.Material.Outlined.Delete" Color="Color.Error" Variant="Variant.Outlined" Size="Size.Small" Class="rounded-lg hover-bg-error" OnClick="@(() => DeleteProduct(product))" />
-                                            </MudTooltip>
-                                        </Authorized>
-                                    </AuthorizeView>
+                                    @if (TokenProvider.HasPermission(Permissions.Products.Edit))
+                                    {
+                                        <MudTooltip Text="Edit Product">
+                                            <MudIconButton Icon="@Icons.Material.Outlined.Edit" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small" Class="rounded-lg hover-bg-primary" OnClick="@(() => EditProduct(product))" />
+                                        </MudTooltip>
+                                    }
+                                    @if (TokenProvider.HasPermission(Permissions.Products.Delete))
+                                    {
+                                        <MudTooltip Text="Delete Product">
+                                            <MudIconButton Icon="@Icons.Material.Outlined.Delete" Color="Color.Error" Variant="Variant.Outlined" Size="Size.Small" Class="rounded-lg hover-bg-error" OnClick="@(() => DeleteProduct(product))" />
+                                        </MudTooltip>
+                                    }
                                     <MudTooltip Text="View Details">
                                         <MudIconButton Icon="@Icons.Material.Rounded.ArrowForward" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="rounded-lg ml-auto" OnClick="@(() => ViewProductDetail(product))" />
                                     </MudTooltip>

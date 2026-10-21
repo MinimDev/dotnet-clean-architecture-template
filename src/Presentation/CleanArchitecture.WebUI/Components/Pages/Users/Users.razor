@@ -5,16 +5,20 @@
 @inject TokenProvider TokenProvider
 @inject ISnackbar Snackbar
 
-<div class="d-flex align-center justify-space-between mb-6">
-    <div>
-        <MudText Typo="Typo.h4" Class="font-weight-bold" Color="Color.Primary">User & Access Management</MudText>
-        <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mt-1">
-            Kelola data pengguna, penetapan peran (Role), dan matriks hak akses granular (PBAC).
-        </MudText>
-    </div>
-</div>
+<AuthorizeView Context="authContext">
+    <Authorized>
+        @if (TokenProvider.HasPermission(Permissions.Users.View))
+        {
+            <div class="d-flex align-center justify-space-between mb-6">
+                <div>
+                    <MudText Typo="Typo.h4" Class="font-weight-bold" Color="Color.Primary">User & Access Management</MudText>
+                    <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mt-1">
+                        Kelola data pengguna, penetapan peran (Role), dan matriks hak akses granular (PBAC).
+                    </MudText>
+                </div>
+            </div>
 
-<MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4" Color="Color.Surface">
+            <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4" Color="Color.Surface">
     <!-- TAB 1: USERS LIST -->
     <MudTabPanel Text="Users List" Icon="@Icons.Material.Rounded.People">
         @if (_isLoadingUsers)
@@ -101,30 +105,33 @@
                 </MudSelect>
             </div>
 
-            <div class="d-flex align-center gap-2">
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Default"
-                           Size="Size.Small"
-                           OnClick="GrantAllPermissions"
-                           Disabled="@_isSavingPermissions">
-                    Grant All
-                </MudButton>
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Error"
-                           Size="Size.Small"
-                           OnClick="RevokeAllPermissions"
-                           Disabled="@_isSavingPermissions">
-                    Revoke All
-                </MudButton>
-                <MudButton Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           Size="Size.Small"
-                           StartIcon="@Icons.Material.Filled.Save"
-                           OnClick="SaveRolePermissionsAsync"
-                           Disabled="@_isSavingPermissions">
-                    @(_isSavingPermissions ? "Saving..." : "Save Permissions")
-                </MudButton>
-            </div>
+            @if (TokenProvider.HasPermission(Permissions.Users.ManagePermissions))
+            {
+                <div class="d-flex align-center gap-2">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               Size="Size.Small"
+                               OnClick="GrantAllPermissions"
+                               Disabled="@_isSavingPermissions">
+                        Grant All
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Error"
+                               Size="Size.Small"
+                               OnClick="RevokeAllPermissions"
+                               Disabled="@_isSavingPermissions">
+                        Revoke All
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               OnClick="SaveRolePermissionsAsync"
+                               Disabled="@_isSavingPermissions">
+                        @(_isSavingPermissions ? "Saving..." : "Save Permissions")
+                    </MudButton>
+                </div>
+            }
         </div>
 
         @if (_selectedRole == "Admin")
@@ -205,6 +212,38 @@
         }
     </MudTabPanel>
 </MudTabs>
+        }
+        else
+        {
+            <MudContainer MaxWidth="MaxWidth.Small" Class="pa-8 text-center">
+                <MudPaper Class="pa-8 rounded-xl" Elevation="2">
+                    <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Large" Color="Color.Warning" Class="mb-4" />
+                    <MudText Typo="Typo.h5" Color="Color.Warning" Class="font-weight-bold mb-2">Permission Required</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
+                        Anda memerlukan izin 'Permissions.Users.View' untuk melihat atau mengelola pengguna dan hak akses PBAC.
+                    </MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="rounded-lg">
+                        Return to Dashboard
+                    </MudButton>
+                </MudPaper>
+            </MudContainer>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="pa-8 text-center">
+            <MudPaper Class="pa-8 rounded-xl" Elevation="3">
+                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Error" Class="mb-4" />
+                <MudText Typo="Typo.h5" Color="Color.Error" Class="font-weight-bold mb-2">Sign In Required</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
+                    Silakan login terlebih dahulu untuk mengakses manajemen pengguna dan permissions.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/login" Class="rounded-lg">
+                    Sign In
+                </MudButton>
+            </MudPaper>
+        </MudContainer>
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     private List<UserDto> _users = new();
