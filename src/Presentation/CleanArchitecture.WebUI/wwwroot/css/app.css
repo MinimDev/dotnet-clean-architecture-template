@@ -938,3 +938,56 @@
         font-size: 0.9rem;
     }
 }
+
+/* =============================================
+   PHASE 5: MICRO-INTERACTIONS & DIALOG POLISH
+   ============================================= */
+
+/* Dialog Zoom-In Animation */
+@keyframes dialogEntrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.96) translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.mud-dialog {
+    animation: dialogEntrance 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    border: 1px solid var(--mud-palette-lines-default) !important;
+}
+
+/* Smooth Table Row Transitions */
+.mud-table-row {
+    transition: background-color 0.16s ease !important;
+}
+
+.mud-table-row:hover {
+    background-color: rgba(var(--mud-palette-primary-rgb), 0.04) !important;
+}
+
+.mud-theme-dark .mud-table-row:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Mobile & Touch Target Refinements */
+@media (max-width: 599px) {
+    .action-icon-btn {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+    }
+
+    .mud-dialog {
+        margin: 12px !important;
+        max-width: calc(100vw - 24px) !important;
+        border-radius: 16px !important;
+    }
+
+    .page-header {
+        margin-bottom: 1rem !important;
+    }
+}
