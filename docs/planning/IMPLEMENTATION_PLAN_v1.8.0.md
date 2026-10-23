@@ -12,8 +12,8 @@
 | Phase | Fitur / Area | Status | Branch |
 |---|---|---|---|
 | 1 | Real-Time Notification System & Immediate Badge Update | ✅ Selesai | `feat/notification-realtime` |
-| 2 | Modern Application Shell (Command Palette Ctrl+K & Breadcrumbs) | 🔄 Selanjutnya | `feat/ui-app-shell` |
-| 3 | Shared Reusable Component Library (PageHeader, EmptyState, ConfirmDialog) | ⬜ Belum Mulai | `feat/ui-shared-components` |
+| 2 | Modern Application Shell (Command Palette Ctrl+K, Breadcrumbs, Theme Presets, Login Polish) | ✅ Selesai (`dfe16ba`) | `feat/ui-app-shell` |
+| 3 | Shared Reusable Component Library (PageHeader, EmptyState, ConfirmDialog, TableSkeleton) | 🔄 Selanjutnya | `feat/ui-shared-components` |
 | 4 | Enterprise CRUD Pages Polish (Products, Users/PBAC, AuditLogs, Settings) | ⬜ Belum Mulai | `feat/ui-crud-polish` |
 | 5 | Design Tokens, Micro-Interactions & Mobile Optimization | ⬜ Belum Mulai | `feat/ui-design-tokens` |
 
@@ -90,31 +90,40 @@ Memperbaiki issue badge notifikasi yang tidak langsung berubah saat ada notifika
 **Target Versi:** `v1.8.0-beta`  
 **Estimasi:** 1 sesi  
 **Branch:** `feat/ui-app-shell`  
-**Status:** ⬜ Belum Mulai
+**Status:** ✅ Selesai (`commit dfe16ba`)
 
 ### 🎯 Tujuan
-Membangun layout shell modern kelas enterprise dengan navigasi kilat (Command Palette `Ctrl+K`), breadcrumbs otomatis, dan sidebar yang fleksibel.
+Membangun layout shell modern kelas enterprise dengan navigasi kilat (Command Palette `Ctrl+K`), breadcrumbs otomatis, theme preset manager, responsive layout presisi, serta penyempurnaan halaman login bebas efek AI glow.
 
 ### ✅ Checklist Pekerjaan
 
 #### A. Command Palette / Global Search (`Ctrl + K`)
-- [ ] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/CommandPalette.razor`
+- [x] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/CommandPalette.razor`
   - Shortcut keyboard global listener (`Ctrl + K` / `Cmd + K`).
   - Search dialog mengambang (Spotlight search style).
-  - Indeks pencarian otomatis: Halaman Menu, Fitur, Dokumen Hangfire/Scalar, dan Aksi Cepat (misal: "Create Product", "Manage Roles").
+  - Indeks pencarian otomatis: Halaman Menu, Fitur, Dokumen Hangfire/Scalar, dan Aksi Cepat.
   - Navigasi instan via panah keyboard (`Up/Down/Enter`).
 
 #### B. Dynamic Breadcrumbs Bar
-- [ ] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/AppBreadcrumbs.razor`
-  - Parsing rute aktif secara dinamis (`/products` → `Dashboard / Products`, `/products/create` → `Dashboard / Products / New`).
-  - Integrasikan ke dalam `MainLayout.razor` tepat di bawah Appbar atau di atas `@Body`.
+- [x] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/AppBreadcrumbs.razor`
+  - Parsing rute aktif secara dinamis (`/products` → `Home / Products`, dst).
+  - Integrasikan ke dalam `MainLayout.razor` di atas container konten.
 
 #### C. Refined Collapsible Sidebar & Header
-- [ ] **UBAH** `src/Presentation/CleanArchitecture.WebUI/Components/Layout/NavMenu.razor`
-  - Tambahkan tooltip pada item menu saat sidebar dalam mode collapsed (mini-sidebar).
-  - Tambahkan badge notifikasi jumlah item pada link menu (misal: badge count pada menu jika ada tugas tertunda).
-- [ ] **UBAH** `src/Presentation/CleanArchitecture.WebUI/Components/Layout/MainLayout.razor`
-  - Tambahkan shortcut button pencarian `Ctrl + K` di Topbar (tampilan tombol pencarian modern seperti GitHub/Linear).
+- [x] **UBAH** `src/Presentation/CleanArchitecture.WebUI/Components/Layout/NavMenu.razor`
+  - Bersihkan profil card ganda di bagian bawah sidebar.
+  - Perbaiki drawer clip mode agar konten halaman tidak tertutup.
+- [x] **UBAH** `src/Presentation/CleanArchitecture.WebUI/Components/Layout/MainLayout.razor`
+  - Pasang shortcut button pencarian `Ctrl + K` di Topbar.
+  - Tambahkan `ThemePickerMenu` untuk switch antara 6 preset tema enterprise.
+  - Perbaiki padding responsive horizontal (`px-4 px-sm-5 px-md-6`) agar simetris kiri-kanan pada semua ukuran layar.
+
+#### D. Login Page & Dark Mode Enterprise Refinement
+- [x] **UBAH** `src/Presentation/CleanArchitecture.WebUI/Components/Pages/Login.razor` & `AuthLayout.razor`
+  - Hapus semua efek *glowing* ungu / *AI slop* (`radial-gradient` magenta/ungu mengambang).
+  - Ganti dengan tema **Enterprise Cobalt Blue & Dark Slate** (`#0b0f19` & `#111827`).
+  - Standardisasi seluruh teks dan pesan error menjadi **100% Bahasa Inggris**.
+  - Sediakan tombol demo credentials one-click (Administrator & Standard Member).
 
 ---
 
