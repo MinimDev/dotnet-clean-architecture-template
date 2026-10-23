@@ -47,92 +47,33 @@
 
     <!-- Key Metrics / KPI Grid -->
     <MudGrid Spacing="3" Class="mb-4">
-        <!-- Metric 1: PBAC & Identity -->
         <MudItem xs="12" sm="6" md="3" Class="d-flex flex-column">
-            <MudCard Elevation="0" Class="rounded-xl pa-3-5 hover-lift h-100 flex-grow-1 d-flex flex-column justify-space-between">
-                <div>
-                    <div class="d-flex align-center justify-space-between mb-3">
-                        <div class="icon-box icon-box-primary" style="width: 38px; height: 38px;">
-                            <MudIcon Icon="@Icons.Material.Rounded.Security" Size="Size.Small" />
-                        </div>
-                        <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold" Style="font-size: 0.65rem; height: 20px; padding: 0 6px;">
-                            PBAC Active
-                        </MudChip>
-                    </div>
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold" Style="font-size: 0.68rem; letter-spacing: 0.05em;">Access Control</MudText>
-                    <MudText Typo="Typo.h6" Class="font-weight-bold my-1" Style="font-size: 1.15rem;">14 Permissions</MudText>
-                </div>
-                <div class="d-flex align-center gap-1 mt-2">
-                    <MudIcon Icon="@Icons.Material.Rounded.CheckCircle" Color="Color.Success" Size="Size.Small" Style="font-size: 0.9rem;" />
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">Dynamic policy provider</MudText>
-                </div>
-            </MudCard>
+            <StatCard Title="Access Control" Value="14 Permissions" Subtitle="Dynamic policy provider"
+                      Icon="@Icons.Material.Rounded.Security" IconColor="Color.Primary"
+                      BadgeText="PBAC Active" BadgeColor="Color.Primary"
+                      TrendText="Dynamic Policy" IsTrendPositive="true"
+                      OnClick='() => NavigationManager.NavigateTo("users")' />
         </MudItem>
-
-        <!-- Metric 2: Products & Catalog -->
         <MudItem xs="12" sm="6" md="3" Class="d-flex flex-column">
-            <MudCard Elevation="0" Class="rounded-xl pa-3-5 hover-lift h-100 flex-grow-1 d-flex flex-column justify-space-between">
-                <div>
-                    <div class="d-flex align-center justify-space-between mb-3">
-                        <div class="icon-box icon-box-success" style="width: 38px; height: 38px;">
-                            <MudIcon Icon="@Icons.Material.Rounded.Inventory2" Size="Size.Small" />
-                        </div>
-                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold" Style="font-size: 0.65rem; height: 20px; padding: 0 6px;">
-                            Output Cache
-                        </MudChip>
-                    </div>
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold" Style="font-size: 0.68rem; letter-spacing: 0.05em;">Catalog Domain</MudText>
-                    <MudText Typo="Typo.h6" Class="font-weight-bold my-1" Style="font-size: 1.15rem;">CQRS Pipeline</MudText>
-                </div>
-                <div class="d-flex align-center gap-1 mt-2">
-                    <MudIcon Icon="@Icons.Material.Rounded.ElectricBolt" Color="Color.Warning" Size="Size.Small" Style="font-size: 0.9rem;" />
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">Idempotency-Key guarded</MudText>
-                </div>
-            </MudCard>
+            <StatCard Title="Catalog Domain" Value="CQRS Pipeline" Subtitle="Idempotency-Key guarded"
+                      Icon="@Icons.Material.Rounded.Inventory2" IconColor="Color.Success"
+                      BadgeText="Output Cache" BadgeColor="Color.Success"
+                      TrendText="Real-time Cache" IsTrendPositive="true"
+                      OnClick='() => NavigationManager.NavigateTo("products")' />
         </MudItem>
-
-        <!-- Metric 3: Audit Trail -->
         <MudItem xs="12" sm="6" md="3" Class="d-flex flex-column">
-            <MudCard Elevation="0" Class="rounded-xl pa-3-5 hover-lift h-100 flex-grow-1 d-flex flex-column justify-space-between">
-                <div>
-                    <div class="d-flex align-center justify-space-between mb-3">
-                        <div class="icon-box icon-box-warning" style="width: 38px; height: 38px;">
-                            <MudIcon Icon="@Icons.Material.Rounded.HistoryEdu" Size="Size.Small" />
-                        </div>
-                        <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold" Style="font-size: 0.65rem; height: 20px; padding: 0 6px;">
-                            100% Tracked
-                        </MudChip>
-                    </div>
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold" Style="font-size: 0.68rem; letter-spacing: 0.05em;">Data Integrity</MudText>
-                    <MudText Typo="Typo.h6" Class="font-weight-bold my-1" Style="font-size: 1.15rem;">Audit Trail</MudText>
-                </div>
-                <div class="d-flex align-center gap-1 mt-2">
-                    <MudIcon Icon="@Icons.Material.Rounded.Difference" Color="Color.Info" Size="Size.Small" Style="font-size: 0.9rem;" />
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">Side-by-side JSON diffs</MudText>
-                </div>
-            </MudCard>
+            <StatCard Title="Data Integrity" Value="Audit Trail" Subtitle="Side-by-side JSON diffs"
+                      Icon="@Icons.Material.Rounded.HistoryEdu" IconColor="Color.Warning"
+                      BadgeText="100% Tracked" BadgeColor="Color.Warning"
+                      TrendText="Immutable" IsTrendPositive="true"
+                      OnClick='() => NavigationManager.NavigateTo("audit-logs")' />
         </MudItem>
-
-        <!-- Metric 4: Messaging & Jobs -->
         <MudItem xs="12" sm="6" md="3" Class="d-flex flex-column">
-            <MudCard Elevation="0" Class="rounded-xl pa-3-5 hover-lift h-100 flex-grow-1 d-flex flex-column justify-space-between">
-                <div>
-                    <div class="d-flex align-center justify-space-between mb-3">
-                        <div class="icon-box icon-box-info" style="width: 38px; height: 38px;">
-                            <MudIcon Icon="@Icons.Material.Rounded.PendingActions" Size="Size.Small" />
-                        </div>
-                        <MudChip T="string" Color="Color.Info" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold" Style="font-size: 0.65rem; height: 20px; padding: 0 6px;">
-                            MassTransit
-                        </MudChip>
-                    </div>
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold" Style="font-size: 0.68rem; letter-spacing: 0.05em;">Async Workers</MudText>
-                    <MudText Typo="Typo.h6" Class="font-weight-bold my-1" Style="font-size: 1.15rem;">Hangfire Jobs</MudText>
-                </div>
-                <div class="d-flex align-center gap-1 mt-2">
-                    <MudIcon Icon="@Icons.Material.Rounded.NotificationsActive" Color="Color.Success" Size="Size.Small" Style="font-size: 0.9rem;" />
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">In-app notifications integration</MudText>
-                </div>
-            </MudCard>
+            <StatCard Title="Async Workers" Value="Hangfire Jobs" Subtitle="In-app notifications"
+                      Icon="@Icons.Material.Rounded.PendingActions" IconColor="Color.Info"
+                      BadgeText="MassTransit" BadgeColor="Color.Info"
+                      TrendText="Background Bus" IsTrendPositive="true"
+                      OnClick='() => NavigationManager.NavigateTo("settings")' />
         </MudItem>
     </MudGrid>
 

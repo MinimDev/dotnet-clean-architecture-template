@@ -11,247 +11,241 @@
         @if (TokenProvider.HasPermission(Permissions.AppSettings.View))
         {
             <div class="settings-page">
-            <!-- Header Section -->
-            <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center gap-3 mb-4">
-                <div class="d-flex align-center gap-2">
-                    <div class="header-icon-container" style="width: 38px; height: 38px; border-radius: 10px;">
-                        <MudIcon Icon="@Icons.Material.Filled.Tune" Size="Size.Small" Color="Color.Primary" />
-                    </div>
-                    <div>
-                        <MudText Typo="Typo.h5" Color="Color.Primary" Class="font-weight-bold" Style="letter-spacing: -0.01em;">App Settings & Feature Flags</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">Manage dynamic configuration and system parameters at runtime</MudText>
-                    </div>
-                </div>
-                <div class="d-flex justify-end gap-2 flex-wrap">
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh"
-                               OnClick="LoadSettingsAsync" Class="rounded-lg" Size="Size.Small" Disabled="@_isLoading">
-                        Refresh
-                    </MudButton>
-                </div>
-            </div>
-
-            <!-- Filter & Search Controls Panel -->
-            <MudCard Elevation="0" Class="rounded-xl mb-4 filter-card" Style="border: 1px solid var(--mud-palette-lines-default);">
-                <MudCardContent Class="pa-3">
-                    <MudGrid Spacing="3" Class="align-center">
-                        <!-- Group Category Filter Chips -->
-                        <MudItem xs="12" md="7">
-                            <MudText Typo="Typo.caption" Class="font-weight-bold text-uppercase mb-1 d-block" Color="Color.Secondary">Group Category</MudText>
-                            <div class="d-flex gap-1 flex-wrap">
-                                <MudChip T="string" Color="@(string.IsNullOrEmpty(_selectedGroup) ? Color.Primary : Color.Default)"
-                                         Variant="@(string.IsNullOrEmpty(_selectedGroup) ? Variant.Filled : Variant.Outlined)"
-                                         Size="Size.Small" OnClick="@(() => FilterByGroup(null))" Class="cursor-pointer font-weight-bold" Style="font-size: 0.72rem; height: 24px;">
-                                    ALL (@_allSettings.Count)
-                                </MudChip>
-                                @foreach (var group in _availableGroups)
-                                {
-                                    var count = _allSettings.Count(s => s.Group.Equals(group, StringComparison.OrdinalIgnoreCase));
-                                    <MudChip T="string" Color="@GetGroupColor(group)"
-                                             Variant="@(_selectedGroup == group ? Variant.Filled : Variant.Outlined)"
-                                             Size="Size.Small" OnClick="@(() => FilterByGroup(group))" Class="cursor-pointer font-weight-bold" Style="font-size: 0.72rem; height: 24px;">
-                                        @group.ToUpperInvariant() (@count)
-                                    </MudChip>
-                                }
-                            </div>
-                        </MudItem>
-
-                        <!-- Search Filter -->
-                        <MudItem xs="12" md="5">
-                            <MudTextField T="string" Value="@_searchQuery" ValueChanged="OnSearchChanged"
-                                          Placeholder="Search settings by key or description..."
-                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
-                                          IconSize="Size.Small" Variant="Variant.Outlined" Margin="Margin.Dense"
-                                          Immediate="true" Clearable="true" Class="rounded-lg bg-surface" />
-                        </MudItem>
-                    </MudGrid>
-                </MudCardContent>
-            </MudCard>
-
-            <!-- Settings Content -->
-            @if (_isLoading)
-            {
-                <MudGrid>
-                    @for (int i = 0; i < 4; i++)
-                    {
-                        <MudItem xs="12" md="6">
-                            <MudCard Elevation="1" Class="rounded-xl pa-4 mb-3">
-                                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="30px" Width="60%" Class="mb-2" />
-                                <MudSkeleton SkeletonType="SkeletonType.Text" Width="80%" Class="mb-4" />
-                                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="40px" />
-                            </MudCard>
-                        </MudItem>
-                    }
-                </MudGrid>
-            }
-            else if (!FilteredSettings.Any())
-            {
-                <MudPaper Class="pa-8 d-flex flex-column align-center justify-center rounded-xl" Elevation="1">
-                    <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
-                    <MudText Typo="Typo.h6" Color="Color.Secondary">No configuration settings found</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Tertiary">Try clearing your search query or selecting a different group.</MudText>
-                    @if (!string.IsNullOrEmpty(_searchQuery) || !string.IsNullOrEmpty(_selectedGroup))
-                    {
-                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="ResetFilters" Class="mt-3">
-                            Reset Filters
+                <!-- PageHeader Shared Component -->
+                <PageHeader Title="App Settings & Feature Flags"
+                            Subtitle="Manage dynamic configuration, feature toggles, and runtime parameters"
+                            Icon="@Icons.Material.Rounded.Tune"
+                            BadgeText="@($"{_allSettings.Count} Keys")">
+                    <Actions>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh"
+                                   OnClick="LoadSettingsAsync" Class="rounded-lg" Size="Size.Small" Disabled="@_isLoading">
+                            Refresh
                         </MudButton>
-                    }
-                </MudPaper>
-            }
-            else
-            {
-                <!-- Settings Grid by Group -->
-                @foreach (var group in FilteredSettings.GroupBy(s => s.Group).OrderBy(g => g.Key))
+                    </Actions>
+                </PageHeader>
+
+                <!-- Filter & Search Controls Panel -->
+                <MudCard Elevation="0" Class="rounded-2xl mb-4 filter-card border-solid border-1"
+                         Style="border-color: var(--mud-palette-lines-default); background: var(--mud-palette-surface);">
+                    <MudCardContent Class="pa-3-5">
+                        <MudGrid Spacing="3" Class="align-center">
+                            <!-- Group Category Filter Chips -->
+                            <MudItem xs="12" md="7">
+                                <MudText Typo="Typo.caption" Class="font-weight-bold text-uppercase mb-1 d-block" Color="Color.Secondary" Style="font-size: 0.7rem; letter-spacing: 0.05em;">
+                                    Group Category
+                                </MudText>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <MudChip T="string" Color="@(string.IsNullOrEmpty(_selectedGroup) ? Color.Primary : Color.Default)"
+                                             Variant="@(string.IsNullOrEmpty(_selectedGroup) ? Variant.Filled : Variant.Outlined)"
+                                             Size="Size.Small" OnClick="@(() => FilterByGroup(null))" Class="cursor-pointer font-weight-bold" Style="font-size: 0.72rem; height: 24px;">
+                                        ALL (@_allSettings.Count)
+                                    </MudChip>
+                                    @foreach (var group in _availableGroups)
+                                    {
+                                        var count = _allSettings.Count(s => s.Group.Equals(group, StringComparison.OrdinalIgnoreCase));
+                                        <MudChip T="string" Color="@GetGroupColor(group)"
+                                                 Variant="@(_selectedGroup == group ? Variant.Filled : Variant.Outlined)"
+                                                 Size="Size.Small" OnClick="@(() => FilterByGroup(group))" Class="cursor-pointer font-weight-bold" Style="font-size: 0.72rem; height: 24px;">
+                                            @group.ToUpperInvariant() (@count)
+                                        </MudChip>
+                                    }
+                                </div>
+                            </MudItem>
+
+                            <!-- Search Filter -->
+                            <MudItem xs="12" md="5">
+                                <MudTextField T="string" Value="@_searchQuery" ValueChanged="OnSearchChanged"
+                                              Placeholder="Search settings by key or description..."
+                                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                              IconSize="Size.Small" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                              Immediate="true" Clearable="true" Class="rounded-lg bg-surface" Style="font-size: 0.85rem;" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
+
+                <!-- Settings Content -->
+                @if (_isLoading)
                 {
-                    <div class="mb-6">
-                        <!-- Group Header -->
-                        <div class="d-flex align-center gap-2 mb-3">
-                            <MudIcon Icon="@GetGroupIcon(group.Key)" Color="@GetGroupColor(group.Key)" Size="Size.Medium" />
-                            <MudText Typo="Typo.h6" Class="font-weight-bold">@group.Key</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@GetGroupColor(group.Key)" Class="ml-1">
-                                @group.Count() settings
-                            </MudChip>
-                        </div>
+                    <MudGrid Spacing="3">
+                        @for (int i = 0; i < 4; i++)
+                        {
+                            <MudItem xs="12" md="6">
+                                <MudCard Elevation="0" Class="rounded-2xl pa-4 mb-3 border-solid border-1" Style="border-color: var(--mud-palette-lines-default);">
+                                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="28px" Width="50%" Class="mb-2 rounded" Animation="Animation.Wave" />
+                                    <MudSkeleton SkeletonType="SkeletonType.Text" Width="80%" Class="mb-3" Animation="Animation.Wave" />
+                                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="38px" Class="rounded-lg" Animation="Animation.Wave" />
+                                </MudCard>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
+                else if (!FilteredSettings.Any())
+                {
+                    <EmptyState Title="No Configuration Settings Found"
+                                Description="No settings match your current search query or group filter. Try clearing filters to see all available configuration keys."
+                                Icon="@Icons.Material.Rounded.SearchOff"
+                                ActionText="@((!string.IsNullOrEmpty(_searchQuery) || !string.IsNullOrEmpty(_selectedGroup)) ? "Reset Filters" : "Refresh")"
+                                ActionIcon="@((!string.IsNullOrEmpty(_searchQuery) || !string.IsNullOrEmpty(_selectedGroup)) ? Icons.Material.Filled.FilterAltOff : Icons.Material.Filled.Refresh)"
+                                OnActionClick="OnEmptyActionClick" />
+                }
+                else
+                {
+                    <!-- Settings Grid by Group -->
+                    @foreach (var group in FilteredSettings.GroupBy(s => s.Group).OrderBy(g => g.Key))
+                    {
+                        <div class="mb-6">
+                            <!-- Group Header -->
+                            <div class="d-flex align-center gap-2 mb-3">
+                                <MudIcon Icon="@GetGroupIcon(group.Key)" Color="@GetGroupColor(group.Key)" Size="Size.Small" />
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@group.Key</MudText>
+                                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@GetGroupColor(group.Key)" Class="font-weight-bold" Style="font-size: 0.68rem; height: 20px;">
+                                    @group.Count() settings
+                                </MudChip>
+                            </div>
 
-                        <MudGrid Spacing="3">
-                            @foreach (var setting in group.OrderBy(s => s.Key))
-                            {
-                                <MudItem xs="12" md="6" lg="6">
-                                    <MudCard Elevation="2" Class="@($"rounded-xl h-100 setting-card {(setting.IsReadOnly ? "setting-card-readonly" : "")}")">
-                                        <MudCardHeader Class="pb-1">
-                                            <CardHeaderContent>
-                                                <div class="d-flex align-center justify-space-between flex-wrap gap-2">
-                                                    <div class="d-flex align-center gap-2">
-                                                        <MudText Typo="Typo.subtitle1" Class="font-weight-bold font-monospace setting-key">
-                                                            @setting.Key
-                                                        </MudText>
-                                                    </div>
-                                                    <div class="d-flex align-center gap-1">
-                                                        @if (setting.IsReadOnly)
-                                                        {
-                                                            <MudTooltip Text="Read-only setting. Value cannot be modified via UI.">
-                                                                <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Filled"
-                                                                         Icon="@Icons.Material.Filled.Lock" Class="font-weight-bold">
-                                                                    READ-ONLY
-                                                                </MudChip>
-                                                            </MudTooltip>
-                                                        }
-                                                        <MudChip T="string" Size="Size.Small" Color="@GetDataTypeColor(setting.DataType)"
-                                                                 Variant="Variant.Outlined" Class="font-weight-bold text-uppercase">
-                                                            @setting.DataType
-                                                        </MudChip>
-                                                    </div>
-                                                </div>
-                                            </CardHeaderContent>
-                                        </MudCardHeader>
-
-                                        <MudCardContent Class="pt-1 pb-3">
-                                            <!-- Description -->
-                                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3 setting-desc">
-                                                @(string.IsNullOrWhiteSpace(setting.Description) ? "No description provided." : setting.Description)
-                                            </MudText>
-
-                                            <!-- Dynamic Editor based on DataType -->
-                                            <div class="setting-editor-box pa-3 rounded-lg">
-                                                @if (setting.DataType.Equals("boolean", StringComparison.OrdinalIgnoreCase))
-                                                {
-                                                    var isChecked = bool.TryParse(GetEditValue(setting), out var b) && b;
-                                                    <div class="d-flex align-center justify-space-between">
+                            <MudGrid Spacing="3">
+                                @foreach (var setting in group.OrderBy(s => s.Key))
+                                {
+                                    <MudItem xs="12" md="6" lg="6">
+                                        <MudCard Elevation="0" Class="@($"rounded-2xl h-100 setting-card border-solid border-1 {(setting.IsReadOnly ? "setting-card-readonly" : "")}")"
+                                                 Style="border-color: var(--mud-palette-lines-default); background: var(--mud-palette-surface);">
+                                            <MudCardHeader Class="pb-1">
+                                                <CardHeaderContent>
+                                                    <div class="d-flex align-center justify-space-between flex-wrap gap-2">
                                                         <div class="d-flex align-center gap-2">
-                                                            <MudIcon Icon="@(isChecked ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)"
-                                                                     Color="@(isChecked ? Color.Success : Color.Default)" Size="Size.Medium" />
-                                                            <MudText Typo="Typo.body1" Class="font-weight-bold">
-                                                                @(isChecked ? "ENABLED" : "DISABLED")
+                                                            <MudText Typo="Typo.subtitle2" Class="font-weight-bold font-monospace setting-key">
+                                                                @setting.Key
                                                             </MudText>
                                                         </div>
-
-                                                        <MudSwitch T="bool" Value="@isChecked"
-                                                                   ValueChanged="@CreateToggleCallback(setting)"
-                                                                   Color="Color.Success" Disabled="@(setting.IsReadOnly || _isSavingKey == setting.Key)" />
+                                                        <div class="d-flex align-center gap-1">
+                                                            @if (setting.IsReadOnly)
+                                                            {
+                                                                <MudTooltip Text="Read-only setting. Value cannot be modified via UI.">
+                                                                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Filled"
+                                                                             Icon="@Icons.Material.Filled.Lock" Class="font-weight-bold" Style="font-size: 0.65rem; height: 20px;">
+                                                                        READ-ONLY
+                                                                    </MudChip>
+                                                                </MudTooltip>
+                                                            }
+                                                            <MudChip T="string" Size="Size.Small" Color="@GetDataTypeColor(setting.DataType)"
+                                                                     Variant="Variant.Outlined" Class="font-weight-bold text-uppercase" Style="font-size: 0.65rem; height: 20px;">
+                                                                @setting.DataType
+                                                            </MudChip>
+                                                        </div>
                                                     </div>
-                                                }
-                                                else if (setting.DataType.Equals("number", StringComparison.OrdinalIgnoreCase))
-                                                {
-                                                    <div class="d-flex align-center gap-2">
-                                                        <MudTextField T="string" Value="@GetEditValue(setting)"
-                                                                      ValueChanged="@CreateInputCallback(setting)"
-                                                                      Variant="Variant.Outlined" Margin="Margin.Dense"
-                                                                      Disabled="@(setting.IsReadOnly || _isSavingKey == setting.Key)"
-                                                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
-                                                                      Class="bg-surface rounded-lg" />
+                                                </CardHeaderContent>
+                                            </MudCardHeader>
 
-                                                        @if (!setting.IsReadOnly)
-                                                        {
-                                                            <MudIconButton Icon="@Icons.Material.Filled.Save" Color="Color.Primary"
-                                                                           Variant="Variant.Filled" Size="Size.Medium"
-                                                                           Disabled="@(!IsDirty(setting) || _isSavingKey == setting.Key)"
-                                                                           OnClick="@(() => SaveSettingAsync(setting))" />
-                                                        }
-                                                    </div>
-                                                }
-                                                else
-                                                {
-                                                    <div class="d-flex align-center gap-2">
-                                                        <MudTextField T="string" Value="@GetEditValue(setting)"
-                                                                      ValueChanged="@CreateInputCallback(setting)"
-                                                                      Variant="Variant.Outlined" Margin="Margin.Dense"
-                                                                      Disabled="@(setting.IsReadOnly || _isSavingKey == setting.Key)"
-                                                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.EditNote"
-                                                                      Class="bg-surface rounded-lg" />
+                                            <MudCardContent Class="pt-1 pb-3">
+                                                <!-- Description -->
+                                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3 setting-desc" Style="font-size: 0.8125rem;">
+                                                    @(string.IsNullOrWhiteSpace(setting.Description) ? "No description provided." : setting.Description)
+                                                </MudText>
 
-                                                        @if (!setting.IsReadOnly)
-                                                        {
-                                                            <MudIconButton Icon="@Icons.Material.Filled.Save" Color="Color.Primary"
-                                                                           Variant="Variant.Filled" Size="Size.Medium"
-                                                                           Disabled="@(!IsDirty(setting) || _isSavingKey == setting.Key)"
-                                                                           OnClick="@(() => SaveSettingAsync(setting))" />
-                                                        }
-                                                    </div>
-                                                }
-                                            </div>
-
-                                            <!-- Metadata Footer -->
-                                            <div class="d-flex align-center justify-space-between mt-3 text-secondary" style="font-size: 0.75rem;">
-                                                <span>
-                                                    @if (setting.ModifiedAt.HasValue)
+                                                <!-- Dynamic Editor based on DataType -->
+                                                <div class="setting-editor-box pa-2-5 rounded-xl border-solid border-1"
+                                                     style="background: var(--mud-palette-background-grey); border-color: var(--mud-palette-lines-default);">
+                                                    @if (setting.DataType.Equals("boolean", StringComparison.OrdinalIgnoreCase))
                                                     {
-                                                        <MudIcon Icon="@Icons.Material.Filled.Update" Size="Size.Small" Class="mr-1" Style="vertical-align: middle;" />
-                                                        <span>Updated: @setting.ModifiedAt.Value.ToString("yyyy-MM-dd HH:mm")</span>
-                                                        @if (!string.IsNullOrEmpty(setting.ModifiedBy))
-                                                        {
-                                                            <span> by <strong>@setting.ModifiedBy</strong></span>
-                                                        }
+                                                        var isChecked = bool.TryParse(GetEditValue(setting), out var b) && b;
+                                                        <div class="d-flex align-center justify-space-between">
+                                                            <div class="d-flex align-center gap-2">
+                                                                <MudIcon Icon="@(isChecked ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)"
+                                                                         Color="@(isChecked ? Color.Success : Color.Default)" Size="Size.Small" />
+                                                                <MudText Typo="Typo.body2" Class="font-weight-bold" Color="@(isChecked ? Color.Success : Color.Secondary)">
+                                                                    @(isChecked ? "ENABLED" : "DISABLED")
+                                                                </MudText>
+                                                            </div>
+
+                                                            <MudSwitch T="bool" Value="@isChecked"
+                                                                       ValueChanged="@CreateToggleCallback(setting)"
+                                                                       Color="Color.Success" Disabled="@(setting.IsReadOnly || _isSavingKey == setting.Key)" />
+                                                        </div>
+                                                    }
+                                                    else if (setting.DataType.Equals("number", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        <div class="d-flex align-center gap-2">
+                                                            <MudTextField T="string" Value="@GetEditValue(setting)"
+                                                                          ValueChanged="@CreateInputCallback(setting)"
+                                                                          Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                                          Disabled="@(setting.IsReadOnly || _isSavingKey == setting.Key)"
+                                                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                                                          Class="bg-surface rounded-lg" Style="font-size: 0.85rem;" />
+
+                                                            @if (!setting.IsReadOnly)
+                                                            {
+                                                                <MudIconButton Icon="@Icons.Material.Filled.Save" Color="Color.Primary"
+                                                                               Variant="Variant.Filled" Size="Size.Small" Class="rounded-lg hover-lift"
+                                                                               Disabled="@(!IsDirty(setting) || _isSavingKey == setting.Key)"
+                                                                               OnClick="@(() => SaveSettingAsync(setting))" />
+                                                            }
+                                                        </div>
                                                     }
                                                     else
                                                     {
-                                                        <span>Default initial seed</span>
-                                                    }
-                                                </span>
+                                                        <div class="d-flex align-center gap-2">
+                                                            <MudTextField T="string" Value="@GetEditValue(setting)"
+                                                                          ValueChanged="@CreateInputCallback(setting)"
+                                                                          Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                                          Disabled="@(setting.IsReadOnly || _isSavingKey == setting.Key)"
+                                                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.EditNote"
+                                                                          Class="bg-surface rounded-lg" Style="font-size: 0.85rem;" />
 
-                                                @if (IsDirty(setting) && !setting.DataType.Equals("boolean", StringComparison.OrdinalIgnoreCase))
-                                                {
-                                                    <span class="text-warning font-weight-bold">Unsaved changes</span>
-                                                }
-                                            </div>
-                                        </MudCardContent>
-                                    </MudCard>
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </div>
+                                                            @if (!setting.IsReadOnly)
+                                                            {
+                                                                <MudIconButton Icon="@Icons.Material.Filled.Save" Color="Color.Primary"
+                                                                               Variant="Variant.Filled" Size="Size.Small" Class="rounded-lg hover-lift"
+                                                                               Disabled="@(!IsDirty(setting) || _isSavingKey == setting.Key)"
+                                                                               OnClick="@(() => SaveSettingAsync(setting))" />
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                <!-- Metadata Footer -->
+                                                <div class="d-flex align-center justify-space-between mt-3 text-secondary" style="font-size: 0.72rem;">
+                                                    <span>
+                                                        @if (setting.ModifiedAt.HasValue)
+                                                        {
+                                                            <MudIcon Icon="@Icons.Material.Filled.Update" Size="Size.Small" Class="mr-1" Style="vertical-align: middle; font-size: 0.75rem;" />
+                                                            <span>Updated: @setting.ModifiedAt.Value.ToString("yyyy-MM-dd HH:mm")</span>
+                                                            @if (!string.IsNullOrEmpty(setting.ModifiedBy))
+                                                            {
+                                                                <span> by <strong>@setting.ModifiedBy</strong></span>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>Default initial seed</span>
+                                                        }
+                                                    </span>
+
+                                                    @if (IsDirty(setting) && !setting.DataType.Equals("boolean", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        <span class="text-warning font-weight-bold">Unsaved changes</span>
+                                                    }
+                                                </div>
+                                            </MudCardContent>
+                                        </MudCard>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </div>
+                    }
                 }
-            }
-        </div>
+            </div>
         }
         else
         {
             <MudContainer MaxWidth="MaxWidth.Small" Class="pa-8 text-center">
-                <MudPaper Class="pa-8 rounded-xl" Elevation="2">
-                    <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Warning" Class="mb-4" />
+                <MudPaper Class="pa-8 rounded-2xl" Elevation="0" Style="border: 1px solid var(--mud-palette-lines-default);">
+                    <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Warning" Class="mb-3" />
                     <MudText Typo="Typo.h5" Color="Color.Warning" Class="font-weight-bold mb-2">Permission Required</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
-                        Anda memerlukan izin 'Permissions.AppSettings.View' untuk melihat atau mengelola konfigurasi aplikasi.
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                        You require 'Permissions.AppSettings.View' permission to view or manage application settings.
                     </MudText>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="rounded-lg">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="rounded-lg px-6">
                         Return to Dashboard
                     </MudButton>
                 </MudPaper>
@@ -260,13 +254,13 @@
     </Authorized>
     <NotAuthorized>
         <MudContainer MaxWidth="MaxWidth.Small" Class="pa-8 text-center">
-            <MudPaper Class="pa-8 rounded-xl" Elevation="3">
-                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Error" Class="mb-4" />
+            <MudPaper Class="pa-8 rounded-2xl" Elevation="0" Style="border: 1px solid var(--mud-palette-lines-default);">
+                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Error" Class="mb-3" />
                 <MudText Typo="Typo.h5" Color="Color.Error" Class="font-weight-bold mb-2">Sign In Required</MudText>
-                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
-                    Silakan login terlebih dahulu untuk mengakses halaman pengaturan aplikasi.
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                    Please sign in to access application configuration and feature flags.
                 </MudText>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/login" Class="rounded-lg">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/login" Class="rounded-lg px-6">
                     Sign In
                 </MudButton>
             </MudPaper>
@@ -275,76 +269,69 @@
 </AuthorizeView>
 
 <style>
-    .header-icon-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 56px;
-        height: 56px;
-        border-radius: 16px;
-        background: linear-gradient(135deg, rgba(var(--mud-palette-primary-rgb), 0.15) 0%, rgba(var(--mud-palette-primary-rgb), 0.05) 100%);
-        box-shadow: 0 4px 12px rgba(var(--mud-palette-primary-rgb), 0.1);
-    }
-
-    .filter-card {
-        border: 1px solid var(--mud-palette-lines-default);
-        background: var(--mud-palette-surface);
-    }
-
     .setting-card {
-        border: 1px solid var(--mud-palette-lines-default);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-
     .setting-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     }
-
     .setting-card-readonly {
-        background: rgba(var(--mud-palette-surface-rgb), 0.6);
-        border-style: dashed;
-    }
-
-    .setting-key {
-        font-size: 0.95rem;
-        word-break: break-all;
-    }
-
-    .setting-desc {
-        min-height: 38px;
-        line-height: 1.4;
-    }
-
-    .setting-editor-box {
-        background: rgba(var(--mud-palette-primary-rgb), 0.03);
-        border: 1px solid rgba(var(--mud-palette-lines-default), 0.5);
+        opacity: 0.88;
     }
 </style>
 
 @code {
     private List<AppSettingDto> _allSettings = new();
-    private Dictionary<string, string> _editValues = new();
     private List<string> _availableGroups = new();
-    private string? _selectedGroup = null;
-    private string? _searchQuery = null;
+    private Dictionary<string, string> _editValues = new();
+    private string? _selectedGroup;
+    private string _searchQuery = string.Empty;
     private bool _isLoading = true;
-    private string? _isSavingKey = null;
+    private string? _isSavingKey;
 
-    protected override async Task OnInitializedAsync()
+    private IEnumerable<AppSettingDto> FilteredSettings
     {
-        await LoadSettingsAsync();
+        get
+        {
+            var result = _allSettings.AsEnumerable();
+
+            if (!string.IsNullOrEmpty(_selectedGroup))
+            {
+                result = result.Where(s => s.Group.Equals(_selectedGroup, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(_searchQuery))
+            {
+                var q = _searchQuery.Trim().ToLowerInvariant();
+                result = result.Where(s =>
+                    s.Key.ToLowerInvariant().Contains(q) ||
+                    (s.Description?.ToLowerInvariant().Contains(q) ?? false) ||
+                    s.Value.ToLowerInvariant().Contains(q));
+            }
+
+            return result;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadSettingsAsync();
+        }
     }
 
     private async Task LoadSettingsAsync()
     {
         _isLoading = true;
+        StateHasChanged();
+
         try
         {
             var result = await Client.GetAppSettingsAsync();
             if (result.IsSuccess && result.Data != null)
             {
-                _allSettings = result.Data;
+                _allSettings = result.Data.ToList();
                 _availableGroups = _allSettings
                     .Select(s => s.Group)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -365,29 +352,7 @@
         finally
         {
             _isLoading = false;
-        }
-    }
-
-    private IEnumerable<AppSettingDto> FilteredSettings
-    {
-        get
-        {
-            var query = _allSettings.AsEnumerable();
-
-            if (!string.IsNullOrWhiteSpace(_selectedGroup))
-            {
-                query = query.Where(s => s.Group.Equals(_selectedGroup, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (!string.IsNullOrWhiteSpace(_searchQuery))
-            {
-                var q = _searchQuery.Trim().ToLowerInvariant();
-                query = query.Where(s =>
-                    s.Key.ToLowerInvariant().Contains(q) ||
-                    (s.Description != null && s.Description.ToLowerInvariant().Contains(q)));
-            }
-
-            return query;
+            StateHasChanged();
         }
     }
 
@@ -396,22 +361,32 @@
         _selectedGroup = group;
     }
 
-    private void OnSearchChanged(string? query)
+    private void OnSearchChanged(string text)
     {
-        _searchQuery = query;
+        _searchQuery = text;
     }
 
     private void ResetFilters()
     {
         _selectedGroup = null;
-        _searchQuery = null;
+        _searchQuery = string.Empty;
+    }
+
+    private async Task OnEmptyActionClick()
+    {
+        if (!string.IsNullOrEmpty(_searchQuery) || !string.IsNullOrEmpty(_selectedGroup))
+        {
+            ResetFilters();
+        }
+        else
+        {
+            await LoadSettingsAsync();
+        }
     }
 
     private string GetEditValue(AppSettingDto setting)
     {
-        if (_editValues.TryGetValue(setting.Key, out var val))
-            return val;
-        return setting.Value;
+        return _editValues.TryGetValue(setting.Key, out var val) ? val : setting.Value;
     }
 
     private void SetEditValue(string key, string value)
@@ -421,9 +396,8 @@
 
     private bool IsDirty(AppSettingDto setting)
     {
-        if (_editValues.TryGetValue(setting.Key, out var val))
-            return !string.Equals(val, setting.Value, StringComparison.Ordinal);
-        return false;
+        return _editValues.TryGetValue(setting.Key, out var currentVal) &&
+               !string.Equals(currentVal, setting.Value, StringComparison.Ordinal);
     }
 
     private async Task ToggleBooleanSetting(AppSettingDto setting, bool newValue)
@@ -434,18 +408,19 @@
             return;
         }
 
-        var strValue = newValue.ToString().ToLowerInvariant();
+        var stringValue = newValue.ToString().ToLowerInvariant();
+        _editValues[setting.Key] = stringValue;
         _isSavingKey = setting.Key;
+        StateHasChanged();
 
         try
         {
-            var result = await Client.UpdateAppSettingAsync(setting.Key, strValue);
+            var result = await Client.UpdateAppSettingAsync(setting.Key, stringValue);
             if (result.IsSuccess)
             {
-                setting.Value = strValue;
-                _editValues[setting.Key] = strValue;
+                setting.Value = stringValue;
                 setting.ModifiedAt = DateTime.UtcNow;
-                Snackbar.Add($"'{setting.Key}' updated to {(newValue ? "Enabled" : "Disabled")}", Severity.Success);
+                Snackbar.Add($"Feature '{setting.Key}' {(newValue ? "enabled" : "disabled")} successfully!", Severity.Success);
             }
             else
             {
@@ -459,6 +434,7 @@
         finally
         {
             _isSavingKey = null;
+            StateHasChanged();
         }
     }
 

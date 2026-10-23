@@ -12,362 +12,327 @@
         @if (TokenProvider.HasPermission(Permissions.AuditLogs.View))
         {
             <div class="audit-logs-page">
-            <!-- Header Section -->
-            <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center gap-3 mb-4">
-                <div class="d-flex align-center gap-2">
-                    <div class="header-icon-container" style="width: 38px; height: 38px; border-radius: 10px;">
-                        <MudIcon Icon="@Icons.Material.Filled.HistoryEdu" Size="Size.Small" Color="Color.Primary" />
-                    </div>
-                    <div>
-                        <MudText Typo="Typo.h5" Color="Color.Primary" Class="font-weight-bold" Style="letter-spacing: -0.01em;">Audit Trail</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">Complete historical record of database modifications</MudText>
-                    </div>
-                </div>
-                <div class="d-flex justify-end gap-2 flex-wrap">
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh"
-                               OnClick="RefreshLogs" Class="rounded-lg" Size="Size.Small" Disabled="@_isLoading">
-                        Refresh
-                    </MudButton>
-                    @if (HasActiveFilters)
-                    {
-                        <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.FilterAltOff"
-                                   OnClick="ResetFilters" Class="rounded-lg" Size="Size.Small">
-                            Reset Filters
+                <!-- PageHeader Shared Component -->
+                <PageHeader Title="Audit Trail"
+                            Subtitle="Complete historical and immutable record of database modifications"
+                            Icon="@Icons.Material.Rounded.HistoryEdu"
+                            BadgeText="@($"{_totalItems} Events")">
+                    <Actions>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh"
+                                   OnClick="RefreshLogs" Class="rounded-lg" Size="Size.Small" Disabled="@_isLoading">
+                            Refresh
                         </MudButton>
-                    }
-                </div>
-            </div>
+                        @if (HasActiveFilters)
+                        {
+                            <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.FilterAltOff"
+                                       OnClick="ResetFilters" Class="rounded-lg" Size="Size.Small">
+                                Reset Filters
+                            </MudButton>
+                        }
+                    </Actions>
+                </PageHeader>
 
-            <!-- Filter Controls Panel -->
-            <MudCard Elevation="0" Class="rounded-xl mb-4 filter-card" Style="border: 1px solid var(--mud-palette-lines-default);">
-                <MudCardContent Class="pa-3">
-                    <MudGrid Spacing="3" Class="align-center">
-                        <!-- Action Filter Chips -->
-                        <MudItem xs="12" md="4">
-                            <MudText Typo="Typo.caption" Class="font-weight-bold text-uppercase mb-1 d-block" Color="Color.Secondary">Action Type</MudText>
-                            <div class="d-flex gap-1 flex-wrap">
-                                <MudChip T="string" Color="@(string.IsNullOrEmpty(_selectedAction) ? Color.Primary : Color.Default)"
-                                         Variant="@(string.IsNullOrEmpty(_selectedAction) ? Variant.Filled : Variant.Outlined)"
-                                         Size="Size.Small" OnClick="@(() => FilterByAction(null))" Class="cursor-pointer font-weight-bold">
-                                    ALL
-                                </MudChip>
-                                <MudChip T="string" Color="Color.Success"
-                                         Variant="@(_selectedAction == "Created" ? Variant.Filled : Variant.Outlined)"
-                                         Size="Size.Small" OnClick="@(() => FilterByAction("Created"))" Class="cursor-pointer font-weight-bold">
-                                    CREATED
-                                </MudChip>
-                                <MudChip T="string" Color="Color.Warning"
-                                         Variant="@(_selectedAction == "Updated" ? Variant.Filled : Variant.Outlined)"
-                                         Size="Size.Small" OnClick="@(() => FilterByAction("Updated"))" Class="cursor-pointer font-weight-bold">
-                                    UPDATED
-                                </MudChip>
-                                <MudChip T="string" Color="Color.Error"
-                                         Variant="@(_selectedAction == "Deleted" ? Variant.Filled : Variant.Outlined)"
-                                         Size="Size.Small" OnClick="@(() => FilterByAction("Deleted"))" Class="cursor-pointer font-weight-bold">
-                                    DELETED
-                                </MudChip>
-                            </div>
-                        </MudItem>
-
-                        <!-- Entity Name Filter -->
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudSelect T="string" Label="Entity" Value="@_selectedEntity" ValueChanged="FilterByEntity"
-                                       Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="rounded-lg bg-surface" Clearable="true">
-                                <MudSelectItem Value="@((string?)null)">All Entities</MudSelectItem>
-                                <MudSelectItem Value="@("Product")">Product</MudSelectItem>
-                            </MudSelect>
-                        </MudItem>
-
-                        <!-- User Search -->
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudTextField T="string" Value="@_userSearch" ValueChanged="OnUserSearchChanged"
-                                          Placeholder="Search by user..." Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.PersonSearch" IconSize="Size.Small"
-                                          Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
-                                          Clearable="true" Class="rounded-lg bg-surface" />
-                        </MudItem>
-
-                        <!-- Page Size Selector -->
-                        <MudItem xs="12" sm="6" md="2">
-                            <MudSelect T="int" Label="Per Page" Value="@_pageSize" ValueChanged="OnPageSizeChanged"
-                                       Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="rounded-lg bg-surface">
-                                <MudSelectItem Value="5">5</MudSelectItem>
-                                <MudSelectItem Value="10">10</MudSelectItem>
-                                <MudSelectItem Value="25">25</MudSelectItem>
-                                <MudSelectItem Value="50">50</MudSelectItem>
-                            </MudSelect>
-                        </MudItem>
-                    </MudGrid>
-
-                    @if (HasActiveFilters)
-                    {
-                        <MudDivider Class="my-3" />
-                        <div class="d-flex align-center gap-2 flex-wrap">
-                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="font-weight-bold">Active filters:</MudText>
-                            @if (!string.IsNullOrEmpty(_selectedAction))
-                            {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Primary" OnClose="@(() => FilterByAction(null))">
-                                    Action: @_selectedAction
-                                </MudChip>
-                            }
-                            @if (!string.IsNullOrEmpty(_selectedEntity))
-                            {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Info" OnClose="@(() => FilterByEntity(null))">
-                                    Entity: @_selectedEntity
-                                </MudChip>
-                            }
-                            @if (!string.IsNullOrEmpty(_userSearch))
-                            {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Secondary" OnClose="@(() => OnUserSearchChanged(string.Empty))">
-                                    User: @_userSearch
-                                </MudChip>
-                            }
-                        </div>
-                    }
-                </MudCardContent>
-            </MudCard>
-
-            <!-- Audit Log Records List -->
-            @if (_isLoading)
-            {
-                <div class="d-flex flex-column gap-4">
-                    @for (int i = 0; i < 4; i++)
-                    {
-                        <MudCard Elevation="2" Class="rounded-xl pa-4">
-                            <div class="d-flex justify-space-between align-center mb-3">
-                                <div class="d-flex gap-2 align-center">
-                                    <MudSkeleton Width="80px" Height="28px" Class="rounded-pill" />
-                                    <MudSkeleton Width="120px" Height="28px" Class="rounded-pill" />
-                                    <MudSkeleton Width="200px" Height="20px" />
+                <!-- Filter Controls Panel -->
+                <MudCard Elevation="0" Class="rounded-2xl mb-4 filter-card border-solid border-1"
+                         Style="border-color: var(--mud-palette-lines-default); background: var(--mud-palette-surface);">
+                    <MudCardContent Class="pa-3-5">
+                        <MudGrid Spacing="3" Class="align-center">
+                            <!-- Action Filter Chips -->
+                            <MudItem xs="12" md="4">
+                                <MudText Typo="Typo.caption" Class="font-weight-bold text-uppercase mb-1 d-block" Color="Color.Secondary" Style="font-size: 0.7rem; letter-spacing: 0.05em;">
+                                    Action Type
+                                </MudText>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <MudChip T="string" Color="@(string.IsNullOrEmpty(_selectedAction) ? Color.Primary : Color.Default)"
+                                             Variant="@(string.IsNullOrEmpty(_selectedAction) ? Variant.Filled : Variant.Outlined)"
+                                             Size="Size.Small" OnClick="@(() => FilterByAction(null))" Class="cursor-pointer font-weight-bold" Style="font-size: 0.72rem; height: 24px;">
+                                        ALL
+                                    </MudChip>
+                                    <MudChip T="string" Color="Color.Success"
+                                             Variant="@(_selectedAction == "Created" ? Variant.Filled : Variant.Outlined)"
+                                             Size="Size.Small" OnClick="@(() => FilterByAction("Created"))" Class="cursor-pointer font-weight-bold" Style="font-size: 0.72rem; height: 24px;">
+                                        CREATED
+                                    </MudChip>
+                                    <MudChip T="string" Color="Color.Warning"
+                                             Variant="@(_selectedAction == "Updated" ? Variant.Filled : Variant.Outlined)"
+                                             Size="Size.Small" OnClick="@(() => FilterByAction("Updated"))" Class="cursor-pointer font-weight-bold" Style="font-size: 0.72rem; height: 24px;">
+                                        UPDATED
+                                    </MudChip>
+                                    <MudChip T="string" Color="Color.Error"
+                                             Variant="@(_selectedAction == "Deleted" ? Variant.Filled : Variant.Outlined)"
+                                             Size="Size.Small" OnClick="@(() => FilterByAction("Deleted"))" Class="cursor-pointer font-weight-bold" Style="font-size: 0.72rem; height: 24px;">
+                                        DELETED
+                                    </MudChip>
                                 </div>
-                                <MudSkeleton Width="120px" Height="20px" />
-                            </div>
-                            <MudSkeleton Width="40%" Height="24px" Class="mb-2" />
-                            <MudSkeleton Width="100%" Height="60px" Class="rounded-lg" />
-                        </MudCard>
-                    }
-                </div>
-            }
-            else if (_auditLogs == null || !_auditLogs.Any())
-            {
-                <MudPaper Elevation="0" Class="pa-12 text-center d-flex flex-column align-center justify-center rounded-xl mud-width-full"
-                          Style="min-height: 400px; background-color: transparent; border: 1px dashed var(--mud-palette-lines-default);">
-                    <div class="empty-state-icon mb-4">
-                        <MudIcon Icon="@Icons.Material.Filled.HistoryToggleOff" Style="font-size: 5rem;" Color="Color.Secondary" />
-                    </div>
-                    <MudText Typo="Typo.h5" Color="Color.Default" Class="font-weight-bold mb-2">No Audit Logs Found</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6 max-w-sm">
-                        @(HasActiveFilters ? "Tidak ada rekaman audit yang sesuai dengan filter yang Anda tentukan." : "Belum ada rekaman audit perubahan data yang tercatat dalam sistem.")
-                    </MudText>
-                    @if (HasActiveFilters)
-                    {
-                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ResetFilters" StartIcon="@Icons.Material.Filled.FilterAltOff">
-                            Clear Filters
-                        </MudButton>
-                    }
-                </MudPaper>
-            }
-            else
-            {
-                <div class="timeline-container d-flex flex-column gap-4">
-                    @foreach (var log in _auditLogs)
-                    {
-                        var isExpanded = _expandedLogIds.Contains(log.Id);
-                        var actionColor = GetActionColor(log.Action);
-                        var actionIcon = GetActionIcon(log.Action);
+                            </MudItem>
 
-                        <MudCard Elevation="2" Class="rounded-xl overflow-hidden audit-card hover-elevation">
-                            <div class="audit-card-accent-bar" style="@($"background-color: var(--mud-palette-{actionColor.ToString().ToLower()});")"></div>
-                            
-                            <MudCardContent Class="pa-4">
-                                <!-- Top Row: Action Chip, Entity Name, Primary Key, and Timestamp -->
-                                <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-3">
-                                    <div class="d-flex align-center gap-2 flex-wrap">
-                                        <MudChip T="string" Color="@actionColor" Size="Size.Small" Variant="Variant.Filled"
-                                                 Icon="@actionIcon" Class="font-weight-bold shadow-sm">
-                                            @log.Action.ToUpper()
-                                        </MudChip>
-                                        <MudChip T="string" Color="Color.Default" Size="Size.Small" Variant="Variant.Outlined"
-                                                 Icon="@Icons.Material.Filled.Category" Class="font-weight-bold">
-                                            @log.EntityName
-                                        </MudChip>
-                                        <div class="pk-badge d-flex align-center gap-1 px-2 py-1 rounded" title="Primary Key">
-                                            <MudIcon Icon="@Icons.Material.Filled.Key" Size="Size.Small" Color="Color.Secondary" />
-                                            <code class="pk-code">@log.PrimaryKey</code>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-center gap-2">
-                                        <MudIcon Icon="@Icons.Material.Outlined.AccessTime" Size="Size.Small" Color="Color.Secondary" />
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="font-weight-medium">
-                                            @log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss") UTC
-                                        </MudText>
-                                    </div>
-                                </div>
+                            <!-- Entity Name Filter -->
+                            <MudItem xs="12" sm="6" md="3">
+                                <MudSelect T="string" Label="Entity" Value="@_selectedEntity" ValueChanged="FilterByEntity"
+                                           Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="rounded-lg bg-surface" Clearable="true">
+                                    <MudSelectItem Value="@((string?)null)">All Entities</MudSelectItem>
+                                    <MudSelectItem Value="@("Product")">Product</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
 
-                                <!-- Middle Row: User Details and Affected Columns -->
-                                <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-2">
-                                    <div class="d-flex align-center gap-2">
-                                        <MudAvatar Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">
-                                            @((log.UserName ?? "S")[0].ToString().ToUpper())
-                                        </MudAvatar>
-                                        <div>
-                                            <MudText Typo="Typo.body2" Class="font-weight-bold">
-                                                @(string.IsNullOrEmpty(log.UserName) ? "System" : log.UserName)
-                                            </MudText>
-                                            @if (!string.IsNullOrEmpty(log.UserId))
-                                            {
-                                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block" Style="font-size: 0.72rem;">
-                                                    ID: @log.UserId
-                                                </MudText>
-                                            }
-                                        </div>
-                                    </div>
+                            <!-- User Search -->
+                            <MudItem xs="12" sm="6" md="3">
+                                <MudTextField T="string" Value="@_userSearch" ValueChanged="OnUserSearchChanged"
+                                              Placeholder="Search by user or ID..." Adornment="Adornment.Start"
+                                              AdornmentIcon="@Icons.Material.Filled.PersonSearch" IconSize="Size.Small"
+                                              Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
+                                              Clearable="true" Class="rounded-lg bg-surface" Style="font-size: 0.85rem;" />
+                            </MudItem>
 
-                                    @if (log.AffectedColumns != null && log.AffectedColumns.Any())
-                                    {
-                                        <div class="d-flex align-center gap-1 flex-wrap">
-                                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mr-1">Affected:</MudText>
-                                            @foreach (var col in log.AffectedColumns.Take(5))
-                                            {
-                                                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Default" Class="ma-0 col-chip">
-                                                    @col
-                                                </MudChip>
-                                            }
-                                            @if (log.AffectedColumns.Length > 5)
-                                            {
-                                                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Secondary" Class="ma-0">
-                                                    +@(log.AffectedColumns.Length - 5) more
-                                                </MudChip>
-                                            }
-                                        </div>
-                                    }
-                                </div>
+                            <!-- Page Size Selector -->
+                            <MudItem xs="12" sm="6" md="2">
+                                <MudSelect T="int" Label="Per Page" Value="@_pageSize" ValueChanged="OnPageSizeChanged"
+                                           Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Class="rounded-lg bg-surface">
+                                    <MudSelectItem Value="5">5</MudSelectItem>
+                                    <MudSelectItem Value="10">10</MudSelectItem>
+                                    <MudSelectItem Value="25">25</MudSelectItem>
+                                    <MudSelectItem Value="50">50</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
+                        </MudGrid>
 
-                                <!-- Expand/Collapse Diff View Button -->
-                                @if (!string.IsNullOrEmpty(log.OldValues) || !string.IsNullOrEmpty(log.NewValues))
+                        @if (HasActiveFilters)
+                        {
+                            <MudDivider Class="my-3" />
+                            <div class="d-flex align-center gap-2 flex-wrap">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="font-weight-bold">Active filters:</MudText>
+                                @if (!string.IsNullOrEmpty(_selectedAction))
                                 {
-                                    <div class="d-flex justify-end mt-2">
-                                        <MudButton Variant="Variant.Text" Color="@actionColor" Size="Size.Small"
-                                                   EndIcon="@(isExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
-                                                   OnClick="@(() => ToggleExpand(log.Id))">
-                                            @(isExpanded ? "Hide Changes Diff" : "View Changes Diff")
-                                        </MudButton>
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" OnClose="@(() => FilterByAction(null))" Class="font-weight-bold" Style="height: 22px;">
+                                        Action: @_selectedAction
+                                    </MudChip>
+                                }
+                                @if (!string.IsNullOrEmpty(_selectedEntity))
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info" OnClose="@(() => FilterByEntity(null))" Class="font-weight-bold" Style="height: 22px;">
+                                        Entity: @_selectedEntity
+                                    </MudChip>
+                                }
+                                @if (!string.IsNullOrEmpty(_userSearch))
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary" OnClose="@(() => OnUserSearchChanged(string.Empty))" Class="font-weight-bold" Style="height: 22px;">
+                                        User: @_userSearch
+                                    </MudChip>
+                                }
+                            </div>
+                        }
+                    </MudCardContent>
+                </MudCard>
+
+                <!-- Audit Log Records List -->
+                @if (_isLoading)
+                {
+                    <TableSkeleton Rows="5" Columns="4" />
+                }
+                else if (_auditLogs == null || !_auditLogs.Any())
+                {
+                    <EmptyState Title="No Audit Logs Found"
+                                Description="@(HasActiveFilters ? "No audit records match your specified filter criteria." : "No database modifications have been logged in the system yet.")"
+                                Icon="@Icons.Material.Rounded.HistoryToggleOff"
+                                ActionText="@(HasActiveFilters ? "Reset Filters" : "Refresh")"
+                                ActionIcon="@(HasActiveFilters ? Icons.Material.Filled.FilterAltOff : Icons.Material.Filled.Refresh)"
+                                OnActionClick="@(HasActiveFilters ? ResetFilters : RefreshLogs)" />
+                }
+                else
+                {
+                    <div class="timeline-container d-flex flex-column gap-3">
+                        @foreach (var log in _auditLogs)
+                        {
+                            var isExpanded = _expandedLogIds.Contains(log.Id);
+                            var actionColor = GetActionColor(log.Action);
+                            var actionIcon = GetActionIcon(log.Action);
+
+                            <MudCard Elevation="0" Class="rounded-2xl overflow-hidden audit-card hover-lift border-solid border-1"
+                                     Style="border-color: var(--mud-palette-lines-default); background: var(--mud-palette-surface);">
+                                <div class="audit-card-accent-bar" style="@($"background-color: var(--mud-palette-{actionColor.ToString().ToLower()});")"></div>
+
+                                <MudCardContent Class="pa-4">
+                                    <!-- Top Row: Action Chip, Entity Name, Primary Key, and Timestamp -->
+                                    <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-3">
+                                        <div class="d-flex align-center gap-2 flex-wrap">
+                                            <MudChip T="string" Color="@actionColor" Size="Size.Small" Variant="Variant.Filled"
+                                                     Icon="@actionIcon" Class="font-weight-bold shadow-sm" Style="font-size: 0.72rem; height: 22px;">
+                                                @log.Action.ToUpper()
+                                            </MudChip>
+                                            <MudChip T="string" Color="Color.Default" Size="Size.Small" Variant="Variant.Outlined"
+                                                     Icon="@Icons.Material.Filled.Category" Class="font-weight-bold" Style="font-size: 0.72rem; height: 22px;">
+                                                @log.EntityName
+                                            </MudChip>
+                                            <div class="pk-badge d-flex align-center gap-1 px-2 py-0-5 rounded-lg border-solid border-1"
+                                                 style="background: var(--mud-palette-background-grey); border-color: var(--mud-palette-lines-default);" title="Primary Key">
+                                                <MudIcon Icon="@Icons.Material.Filled.Key" Size="Size.Small" Color="Color.Secondary" Style="font-size: 0.75rem;" />
+                                                <code class="pk-code" style="font-size: 0.75rem;">@log.PrimaryKey</code>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-center gap-1-5">
+                                            <MudIcon Icon="@Icons.Material.Outlined.AccessTime" Size="Size.Small" Color="Color.Secondary" Style="font-size: 0.85rem;" />
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="font-weight-medium">
+                                                @log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss") UTC
+                                            </MudText>
+                                        </div>
                                     </div>
 
-                                    @if (isExpanded)
-                                    {
-                                        <MudDivider Class="my-3" />
-                                        <div class="diff-container rounded-lg pa-3 mt-2">
-                                            @{
-                                                var diffRows = ParseDiffRows(log.OldValues, log.NewValues);
-                                            }
-                                            @if (diffRows.Any())
-                                            {
-                                                <MudSimpleTable Dense="true" Hover="true" Class="diff-table rounded-lg">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="width: 25%;">Property</th>
-                                                            <th style="width: 37.5%; color: var(--mud-palette-error);">Old Value (Before)</th>
-                                                            <th style="width: 37.5%; color: var(--mud-palette-success);">New Value (After)</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach (var row in diffRows)
-                                                        {
-                                                            <tr>
-                                                                <td class="font-weight-bold"><code>@row.Key</code></td>
-                                                                <td class="diff-old">
-                                                                    @if (row.OldVal != null)
-                                                                    {
-                                                                        <span>@row.OldVal</span>
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        <span class="text-muted fst-italic">null</span>
-                                                                    }
-                                                                </td>
-                                                                <td class="diff-new">
-                                                                    @if (row.NewVal != null)
-                                                                    {
-                                                                        <span>@row.NewVal</span>
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        <span class="text-muted fst-italic">null</span>
-                                                                    }
-                                                                </td>
-                                                            </tr>
-                                                        }
-                                                    </tbody>
-                                                </MudSimpleTable>
-                                            }
-                                            else
-                                            {
-                                                <MudText Typo="Typo.body2" Color="Color.Secondary">No property details available.</MudText>
-                                            }
+                                    <!-- Middle Row: User Details and Affected Columns -->
+                                    <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-2">
+                                        <div class="d-flex align-center gap-2">
+                                            <MudAvatar Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">
+                                                @((log.UserName ?? "S")[0].ToString().ToUpper())
+                                            </MudAvatar>
+                                            <div>
+                                                <MudText Typo="Typo.body2" Class="font-weight-bold">
+                                                    @(string.IsNullOrEmpty(log.UserName) ? "System Service" : log.UserName)
+                                                </MudText>
+                                                @if (!string.IsNullOrEmpty(log.UserId))
+                                                {
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block" Style="font-size: 0.72rem;">
+                                                        ID: @log.UserId
+                                                    </MudText>
+                                                }
+                                            </div>
                                         </div>
-                                    }
-                                }
-                            </MudCardContent>
-                        </MudCard>
-                    }
-                </div>
 
-                <!-- Pagination -->
-                <div class="d-flex justify-center align-center mt-8 mb-4 gap-4 flex-wrap">
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">
-                        Showing @((_currentPage - 1) * _pageSize + 1) - @(Math.Min(_currentPage * _pageSize, _totalItems)) of @_totalItems entries
-                    </MudText>
-                    <MudPagination Color="Color.Primary" Count="@_totalPages" Selected="@_currentPage" SelectedChanged="OnPageChanged"
-                                   ShowFirstButton="true" ShowLastButton="true" Variant="Variant.Filled" Class="rounded-xl shadow-sm" />
-                </div>
-            }
-        </div>
+                                        @if (log.AffectedColumns != null && log.AffectedColumns.Any())
+                                        {
+                                            <div class="d-flex align-center gap-1 flex-wrap">
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mr-1 font-weight-bold">Fields:</MudText>
+                                                @foreach (var col in log.AffectedColumns.Take(5))
+                                                {
+                                                    <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Default" Class="ma-0" Style="font-size: 0.72rem; height: 20px;">
+                                                        @col
+                                                    </MudChip>
+                                                }
+                                                @if (log.AffectedColumns.Length > 5)
+                                                {
+                                                    <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Secondary" Class="ma-0" Style="font-size: 0.72rem; height: 20px;">
+                                                        +@(log.AffectedColumns.Length - 5) more
+                                                    </MudChip>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <!-- Expand/Collapse Diff View Button -->
+                                    @if (!string.IsNullOrEmpty(log.OldValues) || !string.IsNullOrEmpty(log.NewValues))
+                                    {
+                                        <div class="d-flex justify-end mt-2">
+                                            <MudButton Variant="Variant.Text" Color="@actionColor" Size="Size.Small"
+                                                       EndIcon="@(isExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                                                       OnClick="@(() => ToggleExpand(log.Id))" Class="font-weight-bold text-transform-none" Style="font-size: 0.75rem;">
+                                                @(isExpanded ? "Hide Side-by-Side Diff" : "View Side-by-Side Diff")
+                                            </MudButton>
+                                        </div>
+
+                                        @if (isExpanded)
+                                        {
+                                            <MudDivider Class="my-3" />
+                                            <div class="diff-container rounded-xl pa-3 mt-2 border-solid border-1"
+                                                 style="border-color: var(--mud-palette-lines-default); background: var(--mud-palette-background-grey);">
+                                                @{
+                                                    var diffRows = ParseDiffRows(log.OldValues, log.NewValues);
+                                                }
+                                                @if (diffRows.Any())
+                                                {
+                                                    <MudSimpleTable Dense="true" Hover="true" Class="diff-table rounded-lg overflow-hidden">
+                                                        <thead>
+                                                            <tr>
+                                                                <th style="width: 25%; font-weight: 700;">Property</th>
+                                                                <th style="width: 37.5%; color: var(--mud-palette-error); font-weight: 700;">Old Value (Before)</th>
+                                                                <th style="width: 37.5%; color: var(--mud-palette-success); font-weight: 700;">New Value (After)</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var row in diffRows)
+                                                            {
+                                                                <tr>
+                                                                    <td class="font-weight-bold"><code>@row.Key</code></td>
+                                                                    <td class="diff-old">
+                                                                        @if (row.OldVal != null)
+                                                                        {
+                                                                            <span>@row.OldVal</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span class="text-muted fst-italic">null</span>
+                                                                        }
+                                                                    </td>
+                                                                    <td class="diff-new">
+                                                                        @if (row.NewVal != null)
+                                                                        {
+                                                                            <span>@row.NewVal</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span class="text-muted fst-italic">null</span>
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </MudSimpleTable>
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.body2" Color="Color.Secondary">No property details available.</MudText>
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                </MudCardContent>
+                            </MudCard>
+                        }
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-center align-center mt-6 mb-4 gap-4 flex-wrap">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Style="font-size: 0.8125rem;">
+                            Showing @((_currentPage - 1) * _pageSize + 1) - @(Math.Min(_currentPage * _pageSize, _totalItems)) of @_totalItems entries
+                        </MudText>
+                        <MudPagination Color="Color.Primary" Count="@_totalPages" Selected="@_currentPage" SelectedChanged="OnPageChanged"
+                                       ShowFirstButton="true" ShowLastButton="true" Variant="Variant.Filled" Class="rounded-xl shadow-sm" Size="Size.Small" />
+                    </div>
+                }
+            </div>
         }
         else
         {
-            <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12">
-                <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="pa-8 rounded-xl shadow-sm">
-                    <MudText Typo="Typo.h5" Class="font-weight-bold mb-2">Permission Required</MudText>
-                    <MudText>Anda memerlukan izin 'Permissions.AuditLogs.View' untuk melihat rekaman Audit Trail.</MudText>
-                </MudAlert>
+            <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12 text-center">
+                <MudPaper Class="pa-8 rounded-2xl" Elevation="0" Style="border: 1px solid var(--mud-palette-lines-default);">
+                    <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Large" Color="Color.Warning" Class="mb-3" />
+                    <MudText Typo="Typo.h5" Color="Color.Warning" Class="font-weight-bold mb-2">Permission Required</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                        You require 'Permissions.AuditLogs.View' permission to view immutable audit trail logs.
+                    </MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="rounded-lg px-6">
+                        Return to Dashboard
+                    </MudButton>
+                </MudPaper>
             </MudContainer>
         }
     </Authorized>
     <NotAuthorized>
-        <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12">
-            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Class="pa-8 rounded-xl shadow-sm">
-                <MudText Typo="Typo.h5" Class="font-weight-bold mb-2">Access Required</MudText>
-                <MudText>Silakan login terlebih dahulu untuk mengakses rekaman Audit Trail.</MudText>
-            </MudAlert>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12 text-center">
+            <MudPaper Class="pa-8 rounded-2xl" Elevation="0" Style="border: 1px solid var(--mud-palette-lines-default);">
+                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Error" Class="mb-3" />
+                <MudText Typo="Typo.h5" Color="Color.Error" Class="font-weight-bold mb-2">Sign In Required</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                    Please sign in to access audit trail logs.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/login" Class="rounded-lg px-6">
+                    Sign In
+                </MudButton>
+            </MudPaper>
         </MudContainer>
     </NotAuthorized>
 </AuthorizeView>
 
 <style>
-    .header-icon-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 56px;
-        height: 56px;
-        border-radius: 16px;
-        background: linear-gradient(135deg, rgba(var(--mud-palette-primary-rgb), 0.15) 0%, rgba(var(--mud-palette-primary-rgb), 0.05) 100%);
-        border: 1px solid rgba(var(--mud-palette-primary-rgb), 0.2);
-    }
-    .filter-card {
-        border: 1px solid var(--mud-palette-lines-default);
-        background: rgba(var(--mud-palette-surface-rgb), 0.8);
-        backdrop-filter: blur(10px);
-    }
     .audit-card {
         position: relative;
-        border: 1px solid var(--mud-palette-lines-default);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .audit-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08) !important;
     }
     .audit-card-accent-bar {
         position: absolute;
@@ -376,44 +341,19 @@
         bottom: 0;
         width: 4px;
     }
-    .pk-badge {
-        background: rgba(var(--mud-palette-text-primary-rgb), 0.05);
-        border: 1px solid var(--mud-palette-lines-default);
-    }
-    .pk-code {
-        font-size: 0.75rem;
-        color: var(--mud-palette-secondary);
-        font-family: monospace;
-    }
-    .col-chip {
-        background: rgba(var(--mud-palette-primary-rgb), 0.08) !important;
-        color: var(--mud-palette-primary) !important;
-        font-weight: 500;
-        font-size: 0.72rem;
-    }
-    .diff-container {
-        background: rgba(0, 0, 0, 0.02);
-        border: 1px solid var(--mud-palette-lines-default);
-    }
-    .diff-table th {
-        font-weight: 700;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
     .diff-old {
         background: rgba(239, 68, 68, 0.08);
         color: var(--mud-palette-error);
         text-decoration: line-through;
         font-family: monospace;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
     }
     .diff-new {
         background: rgba(16, 185, 129, 0.08);
         color: var(--mud-palette-success);
         font-weight: 600;
         font-family: monospace;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
     }
 </style>
 
@@ -470,7 +410,7 @@
             _totalPages = 1;
             if (!string.IsNullOrEmpty(result.Error))
             {
-                Snackbar.Add($"Gagal memuat audit log: {result.Error}", Severity.Error);
+                Snackbar.Add($"Failed to load audit logs: {result.Error}", Severity.Error);
             }
         }
 
