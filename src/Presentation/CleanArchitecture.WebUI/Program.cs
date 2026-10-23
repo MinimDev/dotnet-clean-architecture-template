@@ -80,10 +80,13 @@ builder.Services.AddMudServices(config =>
 });
 
 // Add services to the container.
-IHttpClientBuilder httpClientBuilder = builder.Services.AddHttpClient("WebAPI", client =>
+Action<HttpClient> configureClient = client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7253");
-});
+};
+
+IHttpClientBuilder httpClientBuilder = builder.Services.AddHttpClient("WebAPI", configureClient);
+IHttpClientBuilder rawClientBuilder = builder.Services.AddHttpClient("WebAPI.Raw", configureClient);
 
 // In Development: bypass SSL certificate validation for localhost dev certificate.
 // In Production: standard SSL validation applies — a valid trusted certificate is required.
@@ -94,15 +97,23 @@ if (builder.Environment.IsDevelopment())
         // Bypass SSL validation for development only (localhost dev certificate is self-signed).
         ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
     });
+
+    rawClientBuilder.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        // Bypass SSL validation for development only (localhost dev certificate is self-signed).
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    });
 }
 
 builder.Services.AddScoped<TokenProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthorizedHttpClient>();
 builder.Services.AddScoped<AuthClient>();
 builder.Services.AddScoped<ProductsClient>();
 builder.Services.AddScoped<AuditLogsClient>();
 builder.Services.AddScoped<AppSettingsClient>();
 builder.Services.AddScoped<NotificationsClient>();
+builder.Services.AddScoped<NotificationStateService>();
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();

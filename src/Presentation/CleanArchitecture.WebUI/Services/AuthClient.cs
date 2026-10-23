@@ -1,42 +1,28 @@
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using CleanArchitecture.WebUI.Services.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 
 namespace CleanArchitecture.WebUI.Services;
 
 public class AuthClient
 {
-    private readonly HttpClient _httpClient;
+    private readonly HttpClient _rawHttpClient;
+    private readonly AuthorizedHttpClient _authorizedClient;
     private readonly TokenProvider _tokenProvider;
     private readonly ProtectedLocalStorage _localStorage;
-    private readonly AuthenticationStateProvider _authStateProvider;
 
     public AuthClient(
         IHttpClientFactory httpClientFactory,
+        AuthorizedHttpClient authorizedClient,
         TokenProvider tokenProvider,
-        ProtectedLocalStorage localStorage,
-        AuthenticationStateProvider authStateProvider)
+        ProtectedLocalStorage localStorage)
     {
-        _httpClient = httpClientFactory.CreateClient("WebAPI");
+        _rawHttpClient = httpClientFactory.CreateClient("WebAPI.Raw");
+        _authorizedClient = authorizedClient;
         _tokenProvider = tokenProvider;
         _localStorage = localStorage;
-        _authStateProvider = authStateProvider;
-    }
-
-    private async Task AddAuthorizationHeaderAsync()
-    {
-        if (string.IsNullOrEmpty(_tokenProvider.Token))
-        {
-            await _authStateProvider.GetAuthenticationStateAsync();
-        }
-
-        if (!string.IsNullOrEmpty(_tokenProvider.Token))
-        {
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", _tokenProvider.Token);
-        }
     }
 
     public async Task<Result> LoginAsync(string email, string password)
@@ -44,7 +30,7 @@ public class AuthClient
         try
         {
             var request = new LoginRequest { Email = email, Password = password };
-            var response = await _httpClient.PostAsJsonAsync("api/v1/Auth/login", request);
+            var response = await _rawHttpClient.PostAsJsonAsync("api/v1/Auth/login", request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -58,7 +44,15 @@ public class AuthClient
                         authResponse.Email,
                         authResponse.Roles,
                         authResponse.Permissions);
-                    await _localStorage.SetAsync("userInfo", authResponse);
+
+                    try
+                    {
+                        await _localStorage.SetAsync("userInfo", authResponse);
+                    }
+                    catch
+                    {
+                    }
+
                     return Result.Success();
                 }
             }
@@ -71,6 +65,11 @@ public class AuthClient
         }
     }
 
+    public async Task<bool> RefreshTokenAsync()
+    {
+        return await _authorizedClient.TryRefreshTokenAsync();
+    }
+
     public async Task LogoutAsync()
     {
         // Revoke refresh token on server
@@ -78,10 +77,13 @@ public class AuthClient
         {
             try
             {
-                await AddAuthorizationHeaderAsync();
-                await _httpClient.PostAsJsonAsync(
-                    "api/v1/Auth/revoke",
-                    new { RefreshToken = _tokenProvider.RefreshToken });
+                using var revokeRequest = new HttpRequestMessage(HttpMethod.Post, "api/v1/Auth/revoke");
+                revokeRequest.Content = JsonContent.Create(new { RefreshToken = _tokenProvider.RefreshToken });
+                if (!string.IsNullOrEmpty(_tokenProvider.Token))
+                {
+                    revokeRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _tokenProvider.Token);
+                }
+                await _rawHttpClient.SendAsync(revokeRequest);
             }
             catch
             {
@@ -89,17 +91,23 @@ public class AuthClient
             }
         }
 
-        _tokenProvider.ClearToken();
-        await _localStorage.DeleteAsync("userInfo");
+        await _authorizedClient.HandleSessionExpiredAsync();
     }
 
     public async Task<Result<List<UserDto>>> GetUsersAsync()
     {
-        await AddAuthorizationHeaderAsync();
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<List<UserDto>>("api/v1/Users");
-            return Result<List<UserDto>>.Success(response ?? new List<UserDto>());
+            using var request = new HttpRequestMessage(HttpMethod.Get, "api/v1/Users");
+            using var response = await _authorizedClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return Result<List<UserDto>>.Failure($"HTTP {(int)response.StatusCode}");
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<List<UserDto>>();
+            return Result<List<UserDto>>.Success(result ?? new List<UserDto>());
         }
         catch (Exception ex)
         {
@@ -109,12 +117,13 @@ public class AuthClient
 
     public async Task<Result> UpdateUserRoleAsync(string email, string newRole)
     {
-        await AddAuthorizationHeaderAsync();
         try
         {
-            var request = new UpdateUserRoleRequest { Role = newRole };
-            var response = await _httpClient.PutAsJsonAsync($"api/v1/Users/{Uri.EscapeDataString(email)}/roles", request);
+            var requestObj = new UpdateUserRoleRequest { Role = newRole };
+            using var request = new HttpRequestMessage(HttpMethod.Put, $"api/v1/Users/{Uri.EscapeDataString(email)}/roles");
+            request.Content = JsonContent.Create(requestObj);
 
+            using var response = await _authorizedClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
                 return Result.Success();
 
@@ -128,11 +137,18 @@ public class AuthClient
 
     public async Task<Result<Dictionary<string, List<string>>>> GetAllPermissionsAsync()
     {
-        await AddAuthorizationHeaderAsync();
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<Dictionary<string, List<string>>>("api/v1/Users/permissions");
-            return Result<Dictionary<string, List<string>>>.Success(response ?? new Dictionary<string, List<string>>());
+            using var request = new HttpRequestMessage(HttpMethod.Get, "api/v1/Users/permissions");
+            using var response = await _authorizedClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return Result<Dictionary<string, List<string>>>.Failure($"HTTP {(int)response.StatusCode}");
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<Dictionary<string, List<string>>>();
+            return Result<Dictionary<string, List<string>>>.Success(result ?? new Dictionary<string, List<string>>());
         }
         catch (Exception ex)
         {
@@ -142,11 +158,18 @@ public class AuthClient
 
     public async Task<Result<List<string>>> GetRolePermissionsAsync(string roleName)
     {
-        await AddAuthorizationHeaderAsync();
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<List<string>>($"api/v1/Users/roles/{Uri.EscapeDataString(roleName)}/permissions");
-            return Result<List<string>>.Success(response ?? new List<string>());
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"api/v1/Users/roles/{Uri.EscapeDataString(roleName)}/permissions");
+            using var response = await _authorizedClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return Result<List<string>>.Failure($"HTTP {(int)response.StatusCode}");
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<List<string>>();
+            return Result<List<string>>.Success(result ?? new List<string>());
         }
         catch (Exception ex)
         {
@@ -156,12 +179,13 @@ public class AuthClient
 
     public async Task<Result> UpdateRolePermissionsAsync(string roleName, List<string> permissions)
     {
-        await AddAuthorizationHeaderAsync();
         try
         {
-            var request = new UpdateRolePermissionsRequest { Permissions = permissions };
-            var response = await _httpClient.PutAsJsonAsync($"api/v1/Users/roles/{Uri.EscapeDataString(roleName)}/permissions", request);
+            var requestObj = new UpdateRolePermissionsRequest { Permissions = permissions };
+            using var request = new HttpRequestMessage(HttpMethod.Put, $"api/v1/Users/roles/{Uri.EscapeDataString(roleName)}/permissions");
+            request.Content = JsonContent.Create(requestObj);
 
+            using var response = await _authorizedClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
                 return Result.Success();
 

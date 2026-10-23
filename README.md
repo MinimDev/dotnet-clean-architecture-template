@@ -41,7 +41,7 @@ YourProject/
 ## ✨ Features
 
 ### 🏛️ Architecture & Patterns
-- ✅ **Clean Architecture** — Clear layer separation with strict dependency rules
+- ✅ **Clean Architecture** — Clear layer separation with strict dependency rules *(see [Architecture Guide](docs/ARCHITECTURE.md))*
 - ✅ **CQRS** — Command Query Responsibility Segregation via MediatR
 - ✅ **Domain-Driven Design** — Rich domain models encapsulating business logic
 - ✅ **Repository Pattern** — Abstracted data access layer

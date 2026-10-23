@@ -1,0 +1,84 @@
+@inherits LayoutComponentBase
+@using CleanArchitecture.WebUI.Components.Layout
+@inject NavigationManager NavigationManager
+
+<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div class="auth-wrapper">
+    <!-- Ambient Atmospheric Glows -->
+    <div class="auth-ambient-orb-1"></div>
+    <div class="auth-ambient-orb-2"></div>
+    <div class="auth-grid-overlay"></div>
+
+    <!-- Minimal Header with Brand & Theme Switcher -->
+    <header class="d-flex align-center justify-space-between px-6 py-4 position-relative" style="z-index: 10;">
+        <div class="d-flex align-center gap-3 cursor-pointer" @onclick='() => NavigationManager.NavigateTo("/")'>
+            <div class="d-flex align-center justify-center rounded-xl" 
+                 style="width: 40px; height: 40px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
+                <MudIcon Icon="@Icons.Material.Filled.Layers" Style="color: white; font-size: 1.4rem;" />
+            </div>
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold text-gradient-primary" Style="line-height: 1.1; letter-spacing: -0.02em;">
+                    CleanArch
+                </MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">
+                    Enterprise Workspace
+                </MudText>
+            </div>
+        </div>
+
+        <div class="d-flex align-center gap-2">
+            <div class="status-pill d-none d-sm-inline-flex mr-2" style="background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25);">
+                <span class="pulse-dot pulse-success"></span>
+                <span>System Operational</span>
+            </div>
+
+            <MudTooltip Text="@(_isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode")">
+                <MudIconButton Icon="@(DarkLightModeButtonIcon)" 
+                               Color="Color.Default" 
+                               OnClick="@DarkModeToggle"
+                               Class="rounded-xl glass-panel" 
+                               Size="Size.Medium" />
+            </MudTooltip>
+        </div>
+    </header>
+
+    <!-- Main Content Area (@Body) -->
+    <main class="d-flex flex-grow-1 align-center justify-center px-4 py-6 position-relative" style="z-index: 10;">
+        @Body
+    </main>
+
+    <!-- Minimal Modern Footer -->
+    <footer class="d-flex flex-column flex-sm-row align-center justify-space-between px-6 py-4 position-relative gap-2" style="z-index: 10; border-top: 1px solid var(--mud-palette-lines-default);">
+        <MudText Typo="Typo.caption" Color="Color.Secondary">
+            © 2026 Clean Architecture Enterprise Template. Built with .NET 9 & MudBlazor.
+        </MudText>
+        <div class="d-flex align-center gap-4">
+            <div class="d-flex align-center gap-1">
+                <MudIcon Icon="@Icons.Material.Rounded.Shield" Size="Size.Small" Color="Color.Secondary" />
+                <MudText Typo="Typo.caption" Color="Color.Secondary">256-bit AES Encryption</MudText>
+            </div>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">•</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">v1.8.0</MudText>
+        </div>
+    </footer>
+</div>
+
+@code {
+    private bool _isDarkMode = false;
+    private MudTheme _theme = AppTheme.CreateTheme();
+
+    private void DarkModeToggle()
+    {
+        _isDarkMode = !_isDarkMode;
+    }
+
+    private string DarkLightModeButtonIcon => _isDarkMode switch
+    {
+        true => Icons.Material.Rounded.LightMode,
+        false => Icons.Material.Outlined.DarkMode,
+    };
+}

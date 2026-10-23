@@ -1,55 +1,19 @@
+using System.Net.Http.Json;
 using CleanArchitecture.WebUI.Services.Models;
-using Microsoft.AspNetCore.Components.Authorization;
-using System.Net.Http.Headers;
 
 namespace CleanArchitecture.WebUI.Services;
 
 public class ProductsClient
 {
-    private readonly HttpClient _httpClient;
+    private readonly AuthorizedHttpClient _httpClient;
     private readonly TokenProvider _tokenProvider;
-    private readonly AuthenticationStateProvider _authStateProvider;
 
     public ProductsClient(
-        IHttpClientFactory httpClientFactory,
-        TokenProvider tokenProvider,
-        AuthenticationStateProvider authStateProvider)
+        AuthorizedHttpClient httpClient,
+        TokenProvider tokenProvider)
     {
-        _httpClient = httpClientFactory.CreateClient("WebAPI");
+        _httpClient = httpClient;
         _tokenProvider = tokenProvider;
-        _authStateProvider = authStateProvider;
-    }
-
-    /// <summary>
-    /// Retrieves the current JWT token from <see cref="TokenProvider"/>.
-    /// If the token is not yet available (e.g. after a page refresh), forces a call to
-    /// <see cref="AuthenticationStateProvider.GetAuthenticationStateAsync"/> which restores
-    /// the token from browser local storage before returning.
-    /// </summary>
-    private async Task<string?> GetTokenAsync()
-    {
-        if (string.IsNullOrEmpty(_tokenProvider.Token))
-        {
-            await _authStateProvider.GetAuthenticationStateAsync();
-        }
-        return _tokenProvider.Token;
-    }
-
-    /// <summary>
-    /// Builds an <see cref="HttpRequestMessage"/> with the Authorization header set per-request.
-    /// Using per-request headers is more reliable than <c>DefaultRequestHeaders</c>, which can
-    /// cause issues when the underlying <see cref="HttpClient"/> is recycled by
-    /// <see cref="IHttpClientFactory"/>.
-    /// </summary>
-    private async Task<HttpRequestMessage> BuildRequestAsync(HttpMethod method, string url)
-    {
-        var request = new HttpRequestMessage(method, url);
-        var token = await GetTokenAsync();
-        if (!string.IsNullOrEmpty(token))
-        {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
-        return request;
     }
 
     public async Task<Result<PaginatedList<ProductDto>>> GetProductsAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -60,7 +24,7 @@ public class ProductsClient
 
         try
         {
-            using var request = await BuildRequestAsync(HttpMethod.Get, $"api/v1/Products{queryString}");
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"api/v1/Products{queryString}");
             using var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -86,11 +50,12 @@ public class ProductsClient
     {
         try
         {
-            using HttpRequestMessage request = await BuildRequestAsync(HttpMethod.Post, "api/v1/Products");
+            using var request = new HttpRequestMessage(HttpMethod.Post, "api/v1/Products");
             request.Content = JsonContent.Create(command);
             // Idempotency-Key: unique per form submission.
             // Memastikan double-click atau retry tidak membuat data duplikat.
             request.Headers.TryAddWithoutValidation("Idempotency-Key", Guid.NewGuid().ToString());
+
             using var response = await _httpClient.SendAsync(request);
             var result = await response.Content.ReadFromJsonAsync<Result<Guid>>();
             return result ?? new Result<Guid> { IsSuccess = false, Error = "No response" };
@@ -105,9 +70,10 @@ public class ProductsClient
     {
         try
         {
-            using var request = await BuildRequestAsync(HttpMethod.Put, $"api/v1/Products/{id}");
+            using var request = new HttpRequestMessage(HttpMethod.Put, $"api/v1/Products/{id}");
             request.Content = JsonContent.Create(command);
             request.Headers.TryAddWithoutValidation("Idempotency-Key", Guid.NewGuid().ToString());
+
             using var response = await _httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode) return Result.Success();
             var error = await response.Content.ReadAsStringAsync();
@@ -123,8 +89,9 @@ public class ProductsClient
     {
         try
         {
-            using var request = await BuildRequestAsync(HttpMethod.Delete, $"api/v1/Products/{id}");
+            using var request = new HttpRequestMessage(HttpMethod.Delete, $"api/v1/Products/{id}");
             request.Headers.TryAddWithoutValidation("Idempotency-Key", Guid.NewGuid().ToString());
+
             using var response = await _httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode) return Result.Success();
             var error = await response.Content.ReadAsStringAsync();

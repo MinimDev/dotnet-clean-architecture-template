@@ -2,6 +2,7 @@
 @implements IDisposable
 @using CleanArchitecture.WebUI.Services
 @inject NotificationsClient NotificationsClient
+@inject NotificationStateService NotificationState
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 @inject AuthClient AuthClient
@@ -46,10 +47,12 @@
             <Authorized>
                 <!-- Notification Bell with Popover -->
                 <div class="d-inline-flex align-center position-relative mr-2">
-                    <MudBadge Content="@(_unreadCount > 99 ? "99+" : _unreadCount)"
+                    <MudBadge @key="NotificationState.UnreadCount"
+                              Content="@(NotificationState.UnreadCount > 99 ? "99+" : NotificationState.UnreadCount)"
                               Color="Color.Error"
                               Overlap="true"
-                              Visible="@(_unreadCount > 0)">
+                              Class="notification-badge-pulse"
+                              Visible="@(NotificationState.UnreadCount > 0)">
                         <MudIconButton Icon="@Icons.Material.Filled.Notifications"
                                        Color="Color.Inherit"
                                        OnClick="ToggleNotificationPanelAsync" />
@@ -68,7 +71,7 @@
                                 Class="notification-popover"
                                 Style="margin-top: 10px; z-index: 1300; background: transparent; box-shadow: none;">
                         <NotificationPanel @ref="_notificationPanel"
-                                           UnreadCount="_unreadCount"
+                                           UnreadCount="NotificationState.UnreadCount"
                                            OnClose="CloseNotificationPanel"
                                            OnUnreadCountChanged="HandleUnreadCountChanged" />
                     </MudPopover>
@@ -130,7 +133,6 @@
     private bool _drawerOpen = true;
     private bool _isDarkMode = false;
     private MudTheme? _theme = null;
-    private int _unreadCount = 0;
     private CancellationTokenSource? _cts;
     private NotificationPanel? _notificationPanel;
     private bool _isNotificationOpen = false;
@@ -139,19 +141,12 @@
     {
         await base.OnInitializedAsync();
 
-        _theme = new()
-        {
-            PaletteLight = _lightPalette,
-            PaletteDark = _darkPalette,
-            Typography = _typography,
-            LayoutProperties = new LayoutProperties
-            {
-                DefaultBorderRadius = "12px",
-                AppbarHeight = "72px"
-            }
-        };
+        _theme = AppTheme.CreateTheme();
+        _theme.LayoutProperties.AppbarHeight = "72px";
 
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        NavigationManager.LocationChanged += OnLocationChanged;
+        NotificationState.OnChange += OnNotificationStateChanged;
 
         _cts = new CancellationTokenSource();
         _ = PollUnreadCountAsync(_cts.Token);
@@ -161,15 +156,25 @@
     {
         if (firstRender)
         {
-            await RefreshUnreadCountAsync();
+            await NotificationState.RefreshAsync();
         }
+    }
+
+    private void OnNotificationStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        _ = NotificationState.RefreshAsync();
     }
 
     private void OnAuthenticationStateChanged(Task<AuthenticationState> task)
     {
         InvokeAsync(async () =>
         {
-            await RefreshUnreadCountAsync();
+            await NotificationState.RefreshAsync();
             StateHasChanged();
         });
     }
@@ -195,46 +200,24 @@
 
     private void HandleUnreadCountChanged(int newCount)
     {
-        _unreadCount = newCount;
-        StateHasChanged();
+        InvokeAsync(StateHasChanged);
     }
 
     private async Task PollUnreadCountAsync(CancellationToken ct)
     {
-        await RefreshUnreadCountAsync();
+        await NotificationState.RefreshAsync();
 
         try
         {
-            using var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+            using var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(15));
             while (await periodicTimer.WaitForNextTickAsync(ct))
             {
-                await RefreshUnreadCountAsync();
+                await NotificationState.RefreshAsync();
             }
         }
         catch (OperationCanceledException)
         {
             // Normal shutdown
-        }
-    }
-
-    private async Task RefreshUnreadCountAsync()
-    {
-        try
-        {
-            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-            if (auth.User.Identity?.IsAuthenticated == true)
-            {
-                var result = await NotificationsClient.GetUnreadCountAsync();
-                if (result.IsSuccess)
-                {
-                    _unreadCount = result.Data;
-                    await InvokeAsync(StateHasChanged);
-                }
-            }
-        }
-        catch
-        {
-            // Ignore background polling errors
         }
     }
 
@@ -254,79 +237,6 @@
         NavigationManager.NavigateTo("/login");
     }
 
-    private readonly PaletteLight _lightPalette = new()
-    {
-        Primary = "#4f46e5",
-        PrimaryDarken = "#4338ca",
-        PrimaryLighten = "#818cf8",
-        Secondary = "#64748b",
-        Black = "#0f172a",
-        AppbarText = "#1e293b",
-        AppbarBackground = "rgba(255,255,255,0.85)",
-        DrawerBackground = "#ffffff",
-        GrayLight = "#f1f5f9",
-        GrayLighter = "#f8fafc",
-        Background = "#f8fafc",
-        Surface = "#ffffff",
-        Success = "#10b981",
-        Warning = "#f59e0b",
-        Error = "#ef4444",
-        Info = "#3b82f6",
-        BackgroundGray = "#f1f5f9",
-        LinesDefault = "#e2e8f0",
-        Divider = "#e2e8f0"
-    };
-
-    private readonly PaletteDark _darkPalette = new()
-    {
-        Primary = "#818cf8",
-        PrimaryLighten = "#a5b4fc",
-        PrimaryDarken = "#4f46e5",
-        Secondary = "#94a3b8",
-        Surface = "#111827",
-        Background = "#090d16",
-        BackgroundGray = "#0f172a",
-        AppbarText = "#f8fafc",
-        AppbarBackground = "rgba(11, 15, 25, 0.85)",
-        DrawerBackground = "#0d131f",
-        ActionDefault = "#94a3b8",
-        ActionDisabled = "#475569",
-        ActionDisabledBackground = "#1f293d",
-        TextPrimary = "#f1f5f9",
-        TextSecondary = "#94a3b8",
-        TextDisabled = "#64748b",
-        DrawerIcon = "#cbd5e1",
-        DrawerText = "#f1f5f9",
-        GrayLight = "#1f293d",
-        GrayLighter = "#111827",
-        Info = "#38bdf8",
-        Success = "#34d399",
-        Warning = "#fbbf24",
-        Error = "#f87171",
-        LinesDefault = "#1f293d",
-        TableLines = "#1f293d",
-        Divider = "#1f293d",
-        OverlayLight = "#090d1680",
-    };
-
-    private readonly Typography _typography = new()
-    {
-        Default = new DefaultTypography()
-        {
-            FontFamily = new[] { "Inter", "Helvetica", "Arial", "sans-serif" },
-            FontSize = "0.95rem",
-            LetterSpacing = "0.01em"
-        },
-        H1 = new H1Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "700" },
-        H2 = new H2Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "700" },
-        H3 = new H3Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "700" },
-        H4 = new H4Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "600" },
-        H5 = new H5Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "600" },
-        H6 = new H6Typography { FontFamily = new[] { "Outfit", "sans-serif" }, FontWeight = "600" },
-        Button = new ButtonTypography { FontFamily = new[] { "Inter", "sans-serif" }, FontWeight = "600", TextTransform = "none" },
-        Subtitle1 = new Subtitle1Typography { FontFamily = new[] { "Inter", "sans-serif" }, FontWeight = "500" }
-    };
-
     public string DarkLightModeButtonIcon => _isDarkMode switch
     {
         true => Icons.Material.Rounded.LightMode,
@@ -336,9 +246,22 @@
     public void Dispose()
     {
         AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        NavigationManager.LocationChanged -= OnLocationChanged;
+        NotificationState.OnChange -= OnNotificationStateChanged;
         _cts?.Cancel();
         _cts?.Dispose();
     }
 }
+
+<style>
+    .notification-badge-pulse .mud-badge {
+        animation: notification-badge-bounce 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @@keyframes notification-badge-bounce {
+        0% { transform: scale(0.6); }
+        60% { transform: scale(1.22); }
+        100% { transform: scale(1); }
+    }
+</style>
 
 

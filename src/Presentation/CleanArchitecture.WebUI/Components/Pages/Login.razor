@@ -1,4 +1,5 @@
 @page "/login"
+@layout CleanArchitecture.WebUI.Components.Layout.AuthLayout
 @using CleanArchitecture.WebUI.Services
 @using CleanArchitecture.WebUI.Services.Models
 @inject AuthClient AuthClient
@@ -7,94 +8,112 @@
 
 <PageTitle>Sign In - Clean Architecture Template</PageTitle>
 
-<div class="d-flex justify-center align-center min-vh-100 py-8 px-4">
-    <div style="width: 100%; max-width: 440px;">
-        <MudCard Elevation="0" Class="rounded-2xl glass-panel pa-6 pa-sm-8 hover-lift position-relative overflow-hidden">
-            <!-- Header Brand -->
-            <div class="text-center mb-6">
-                <div class="d-inline-flex align-center justify-center rounded-2xl mb-3" 
-                     style="width: 56px; height: 56px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);">
-                    <MudIcon Icon="@Icons.Material.Filled.Layers" Style="color: white; font-size: 2rem;" />
-                </div>
-                <MudText Typo="Typo.h4" Class="font-weight-bold text-gradient-primary" Style="letter-spacing: -0.02em;">
-                    Clean Architecture
+<div class="auth-card rounded-2xl pa-6 pa-sm-8 hover-lift" style="width: 100%; max-width: 440px;">
+    <!-- Brand Header -->
+    <div class="text-center mb-6">
+        <div class="d-inline-flex align-center justify-center rounded-2xl mb-3" 
+             style="width: 56px; height: 56px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);">
+            <MudIcon Icon="@Icons.Material.Filled.Layers" Style="color: white; font-size: 2rem;" />
+        </div>
+        <MudText Typo="Typo.h4" Class="font-weight-bold text-gradient-primary" Style="letter-spacing: -0.02em;">
+            Selamat Datang
+        </MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+            Masuk ke portal enterprise Clean Architecture
+        </MudText>
+    </div>
+
+    @if (SessionExpired)
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="mb-4 rounded-xl" Dense="true" Icon="@Icons.Material.Rounded.AccessTime">
+            Sesi Anda telah berakhir demi keamanan. Silakan masuk kembali.
+        </MudAlert>
+    }
+
+    <MudForm @ref="form" @bind-IsValid="@success">
+        <!-- Email Field -->
+        <MudTextField T="string" Label="Alamat Email" Required="true" RequiredError="Alamat email wajib diisi!"
+                      @bind-Value="email" InputType="InputType.Email" Variant="Variant.Outlined"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Rounded.Email"
+                      Placeholder="name@company.com"
+                      Class="mb-4 rounded-xl" Margin="Margin.Dense" />
+
+        <!-- Password Field -->
+        <MudTextField T="string" Label="Kata Sandi" Required="true" RequiredError="Kata sandi wajib diisi!"
+                      @bind-Value="password" 
+                      InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                      Variant="Variant.Outlined"
+                      Adornment="Adornment.End" 
+                      AdornmentIcon="@(_showPassword ? Icons.Material.Rounded.VisibilityOff : Icons.Material.Rounded.Visibility)"
+                      OnAdornmentClick="TogglePasswordVisibility"
+                      AdornmentAriaLabel="Toggle Password Visibility"
+                      Placeholder="••••••••"
+                      Class="mb-2 rounded-xl" Margin="Margin.Dense" />
+
+        <!-- Demo Account Quick Fill Section -->
+        <div class="pa-3 rounded-xl my-4" style="background: rgba(var(--mud-palette-primary-rgb), 0.05); border: 1px dashed var(--mud-palette-lines-default);">
+            <div class="d-flex align-center justify-space-between mb-2">
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="font-weight-bold">
+                    Demo Credentials (Sekali Klik):
                 </MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
-                    Sign in to your enterprise workspace
-                </MudText>
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Primary" Class="pa-0" Style="font-size: 0.7rem;">Quick Fill</MudChip>
             </div>
-
-            <MudForm @ref="form" @bind-IsValid="@success">
-                <!-- Email Field -->
-                <MudTextField T="string" Label="Email Address" Required="true" RequiredError="Email address is required!"
-                              @bind-Value="email" InputType="InputType.Email" Variant="Variant.Outlined"
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Rounded.Email"
-                              Class="mb-4 rounded-xl" Margin="Margin.Dense" />
-
-                <!-- Password Field -->
-                <MudTextField T="string" Label="Password" Required="true" RequiredError="Password is required!"
-                              @bind-Value="password" 
-                              InputType="@(_showPassword ? InputType.Text : InputType.Password)"
-                              Variant="Variant.Outlined"
-                              Adornment="Adornment.End" 
-                              AdornmentIcon="@(_showPassword ? Icons.Material.Rounded.VisibilityOff : Icons.Material.Rounded.Visibility)"
-                              OnAdornmentClick="TogglePasswordVisibility"
-                              AdornmentAriaLabel="Toggle Password Visibility"
-                              Class="mb-2 rounded-xl" Margin="Margin.Dense" />
-
-                <!-- Demo Account Quick Fill Section -->
-                <div class="pa-3 rounded-xl my-4" style="background: rgba(var(--mud-palette-primary-rgb), 0.05); border: 1px dashed var(--mud-palette-lines-default);">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block font-weight-bold mb-2">
-                        Quick-Fill Demo Credentials:
-                    </MudText>
-                    <div class="d-flex gap-2">
-                        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" Class="rounded-lg flex-grow-1"
-                                   OnClick='() => FillCredentials("admin@localhost", "Admin123!")'>
-                            👑 Admin
-                        </MudButton>
-                        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary" Class="rounded-lg flex-grow-1"
-                                   OnClick='() => FillCredentials("member@localhost", "Member123!")'>
-                            👤 Member
-                        </MudButton>
-                    </div>
-                </div>
-
-                <!-- Submit Button -->
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true"
-                           OnClick="Submit" Disabled="@(_isLoading)"
-                           Class="rounded-xl py-3 font-weight-bold hover-lift"
-                           Style="box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);">
-                    @if (_isLoading)
-                    {
-                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                        <span class="ms-2">Signing in...</span>
-                    }
-                    else
-                    {
-                        <span>Sign In</span>
-                    }
+            <div class="d-flex gap-2">
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" Class="rounded-lg flex-grow-1 demo-account-chip"
+                           OnClick='() => FillCredentials("admin@localhost", "Admin123!")'>
+                    👑 Administrator
                 </MudButton>
-            </MudForm>
-
-            <MudDivider Class="my-6" />
-
-            <!-- Security Badges Footer -->
-            <div class="d-flex justify-center align-center gap-4 text-center">
-                <div class="d-flex align-center gap-1">
-                    <MudIcon Icon="@Icons.Material.Rounded.VpnKey" Size="Size.Small" Color="Color.Secondary" />
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">JWT + Refresh</MudText>
-                </div>
-                <div class="d-flex align-center gap-1">
-                    <MudIcon Icon="@Icons.Material.Rounded.Shield" Size="Size.Small" Color="Color.Secondary" />
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">PBAC Guarded</MudText>
-                </div>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary" Class="rounded-lg flex-grow-1 demo-account-chip"
+                           OnClick='() => FillCredentials("member@localhost", "Member123!")'>
+                    👤 Standard Member
+                </MudButton>
             </div>
-        </MudCard>
+        </div>
+
+        <!-- Submit Button -->
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true"
+                   OnClick="Submit" Disabled="@(_isLoading)"
+                   Class="rounded-xl py-3 font-weight-bold hover-lift mt-2"
+                   Style="box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);">
+            @if (_isLoading)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <span class="ms-2">Memverifikasi Akun...</span>
+            }
+            else
+            {
+                <div class="d-flex align-center gap-2">
+                    <span>Masuk ke Akun</span>
+                    <MudIcon Icon="@Icons.Material.Rounded.ArrowForward" Size="Size.Small" />
+                </div>
+            }
+        </MudButton>
+    </MudForm>
+
+    <MudDivider Class="my-5" />
+
+    <!-- Security Badges Footer -->
+    <div class="d-flex justify-center align-center gap-4 text-center">
+        <div class="d-flex align-center gap-1">
+            <MudIcon Icon="@Icons.Material.Rounded.VpnKey" Size="Size.Small" Color="Color.Secondary" />
+            <MudText Typo="Typo.caption" Color="Color.Secondary">OAuth 2.0 / JWT</MudText>
+        </div>
+        <div class="d-flex align-center gap-1">
+            <MudIcon Icon="@Icons.Material.Rounded.VerifiedUser" Size="Size.Small" Color="Color.Secondary" />
+            <MudText Typo="Typo.caption" Color="Color.Secondary">PBAC Guarded</MudText>
+        </div>
+        <div class="d-flex align-center gap-1">
+            <MudIcon Icon="@Icons.Material.Rounded.Lock" Size="Size.Small" Color="Color.Secondary" />
+            <MudText Typo="Typo.caption" Color="Color.Secondary">Auto-Refresh</MudText>
+        </div>
     </div>
 </div>
 
 @code {
     private MudForm form = default!;
+    [SupplyParameterFromQuery(Name = "sessionExpired")]
+    public bool SessionExpired { get; set; }
+
     private bool success;
     private string email = "";
     private string password = "";

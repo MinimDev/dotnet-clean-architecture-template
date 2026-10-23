@@ -1,44 +1,19 @@
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using CleanArchitecture.WebUI.Services.Models;
-using Microsoft.AspNetCore.Components.Authorization;
 
 namespace CleanArchitecture.WebUI.Services;
 
 public class AuditLogsClient
 {
-    private readonly HttpClient _httpClient;
+    private readonly AuthorizedHttpClient _httpClient;
     private readonly TokenProvider _tokenProvider;
-    private readonly AuthenticationStateProvider _authStateProvider;
 
     public AuditLogsClient(
-        IHttpClientFactory httpClientFactory,
-        TokenProvider tokenProvider,
-        AuthenticationStateProvider authStateProvider)
+        AuthorizedHttpClient httpClient,
+        TokenProvider tokenProvider)
     {
-        _httpClient = httpClientFactory.CreateClient("WebAPI");
+        _httpClient = httpClient;
         _tokenProvider = tokenProvider;
-        _authStateProvider = authStateProvider;
-    }
-
-    private async Task<string?> GetTokenAsync()
-    {
-        if (string.IsNullOrEmpty(_tokenProvider.Token))
-        {
-            await _authStateProvider.GetAuthenticationStateAsync();
-        }
-        return _tokenProvider.Token;
-    }
-
-    private async Task<HttpRequestMessage> BuildRequestAsync(HttpMethod method, string url)
-    {
-        var request = new HttpRequestMessage(method, url);
-        var token = await GetTokenAsync();
-        if (!string.IsNullOrEmpty(token))
-        {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
-        return request;
     }
 
     public async Task<Result<PaginatedList<AuditLogDto>>> GetAuditLogsAsync(
@@ -75,7 +50,7 @@ public class AuditLogsClient
 
         try
         {
-            using var request = await BuildRequestAsync(HttpMethod.Get, url);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
             using var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)

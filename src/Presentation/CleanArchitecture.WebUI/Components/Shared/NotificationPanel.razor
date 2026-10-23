@@ -1,6 +1,7 @@
+@implements IDisposable
 @using CleanArchitecture.WebUI.Services
 @using CleanArchitecture.WebUI.Services.Models
-@inject NotificationsClient Client
+@inject NotificationStateService State
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 
@@ -10,15 +11,15 @@
         <div class="d-flex align-center gap-2">
             <MudIcon Icon="@Icons.Material.Filled.Notifications" Size="Size.Small" Color="Color.Primary" />
             <MudText Typo="Typo.subtitle1" Class="font-weight-bold">Notifications</MudText>
-            @if (_unreadCount > 0)
+            @if (State.UnreadCount > 0)
             {
                 <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold px-2 py-0" Style="height: 20px;">
-                    @_unreadCount new
+                    @State.UnreadCount new
                 </MudChip>
             }
         </div>
         <div class="d-flex align-center gap-1">
-            @if (_unreadCount > 0)
+            @if (State.UnreadCount > 0)
             {
                 <MudTooltip Text="Mark all as read">
                     <MudButton StartIcon="@Icons.Material.Filled.DoneAll"
@@ -26,7 +27,7 @@
                                Color="Color.Primary"
                                Variant="Variant.Text"
                                OnClick="MarkAllAsReadAsync"
-                               Disabled="@_isLoading"
+                               Disabled="@State.IsLoading"
                                Class="text-transform-none px-2"
                                Style="font-size: 0.75rem;">
                         Mark all read
@@ -37,15 +38,15 @@
                 <MudIconButton Icon="@Icons.Material.Filled.Refresh"
                                Size="Size.Small"
                                Color="Color.Default"
-                               OnClick="LoadNotificationsAsync"
-                               Disabled="@_isLoading" />
+                               OnClick="() => State.LoadNotificationsAsync()"
+                               Disabled="@State.IsLoading" />
             </MudTooltip>
         </div>
     </div>
 
     <!-- Panel Body -->
     <div class="notification-list-container" style="max-height: 420px; overflow-y: auto;">
-        @if (_isLoading)
+        @if (State.IsLoading && State.Notifications.Count == 0)
         {
             <div class="pa-4">
                 @for (int i = 0; i < 3; i++)
@@ -61,7 +62,7 @@
                 }
             </div>
         }
-        else if (_notifications.Count == 0)
+        else if (State.Notifications.Count == 0)
         {
             <div class="pa-6 text-center d-flex flex-column align-center justify-center">
                 <div class="empty-icon-box mb-2">
@@ -74,7 +75,7 @@
         else
         {
             <div class="notification-items-wrapper">
-                @foreach (var item in _notifications)
+                @foreach (var item in State.Notifications)
                 {
                     <div class="@($"notification-item pa-3 border-b border-solid {(!item.IsRead ? "notification-unread" : "")}")"
                          @onclick="@(() => OnItemClick(item))"
@@ -122,7 +123,7 @@
     <!-- Panel Footer -->
     <div class="pa-2 text-center border-t border-solid" style="border-color: var(--mud-palette-lines-default) !important; background: rgba(var(--mud-palette-surface-rgb), 0.5);">
         <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.75rem;">
-            Showing last @_notifications.Count notifications
+            Showing last @State.Notifications.Count notifications
         </MudText>
     </div>
 </div>
@@ -213,71 +214,38 @@
     [Parameter]
     public EventCallback<int> OnUnreadCountChanged { get; set; }
 
-    private List<NotificationDto> _notifications = new();
-    private int _unreadCount = 0;
-    private bool _isLoading = false;
-
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        _unreadCount = UnreadCount;
-        await LoadNotificationsAsync();
+        State.OnChange += OnStateChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Sinkronisasi otomatis saat parameter luar berubah
+    }
+
+    private void OnStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
     }
 
     public async Task LoadNotificationsAsync()
     {
-        _isLoading = true;
-        StateHasChanged();
-
-        try
-        {
-            var result = await Client.GetNotificationsAsync(pageNumber: 1, pageSize: 20);
-            if (result.IsSuccess && result.Data != null)
-            {
-                _notifications = result.Data.Items;
-                
-                var countResult = await Client.GetUnreadCountAsync();
-                _unreadCount = countResult.IsSuccess ? countResult.Data : _notifications.Count(n => !n.IsRead);
-                await OnUnreadCountChanged.InvokeAsync(_unreadCount);
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error loading notifications: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
-            _isLoading = false;
-            StateHasChanged();
-        }
+        await State.LoadNotificationsAsync();
+        await OnUnreadCountChanged.InvokeAsync(State.UnreadCount);
     }
 
     private async Task MarkAllAsReadAsync()
     {
         try
         {
-            // Optimistic update
-            foreach (var n in _notifications)
-            {
-                n.IsRead = true;
-            }
-            _unreadCount = 0;
-            await OnUnreadCountChanged.InvokeAsync(0);
-
-            var result = await Client.MarkAllAsReadAsync();
-            if (result.IsSuccess)
-            {
-                Snackbar.Add("All notifications marked as read", Severity.Info);
-            }
-            else
-            {
-                // Re-fetch if failed
-                await LoadNotificationsAsync();
-            }
+            await State.MarkAllAsReadAsync();
+            Snackbar.Add("All notifications marked as read", Severity.Info);
+            await OnUnreadCountChanged.InvokeAsync(State.UnreadCount);
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error: {ex.Message}", Severity.Error);
-            await LoadNotificationsAsync();
         }
     }
 
@@ -285,10 +253,8 @@
     {
         if (!item.IsRead)
         {
-            item.IsRead = true;
-            _unreadCount = Math.Max(0, _unreadCount - 1);
-            await OnUnreadCountChanged.InvokeAsync(_unreadCount);
-            _ = Client.MarkAsReadAsync(item.Id);
+            await State.MarkAsReadAsync(item.Id);
+            await OnUnreadCountChanged.InvokeAsync(State.UnreadCount);
         }
 
         await OnClose.InvokeAsync();
@@ -343,5 +309,10 @@
         if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
         if (span.TotalDays < 7) return $"{(int)span.TotalDays}d ago";
         return itemUtc.ToString("MMM dd, yyyy");
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= OnStateChanged;
     }
 }
