@@ -1,0 +1,82 @@
+@namespace CleanArchitecture.WebUI.Components.Shared
+
+<MudDialog ContentClass="pa-5" Class="rounded-2xl" Style="max-width: 440px;">
+    <DialogContent>
+        <div class="d-flex gap-3 align-start">
+            <div class="dialog-icon-circle flex-shrink-0" style="@($"background: rgba(var(--mud-palette-{(ConfirmColor == Color.Error ? "error" : "warning")}-rgb), 0.12); color: var(--mud-palette-{(ConfirmColor == Color.Error ? "error" : "warning")});")">
+                <MudIcon Icon="@Icon" Color="@ConfirmColor" Size="Size.Medium" />
+            </div>
+            <div>
+                <MudText Typo="Typo.h6" Class="font-weight-bold mb-1" Style="letter-spacing: -0.01em;">
+                    @Title
+                </MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Style="line-height: 1.5; font-size: 0.875rem;">
+                    @Message
+                </MudText>
+
+                @if (!string.IsNullOrEmpty(ItemName))
+                {
+                    <div class="item-highlight-box mt-3 pa-2-5 rounded-lg border-solid border-1"
+                         style="background: var(--mud-palette-background-grey); border-color: var(--mud-palette-lines-default);">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block font-weight-bold text-uppercase" Style="font-size: 0.65rem;">
+                            Target Item
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="font-weight-bold text-truncate" Color="@ConfirmColor">
+                            @ItemName
+                        </MudText>
+                    </div>
+                }
+            </div>
+        </div>
+    </DialogContent>
+    <DialogActions Class="pa-4 pt-2">
+        <MudButton Variant="Variant.Text" OnClick="Cancel" Disabled="@_isProcessing" Class="rounded-lg px-4" Size="Size.Small">
+            @CancelText
+        </MudButton>
+        <MudButton Variant="Variant.Filled" Color="@ConfirmColor" OnClick="Confirm" Disabled="@_isProcessing"
+                   Class="rounded-lg px-5 hover-lift" Size="Size.Small">
+            @if (_isProcessing)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                <span>Processing...</span>
+            }
+            else
+            {
+                <span>@ConfirmText</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .dialog-icon-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public string Title { get; set; } = "Delete Confirmation";
+    [Parameter] public string Message { get; set; } = "Are you sure you want to perform this action? This operation cannot be reversed.";
+    [Parameter] public string? ItemName { get; set; }
+    [Parameter] public string ConfirmText { get; set; } = "Delete";
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+    [Parameter] public Color ConfirmColor { get; set; } = Color.Error;
+    [Parameter] public string Icon { get; set; } = Icons.Material.Filled.WarningAmber;
+
+    private bool _isProcessing;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Confirm()
+    {
+        _isProcessing = true;
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

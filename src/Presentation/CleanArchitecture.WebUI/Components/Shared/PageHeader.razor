@@ -1,0 +1,65 @@
+@namespace CleanArchitecture.WebUI.Components.Shared
+
+<div class="page-header d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center gap-3 mb-4">
+    <div class="d-flex align-center gap-3">
+        @if (!string.IsNullOrEmpty(Icon))
+        {
+            <div class="page-header-icon-box flex-shrink-0">
+                <MudIcon Icon="@Icon" Size="Size.Medium" Color="@IconColor" />
+            </div>
+        }
+        <div>
+            <div class="d-flex align-center gap-2 flex-wrap">
+                <MudText Typo="Typo.h5" Color="@TitleColor" Class="font-weight-bold" Style="letter-spacing: -0.015em; line-height: 1.25;">
+                    @Title
+                </MudText>
+                @if (!string.IsNullOrEmpty(BadgeText))
+                {
+                    <MudChip T="string" Size="Size.Small" Color="@BadgeColor" Variant="Variant.Filled" Class="font-weight-bold" Style="font-size: 0.68rem; height: 20px; padding: 0 8px;">
+                        @BadgeText
+                    </MudChip>
+                }
+            </div>
+            @if (!string.IsNullOrEmpty(Subtitle))
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mt-0-5" Style="font-size: 0.8125rem;">
+                    @Subtitle
+                </MudText>
+            }
+        </div>
+    </div>
+
+    @if (Actions != null)
+    {
+        <div class="page-header-actions d-flex align-center gap-2 flex-wrap justify-start justify-sm-end w-100 w-sm-auto">
+            @Actions
+        </div>
+    }
+</div>
+
+<style>
+    .page-header-icon-box {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(var(--mud-palette-primary-rgb), 0.08);
+        border: 1px solid rgba(var(--mud-palette-primary-rgb), 0.16);
+    }
+    .page-header-actions {
+        min-height: 36px;
+    }
+</style>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public Color IconColor { get; set; } = Color.Primary;
+    [Parameter] public Color TitleColor { get; set; } = Color.Primary;
+    [Parameter] public string? BadgeText { get; set; }
+    [Parameter] public Color BadgeColor { get; set; } = Color.Primary;
+    [Parameter] public RenderFragment? Actions { get; set; }
+}

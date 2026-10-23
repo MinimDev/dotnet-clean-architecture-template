@@ -1,0 +1,97 @@
+@namespace CleanArchitecture.WebUI.Components.Shared
+
+<MudCard Elevation="0" Class="@($"stat-card rounded-xl pa-3-5 hover-lift h-100 flex-grow-1 d-flex flex-column justify-space-between border-solid border-1 {(OnClick.HasDelegate ? "cursor-pointer" : "")}")"
+         Style="border-color: var(--mud-palette-lines-default); background: var(--mud-palette-surface);"
+         @onclick="HandleClick">
+    <div>
+        <div class="d-flex align-center justify-space-between mb-3">
+            <div class="stat-card-icon-box" style="@($"background: rgba(var(--mud-palette-{GetColorName(IconColor)}-rgb), 0.1); color: var(--mud-palette-{GetColorName(IconColor)});")">
+                <MudIcon Icon="@Icon" Size="Size.Small" Color="@IconColor" />
+            </div>
+            @if (!string.IsNullOrEmpty(BadgeText))
+            {
+                <MudChip T="string" Color="@BadgeColor" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold" Style="font-size: 0.65rem; height: 20px; padding: 0 6px;">
+                    @BadgeText
+                </MudChip>
+            }
+        </div>
+
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="font-weight-bold text-uppercase d-block mb-1" Style="letter-spacing: 0.05em; font-size: 0.7rem;">
+            @Title
+        </MudText>
+        <MudText Typo="Typo.h5" Class="font-weight-bold mb-1" Style="letter-spacing: -0.02em;">
+            @Value
+        </MudText>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Subtitle) || !string.IsNullOrEmpty(TrendText))
+    {
+        <div class="d-flex align-center gap-1 mt-2 flex-wrap">
+            @if (!string.IsNullOrEmpty(TrendText))
+            {
+                <div class="d-inline-flex align-center gap-0-5 font-weight-bold"
+                     style="@($"font-size: 0.72rem; color: {(IsTrendPositive == true ? "var(--mud-palette-success)" : IsTrendPositive == false ? "var(--mud-palette-error)" : "var(--mud-palette-secondary)")};")">
+                    @if (IsTrendPositive == true)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Style="font-size: 0.875rem;" />
+                    }
+                    else if (IsTrendPositive == false)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.TrendingDown" Size="Size.Small" Style="font-size: 0.875rem;" />
+                    }
+                    <span>@TrendText</span>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Subtitle))
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.75rem;">
+                    @Subtitle
+                </MudText>
+            }
+        </div>
+    }
+</MudCard>
+
+<style>
+    .stat-card-icon-box {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string Icon { get; set; } = Icons.Material.Rounded.BarChart;
+    [Parameter] public Color IconColor { get; set; } = Color.Primary;
+    [Parameter] public string? BadgeText { get; set; }
+    [Parameter] public Color BadgeColor { get; set; } = Color.Primary;
+    [Parameter] public string? TrendText { get; set; }
+    [Parameter] public bool? IsTrendPositive { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    private async Task HandleClick()
+    {
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync();
+        }
+    }
+
+    private string GetColorName(Color color) => color switch
+    {
+        Color.Primary => "primary",
+        Color.Secondary => "secondary",
+        Color.Success => "success",
+        Color.Warning => "warning",
+        Color.Error => "error",
+        Color.Info => "info",
+        _ => "primary"
+    };
+}

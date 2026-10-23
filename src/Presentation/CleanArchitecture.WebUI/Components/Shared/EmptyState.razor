@@ -1,0 +1,72 @@
+@namespace CleanArchitecture.WebUI.Components.Shared
+
+<MudPaper Elevation="0" Class="empty-state-container pa-8 pa-sm-10 text-center d-flex flex-column align-center justify-center rounded-2xl mud-width-full"
+          Style="@($"min-height: {MinHeight}; background: transparent; border: 1.5px dashed var(--mud-palette-lines-default);")">
+    
+    <div class="empty-state-icon-circle mb-3">
+        <MudIcon Icon="@Icon" Color="@IconColor" Style="font-size: 2.75rem;" />
+    </div>
+
+    <MudText Typo="Typo.h6" Class="font-weight-bold mb-1" Style="letter-spacing: -0.01em;">
+        @Title
+    </MudText>
+
+    @if (!string.IsNullOrEmpty(Description))
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4 text-center" Style="max-width: 440px; font-size: 0.875rem; line-height: 1.5;">
+            @Description
+        </MudText>
+    }
+
+    @if (!string.IsNullOrEmpty(ActionText))
+    {
+        @if (!string.IsNullOrEmpty(ActionHref))
+        {
+            <MudButton Variant="Variant.Filled" Color="@ActionColor" StartIcon="@ActionIcon"
+                       Href="@ActionHref" Class="rounded-lg px-4 py-1-5 hover-lift" Size="Size.Small">
+                @ActionText
+            </MudButton>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" Color="@ActionColor" StartIcon="@ActionIcon"
+                       OnClick="OnActionClick" Class="rounded-lg px-4 py-1-5 hover-lift" Size="Size.Small">
+                @ActionText
+            </MudButton>
+        }
+    }
+
+    @if (Actions != null)
+    {
+        <div class="d-flex align-center gap-2 mt-2 flex-wrap justify-center">
+            @Actions
+        </div>
+    }
+</MudPaper>
+
+<style>
+    .empty-state-icon-circle {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(var(--mud-palette-primary-rgb), 0.06);
+        border: 1px solid rgba(var(--mud-palette-lines-default-rgb), 0.5);
+    }
+</style>
+
+@code {
+    [Parameter] public string Title { get; set; } = "No items found";
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string Icon { get; set; } = Icons.Material.Rounded.Inbox;
+    [Parameter] public Color IconColor { get; set; } = Color.Secondary;
+    [Parameter] public string? ActionText { get; set; }
+    [Parameter] public string? ActionIcon { get; set; }
+    [Parameter] public Color ActionColor { get; set; } = Color.Primary;
+    [Parameter] public string? ActionHref { get; set; }
+    [Parameter] public EventCallback OnActionClick { get; set; }
+    [Parameter] public RenderFragment? Actions { get; set; }
+    [Parameter] public string MinHeight { get; set; } = "320px";
+}

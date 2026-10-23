@@ -1,0 +1,41 @@
+@namespace CleanArchitecture.WebUI.Components.Shared
+
+<MudPaper Elevation="0" Class="table-skeleton-container rounded-xl overflow-hidden border-solid border-1"
+          Style="border-color: var(--mud-palette-lines-default); background: var(--mud-palette-surface);">
+    @if (ShowHeader)
+    {
+        <div class="table-skeleton-header d-flex align-center gap-3 px-4 py-3 border-b-1"
+             style="border-bottom: 1px solid var(--mud-palette-lines-default); background: var(--mud-palette-background-grey);">
+            @for (int c = 0; c < Columns; c++)
+            {
+                var width = c == 0 ? "35%" : c == Columns - 1 ? "15%" : "25%";
+                <div style="flex: 1; max-width: @width;">
+                    <MudSkeleton Width="60%" Height="18px" Class="rounded-sm" Animation="Animation.Wave" />
+                </div>
+            }
+        </div>
+    }
+
+    <div class="table-skeleton-body">
+        @for (int r = 0; r < Rows; r++)
+        {
+            <div class="d-flex align-center gap-3 px-4 py-3"
+                 style="@(r < Rows - 1 ? "border-bottom: 1px solid var(--mud-palette-lines-default);" : "") min-height: @RowHeight;">
+                @for (int c = 0; c < Columns; c++)
+                {
+                    var colWidth = c == 0 ? "80%" : c == Columns - 1 ? "40%" : "65%";
+                    <div style="flex: 1;">
+                        <MudSkeleton Width="@colWidth" Height="16px" Class="rounded-sm" Animation="Animation.Wave" />
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter] public int Rows { get; set; } = 5;
+    [Parameter] public int Columns { get; set; } = 4;
+    [Parameter] public string RowHeight { get; set; } = "48px";
+    [Parameter] public bool ShowHeader { get; set; } = true;
+}
