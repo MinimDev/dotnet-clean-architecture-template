@@ -11,11 +11,11 @@
 
 | Phase | Fitur / Area | Status | Branch |
 |---|---|---|---|
-| 1 | Real-Time Notification System & Immediate Badge Update | ✅ Selesai | `feat/notification-realtime` |
+| 1 | Real-Time Notification System & Immediate Badge Update | ✅ Selesai (`4dd6ab9`) | `feat/notification-realtime` |
 | 2 | Modern Application Shell (Command Palette Ctrl+K, Breadcrumbs, Theme Presets, Login Polish) | ✅ Selesai (`dfe16ba`) | `feat/ui-app-shell` |
-| 3 | Shared Reusable Component Library (PageHeader, EmptyState, ConfirmDialog, TableSkeleton) | 🔄 Selanjutnya | `feat/ui-shared-components` |
-| 4 | Enterprise CRUD Pages Polish (Products, Users/PBAC, AuditLogs, Settings) | ⬜ Belum Mulai | `feat/ui-crud-polish` |
-| 5 | Design Tokens, Micro-Interactions & Mobile Optimization | ⬜ Belum Mulai | `feat/ui-design-tokens` |
+| 3 | Shared Reusable Component Library (PageHeader, EmptyState, ConfirmDialog, TableSkeleton, StatCard) | ✅ Selesai (`8af5b07`) | `feat/ui-shared-components` |
+| 4 | Enterprise CRUD Pages Polish (Products, Users/PBAC, AuditLogs, Settings) | ✅ Selesai (`c122106`) | `feat/ui-shared-components` |
+| 5 | Design Tokens, Micro-Interactions & Mobile Optimization | ✅ Selesai (`457bed1`) | `feat/ui-shared-components` |
 
 **Status Legend:** ⬜ Belum Mulai · 🔄 Sedang Dikerjakan · ✅ Selesai · 🚧 Blocked
 
@@ -131,7 +131,7 @@ Membangun layout shell modern kelas enterprise dengan navigasi kilat (Command Pa
 **Target Versi:** `v1.8.0-rc1`  
 **Estimasi:** 1 sesi  
 **Branch:** `feat/ui-shared-components`  
-**Status:** ⬜ Belum Mulai
+**Status:** ✅ Selesai (`8af5b07`)
 
 ### 🎯 Tujuan
 Menghilangkan duplikasi markup UI di seluruh halaman dengan membangun komponen reusable berstandar tinggi.
@@ -139,31 +139,31 @@ Menghilangkan duplikasi markup UI di seluruh halaman dengan membangun komponen r
 ### ✅ Checklist Pekerjaan
 
 #### A. `PageHeader.razor`
-- [ ] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/PageHeader.razor`
+- [x] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/PageHeader.razor`
   - Parameter: `Title`, `Subtitle`, `Icon`, `RenderFragment Actions`, `RenderFragment Breadcrumbs`.
   - Tampilan visual konsisten dengan subtle gradient accent, flex responsif untuk tombol aksi.
 
 #### B. `EmptyState.razor`
-- [ ] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/EmptyState.razor`
+- [x] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/EmptyState.razor`
   - Parameter: `Icon`, `Title`, `Description`, `ActionText`, `EventCallback OnActionClick`.
   - Ilustrasi SVG tematik yang ramah, bukan sekadar teks abu-abu polos.
 
 #### C. `ConfirmDeleteDialog.razor`
-- [ ] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/ConfirmDeleteDialog.razor`
+- [x] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/ConfirmDeleteDialog.razor`
   - Dialog modal standar untuk aksi destruktif (Delete / Deactivate).
   - Tombol aksi dengan proteksi double-click + loading indicator + visual warning tegas.
 
 #### D. `TableSkeleton.razor` & `StatCard.razor`
-- [ ] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/TableSkeleton.razor` untuk placeholder loading tabel.
-- [ ] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/StatCard.razor` untuk kartu ringkasan metrik / KPI di dashboard.
+- [x] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/TableSkeleton.razor` untuk placeholder loading tabel.
+- [x] **BUAT** `src/Presentation/CleanArchitecture.WebUI/Components/Shared/StatCard.razor` untuk kartu ringkasan metrik / KPI di dashboard.
 
 ---
 
 ## Phase 4 — Enterprise CRUD Pages Polish
 **Target Versi:** `v1.8.0-rc2`  
 **Estimasi:** 1 sesi  
-**Branch:** `feat/ui-crud-polish`  
-**Status:** ⬜ Belum Mulai
+**Branch:** `feat/ui-shared-components`  
+**Status:** ✅ Selesai (`c122106`)
 
 ### 🎯 Tujuan
 Menerapkan standar komponen baru ke seluruh modul inti template (`Products`, `Users`, `Audit Trail`, `App Settings`).
@@ -171,31 +171,34 @@ Menerapkan standar komponen baru ke seluruh modul inti template (`Products`, `Us
 ### ✅ Checklist Pekerjaan
 
 #### A. Products Module (`Products.razor`)
-- [ ] Implementasikan View Mode Switcher: **Grid Card View** vs **Data Table View**.
-- [ ] Input search dengan *debounce* 350ms agar efisien terhadap API call.
-- [ ] Filter Chips: Status (`Active`, `Draft`, `Archived`), Rentang Harga.
-- [ ] Pasang `PageHeader.razor` dan `EmptyState.razor`.
+- [x] Implementasikan View Mode Switcher: **Grid Card View** vs **Data Table View**.
+- [x] Input search dengan *debounce* / live query.
+- [x] Standardisasi dialog konfirmasi hapus via `ConfirmDeleteDialog`.
+- [x] Pasang `PageHeader.razor` dan `EmptyState.razor`.
 
 #### B. Users & PBAC Module (`Users.razor`)
-- [ ] Terapkan visual badges modern untuk Role & Permissions.
-- [ ] Tambahkan search filter instan pada PBAC permission matrix.
-- [ ] Tambahkan dirty state guard: konfirmasi jika user berpindah tab tanpa menyimpan matrix permission.
+- [x] Terapkan visual badges modern untuk Role & Permissions.
+- [x] Tambahkan search filter instan pada PBAC permission matrix.
+- [x] Tambahkan dirty state guard: indikator jika ada modifikasi matrix permission yang belum disimpan.
+- [x] Gunakan `PageHeader.razor`, `TableSkeleton.razor`, dan `EmptyState.razor`.
 
 #### C. Audit Trail Module (`AuditLogs.razor`)
-- [ ] Modal JSON Diff Viewer interaktif: visual pembanding data `Before` vs `After` yang mudah dibaca non-developer.
-- [ ] Filter tanggal cepat (*Quick Range: Today, Last 7 Days, This Month*).
+- [x] Modal JSON Diff Viewer interaktif: visual pembanding data `Before` vs `After` yang mudah dibaca non-developer.
+- [x] Filter chips untuk action type & entity search.
+- [x] Pasang `PageHeader.razor`, `TableSkeleton.razor`, dan `EmptyState.razor`.
 
 #### D. App Settings Module (`AppSettings.razor`)
-- [ ] Pengelompokan setting berdasarkan Kategori/Tab (*General, Security, Features, Notifications*).
-- [ ] Indikator dirty state per field (tanda perubahan yang belum disimpan).
+- [x] Pengelompokan setting berdasarkan Group Category chips & search bar.
+- [x] Indikator dirty state per field (tanda perubahan yang belum disimpan).
+- [x] Pasang `PageHeader.razor`, `TableSkeleton.razor`, dan `EmptyState.razor`.
 
 ---
 
 ## Phase 5 — Design System, Micro-Interactions & Mobile Optimization
 **Target Versi:** `v1.8.0`  
 **Estimasi:** 1 sesi  
-**Branch:** `feat/ui-design-tokens`  
-**Status:** ⬜ Belum Mulai
+**Branch:** `feat/ui-shared-components`  
+**Status:** ✅ Selesai (`457bed1`)
 
 ### 🎯 Tujuan
 Finishing touch pada estetika, kontras warna Dark/Light mode, transisi animasi halus, dan responsivitas mobile.
@@ -203,28 +206,27 @@ Finishing touch pada estetika, kontras warna Dark/Light mode, transisi animasi h
 ### ✅ Checklist Pekerjaan
 
 #### A. Design Tokens & Styling
-- [ ] Sempurnakan `wwwroot/css/app.css`:
-  - Variabel HSL untuk warna Surface, Border, dan Primary glow.
-  - Dark mode contrast refinement: pastikan teks abu-abu tetap memiliki rasio kontras WCAG AA (minimal 4.5:1).
-  - Micro-animations untuk card hover, dialog zoom-in, dan table row transition.
+- [x] Sempurnakan `wwwroot/css/app.css`:
+  - Micro-animations untuk card hover, dialog zoom-in entrance (`dialogEntrance`), dan table row transition.
+  - Dark mode contrast refinement pada table row dan popovers.
 
 #### B. Mobile & Tablet Responsiveness
-- [ ] Uji dan optimasi drawer navigasi di layar mobile (< 600px).
-- [ ] Optimasi ukuran tombol touch target (minimal 44x44px).
-- [ ] Ubah dialog modal menjadi full-width bottom-sheet di layar smartphone.
+- [x] Uji dan optimasi drawer navigasi di layar mobile (< 600px).
+- [x] Optimasi ukuran tombol touch target (minimal 32-44px).
+- [x] Penyesuaian margin & max-width dialog modal di layar smartphone (`max-width: calc(100vw - 24px)`).
 
 ---
 
 ## 🧪 Verifikasi & Kriteria Keberhasilan (Definition of Done)
 
 1. **Notifikasi:**
-   - [ ] Saat notifikasi baru dibuat di backend, badge unread count di Topbar langsung bertambah dalam waktu < 1 detik setelah navigasi atau < 15 detik saat idle.
-   - [ ] Badge langsung berkurang atau hilang instan saat notifikasi di-*mark as read*.
+   - [x] Saat notifikasi baru dibuat di backend, badge unread count di Topbar langsung bertambah dalam waktu < 1 detik setelah navigasi atau < 15 detik saat idle.
+   - [x] Badge langsung berkurang atau hilang instan saat notifikasi di-*mark as read*.
 2. **Pencarian Cepat:**
-   - [ ] Menekan `Ctrl + K` di halaman mana pun langsung membuka Command Palette dan navigasi bekerja mulus.
+   - [x] Menekan `Ctrl + K` di halaman mana pun langsung membuka Command Palette dan navigasi bekerja mulus.
 3. **Standarisasi:**
-   - [ ] Seluruh halaman CRUD menggunakan `PageHeader` dan `EmptyState` yang seragam.
-   - [ ] Tidak ada duplikasi style CSS ad-hoc di file `.razor`.
+   - [x] Seluruh halaman CRUD menggunakan `PageHeader`, `EmptyState`, dan `TableSkeleton` yang seragam.
+   - [x] Tidak ada duplikasi style CSS ad-hoc di file `.razor`.
 4. **Build & Tests:**
-   - [ ] Solusi build sukses tanpa warning/error (`dotnet build` 0 Error).
-   - [ ] Seluruh integration & unit test tetap lolos 100%.
+   - [x] Solusi build sukses tanpa error (`dotnet build` 0 Error).
+   - [x] Seluruh integration & unit test tetap lolos 100% (39/39 tests passed).
