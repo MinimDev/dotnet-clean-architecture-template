@@ -1,12 +1,11 @@
 @using CleanArchitecture.WebUI.Services.Models
 @using CleanArchitecture.WebUI.Services
 @implements IDisposable
-@inject AuthClient AuthClient
 @inject TokenProvider TokenProvider
 @inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
 
-<div class="d-flex flex-column justify-space-between h-100 pa-2">
+<div class="d-flex flex-column h-100 pa-2">
     <MudNavMenu Class="pa-2">
         <!-- Main Navigation Section -->
         <div class="nav-section-title">Main</div>
@@ -64,37 +63,6 @@
         }
     </MudNavMenu>
 
-    <!-- Bottom User Card / Auth Footer -->
-    <div class="pa-2 mt-auto">
-        <AuthorizeView>
-            <Authorized>
-                <MudPaper Elevation="0" Class="pa-3 rounded-xl d-flex align-center justify-space-between" Style="background: rgba(var(--mud-palette-primary-rgb), 0.05); border: 1px solid var(--mud-palette-lines-default);">
-                    <div class="d-flex align-center gap-2 overflow-hidden mr-2">
-                        <MudAvatar Color="Color.Primary" Size="Size.Small">
-                            @(string.IsNullOrEmpty(context.User.Identity?.Name) ? "U" : context.User.Identity.Name[0].ToString().ToUpperInvariant())
-                        </MudAvatar>
-                        <div class="overflow-hidden" style="min-width: 0;">
-                            <MudText Typo="Typo.body2" Class="font-weight-bold text-truncate" Style="line-height: 1.2;">
-                                @(context.User.Identity?.Name)
-                            </MudText>
-                            <span class="status-pill pa-0" style="font-size: 0.65rem; color: var(--mud-palette-primary);">
-                                @(TokenProvider.Roles.FirstOrDefault() ?? "Authenticated")
-                            </span>
-                        </div>
-                    </div>
-                    <MudTooltip Text="Sign Out">
-                        <MudIconButton Icon="@Icons.Material.Rounded.Logout" Size="Size.Small" Color="Color.Default" OnClick="Logout" Class="hover-lift" />
-                    </MudTooltip>
-                </MudPaper>
-            </Authorized>
-            <NotAuthorized>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" StartIcon="@Icons.Material.Rounded.Login"
-                           OnClick='() => NavigationManager.NavigateTo("login")' Class="rounded-xl">
-                    Sign In
-                </MudButton>
-            </NotAuthorized>
-        </AuthorizeView>
-    </div>
 </div>
 
 <style>
@@ -127,11 +95,5 @@
     public void Dispose()
     {
         TokenProvider.OnChange -= StateHasChanged;
-    }
-
-    private async Task Logout()
-    {
-        await AuthClient.LogoutAsync();
-        NavigationManager.NavigateTo("/login");
     }
 }

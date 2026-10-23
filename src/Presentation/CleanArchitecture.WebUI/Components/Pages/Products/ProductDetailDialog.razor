@@ -1,6 +1,6 @@
 @using CleanArchitecture.WebUI.Services.Models
 
-<MudDialog DisableSidePadding="true" Class="overflow-hidden">
+<MudDialog ContentClass="pa-0" Class="overflow-hidden">
     <DialogContent>
         <!-- Hero Section -->
         <div style="@($"height: 180px; {GetGradient(Product.Id.ToString())} position: relative; margin-top: -16px;")" class="d-flex flex-column justify-center align-center mb-6">
@@ -74,8 +74,8 @@
     {
         var hash = id.GetHashCode();
         var hue1 = Math.Abs(hash % 360);
-        var hue2 = (hue1 + 40) % 360;
-        return $"background: linear-gradient(135deg, hsl({hue1}, 80%, 65%) 0%, hsl({hue2}, 70%, 50%) 100%);";
+        var hue2 = (hue1 + 45) % 360;
+        return $"background: linear-gradient(135deg, hsl({hue1}, 65%, 45%) 0%, hsl({hue2}, 70%, 35%) 100%);";
     }
 
     private void Close()

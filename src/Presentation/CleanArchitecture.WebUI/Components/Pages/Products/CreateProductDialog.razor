@@ -54,7 +54,7 @@
         _isSaving = true;
         StateHasChanged();
 
-        await form.Validate();
+        await form.ValidateAsync();
 
         if (!form.IsValid)
         {

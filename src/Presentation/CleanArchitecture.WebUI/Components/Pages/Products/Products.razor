@@ -8,55 +8,46 @@
 
 <AuthorizeView>
     <Authorized>
-        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
+        <div class="products-page">
             <!-- Header Section -->
-            <MudPaper Elevation="0" Class="pa-4 mb-6" Style="background-color: transparent;">
-                <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                    <MudItem xs="12" sm="6" md="4">
-                        <MudText Typo="Typo.h3" Color="Color.Primary" Class="font-weight-bold">Products</MudText>
-                        <MudText Typo="Typo.subtitle1" Color="Color.Default">Browse our latest collections</MudText>
-                    </MudItem>
-                    
-                    <MudItem xs="12" sm="6" md="8">
-                        <MudGrid Justify="Justify.FlexEnd" AlignItems="AlignItems.Center" Spacing="2">
-                            <MudItem xs="12" sm="8" md="6">
-                                <MudTextField T="string" Value="@_searchString" ValueChanged="@OnSearchChanged" 
-                                              Placeholder="Search products..." Adornment="Adornment.Start"
-                                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" 
-                                              Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
-                                              Class="rounded-lg bg-surface"></MudTextField>
-                            </MudItem>
-                            @if (TokenProvider.HasPermission(Permissions.Products.Create))
-                            {
-                                <MudItem xs="12" sm="4" md="4">
-                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" 
-                                               OnClick="CreateProduct" Size="Size.Large" Class="rounded-lg full-width hover-lift">
-                                        New Product
-                                    </MudButton>
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
+            <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center gap-3 mb-4">
+                <div>
+                    <MudText Typo="Typo.h5" Color="Color.Primary" Class="font-weight-bold" Style="letter-spacing: -0.01em;">Products</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Browse and manage product inventory</MudText>
+                </div>
+                
+                <div class="d-flex align-center gap-2 flex-grow-1 flex-sm-grow-0" style="max-width: 100%;">
+                    <MudTextField T="string" Value="@_searchString" ValueChanged="@OnSearchChanged" 
+                                  Placeholder="Search products..." Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" 
+                                  Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true"
+                                  Class="rounded-lg bg-surface" Style="min-width: 200px; max-width: 320px; font-size: 0.85rem;"></MudTextField>
+                    @if (TokenProvider.HasPermission(Permissions.Products.Create))
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" 
+                                   OnClick="CreateProduct" Size="Size.Medium" Class="rounded-lg text-nowrap hover-lift" Style="font-size: 0.8125rem;">
+                            New Product
+                        </MudButton>
+                    }
+                </div>
+            </div>
 
             <!-- Product Grid Section -->
             @if (_isLoading)
             {
-                <MudGrid>
+                <MudGrid Spacing="3">
                     @for (int i = 0; i < 8; i++)
                     {
                         <MudItem xs="12" sm="6" md="4" lg="3">
-                            <MudCard Elevation="3" Class="rounded-xl overflow-hidden">
-                                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
-                                <MudCardContent>
-                                    <MudSkeleton Width="70%" Height="32px;" Class="mb-4" />
-                                    <MudSkeleton Width="40%" />
-                                    <MudSkeleton Width="100%" />
+                            <MudCard Elevation="0" Class="rounded-xl overflow-hidden product-card">
+                                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="120px" />
+                                <MudCardContent Class="pa-3">
+                                    <MudSkeleton Width="75%" Height="24px" Class="mb-2" />
+                                    <MudSkeleton Width="40%" Height="20px" Class="mb-3" />
+                                    <MudSkeleton Width="100%" Height="14px" />
                                 </MudCardContent>
-                                <MudCardActions>
-                                    <MudSkeleton Width="64px" Height="40px" Class="ml-2" />
-                                    <MudSkeleton Width="64px" Height="40px" Class="ml-2" />
+                                <MudCardActions Class="pa-3 pt-0">
+                                    <MudSkeleton Width="48px" Height="28px" Class="ml-auto" />
                                 </MudCardActions>
                             </MudCard>
                         </MudItem>
@@ -65,18 +56,18 @@
             }
             else if (_products == null || !_products.Any())
             {
-                <MudPaper Elevation="0" Class="pa-12 text-center d-flex flex-column align-center justify-center rounded-xl mud-width-full" Style="min-height: 500px; background-color: transparent; border: 1px dashed var(--mud-palette-lines-default);">
-                    <svg width="200" height="200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-6 opacity-80">
+                <MudPaper Elevation="0" Class="pa-8 pa-sm-12 text-center d-flex flex-column align-center justify-center rounded-xl mud-width-full" Style="min-height: 400px; background-color: transparent; border: 1px dashed var(--mud-palette-lines-default);">
+                    <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-4 opacity-75">
                         <path d="M21 7V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V7C3 4 4.5 2 8 2H16C19.5 2 21 4 21 7Z" stroke="var(--mud-palette-primary-lighten)" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M14.5 4.5V6.5C14.5 7.6 15.4 8.5 16.5 8.5H18.5" stroke="var(--mud-palette-primary-lighten)" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M8 13H12" stroke="var(--mud-palette-primary)" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M8 17H16" stroke="var(--mud-palette-primary)" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <MudText Typo="Typo.h5" Color="Color.Default" Class="font-weight-bold mb-3" Style="letter-spacing: -0.02em;">No Products Found</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-8 max-w-sm">You haven't added any products to your inventory yet. Let's create your first product to get started!</MudText>
+                    <MudText Typo="Typo.subtitle1" Color="Color.Default" Class="font-weight-bold mb-1">No Products Found</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-6 max-w-sm">You haven't added any products to your inventory yet. Let's create your first product!</MudText>
                     @if (TokenProvider.HasPermission(Permissions.Products.Create))
                     {
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Class="px-8 py-3 rounded-lg font-weight-bold shadow-sm hover-lift" StartIcon="@Icons.Material.Rounded.Add" OnClick="CreateProduct">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" Class="px-6 py-2 rounded-lg font-weight-bold shadow-sm hover-lift" StartIcon="@Icons.Material.Rounded.Add" OnClick="CreateProduct">
                             Create Your First Product
                         </MudButton>
                     }
@@ -84,83 +75,81 @@
             }
             else
             {
-                <MudGrid Spacing="4">
+                <MudGrid Spacing="3">
                     @foreach (var product in _products)
                     {
-                        <MudItem xs="12" sm="6" md="4" lg="3">
-                            <MudCard Elevation="4" Class="rounded-xl overflow-hidden hover-elevation flex-column d-flex h-100 transition-all border-solid border-2 mud-border-lines-default" Style="transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-                                <!-- Dynamic Gradient Image Area -->
-                                <div class="d-flex align-center justify-center" style="@($"height: 180px; {GetGradient(product.Id.ToString())} position: relative;")">
-                                    <MudIcon Icon="@Icons.Material.Rounded.Inventory2" Style="font-size: 5rem; color: rgba(255,255,255,0.9); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));" />
-                                    <div style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); border-radius: 12px; padding: 2px;">
-                                        @if (product.Status == "Active")
-                                        {
-                                            <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold ma-0" Style="box-shadow: 0 2px 4px rgba(16,185,129,0.3);">ACTIVE</MudChip>
-                                        }
-                                        else
-                                        {
-                                            <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold ma-0">@product.Status.ToUpper()</MudChip>
-                                        }
+                        var currentTheme = GetCardTheme(product.Id.ToString());
+                        <MudItem xs="12" sm="6" md="4" lg="3" Class="d-flex flex-column">
+                            <MudCard Elevation="0" Class="rounded-xl product-card flex-column d-flex h-100 flex-grow-1">
+                                <!-- Elegant SaaS Visual Banner (84px) -->
+                                <div class="product-card-banner" style="background: @currentTheme.gradient;">
+                                    <div class="card-icon-glass">
+                                        <MudIcon Icon="@Icons.Material.Rounded.Inventory2" Size="Size.Medium" Style="color: white; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));" />
                                     </div>
+                                    @if (product.Status == "Active")
+                                    {
+                                        <span class="product-status-pill status-active">
+                                            <span class="status-dot-active"></span> Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="product-status-pill status-inactive">
+                                            <span class="status-dot-inactive"></span> @(product.Status)
+                                        </span>
+                                    }
                                 </div>
 
-                                <MudCardContent Class="flex-grow-1 pb-2 pt-5">
-                                    <div class="d-flex justify-space-between align-start mb-2">
-                                        <MudText Typo="Typo.h5" Class="font-weight-bold line-clamp-2" Style="line-height: 1.25; letter-spacing: -0.02em;">
-                                            @product.Name
-                                        </MudText>
-                                    </div>
-                                    
-                                    <MudText Typo="Typo.h4" Color="Color.Primary" Class="font-weight-bold mb-4" Style="letter-spacing: -0.03em;">
-                                        @(product.Price > 0 ? product.PriceDisplay : "Free")
-                                    </MudText>
-
-                                    <MudDivider Class="mb-3" />
-
-                                    <div class="d-flex align-center gap-2 mb-2">
-                                        <MudIcon Icon="@Icons.Material.Outlined.Inventory2" Size="Size.Small" Color="Color.Secondary" />
-                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                            Stock: <b>@product.Stock units</b>
-                                        </MudText>
+                                <MudCardContent Class="flex-grow-1 pa-3 pt-3 pb-2 d-flex flex-column">
+                                    <div class="product-card-title mb-1" title="@product.Name">
+                                        @product.Name
                                     </div>
 
-                                    <div class="d-flex align-center gap-2">
-                                        <MudIcon Icon="@Icons.Material.Outlined.Event" Size="Size.Small" Color="Color.Secondary" />
-                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                            Added: @product.CreatedAt.ToString("MMM dd, yyyy")
-                                        </MudText>
+                                    <div class="d-flex align-center justify-space-between mb-2">
+                                        <span class="product-card-price">@(product.Price > 0 ? product.PriceDisplay : "Free")</span>
+                                        <span class="product-stock-tag @(product.Stock > 0 ? "stock-in" : "stock-out")">
+                                            <MudIcon Icon="@Icons.Material.Outlined.Inventory2" Style="font-size: 0.72rem;" />
+                                            <span>@product.Stock stock</span>
+                                        </span>
+                                    </div>
+
+                                    <div class="product-card-footer d-flex align-center justify-space-between mt-auto pt-2 border-t border-solid" style="border-color: var(--mud-palette-lines-default) !important;">
+                                        <span class="product-card-date d-flex align-center gap-1">
+                                            <MudIcon Icon="@Icons.Material.Outlined.Event" Style="font-size: 0.72rem;" Color="Color.Secondary" />
+                                            <span>@product.CreatedAt.ToString("MMM dd")</span>
+                                        </span>
+
+                                        <div class="d-flex align-center gap-1">
+                                            @if (TokenProvider.HasPermission(Permissions.Products.Edit))
+                                            {
+                                                <MudTooltip Text="Edit Product">
+                                                    <MudIconButton Icon="@Icons.Material.Rounded.Edit" Size="Size.Small" Class="action-icon-btn action-edit" OnClick="@(() => EditProduct(product))" />
+                                                </MudTooltip>
+                                            }
+                                            @if (TokenProvider.HasPermission(Permissions.Products.Delete))
+                                            {
+                                                <MudTooltip Text="Delete Product">
+                                                    <MudIconButton Icon="@Icons.Material.Rounded.DeleteOutline" Size="Size.Small" Class="action-icon-btn action-delete" OnClick="@(() => DeleteProduct(product))" />
+                                                </MudTooltip>
+                                            }
+                                            <MudTooltip Text="View Details">
+                                                <MudIconButton Icon="@Icons.Material.Rounded.ArrowForward" Size="Size.Small" Class="action-icon-btn action-view" OnClick="@(() => ViewProductDetail(product))" />
+                                            </MudTooltip>
+                                        </div>
                                     </div>
                                 </MudCardContent>
-
-                                <MudCardActions Class="pa-4 pt-0 d-flex justify-end gap-2">
-                                    @if (TokenProvider.HasPermission(Permissions.Products.Edit))
-                                    {
-                                        <MudTooltip Text="Edit Product">
-                                            <MudIconButton Icon="@Icons.Material.Outlined.Edit" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small" Class="rounded-lg hover-bg-primary" OnClick="@(() => EditProduct(product))" />
-                                        </MudTooltip>
-                                    }
-                                    @if (TokenProvider.HasPermission(Permissions.Products.Delete))
-                                    {
-                                        <MudTooltip Text="Delete Product">
-                                            <MudIconButton Icon="@Icons.Material.Outlined.Delete" Color="Color.Error" Variant="Variant.Outlined" Size="Size.Small" Class="rounded-lg hover-bg-error" OnClick="@(() => DeleteProduct(product))" />
-                                        </MudTooltip>
-                                    }
-                                    <MudTooltip Text="View Details">
-                                        <MudIconButton Icon="@Icons.Material.Rounded.ArrowForward" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="rounded-lg ml-auto" OnClick="@(() => ViewProductDetail(product))" />
-                                    </MudTooltip>
-                                </MudCardActions>
                             </MudCard>
                         </MudItem>
                     }
                 </MudGrid>
 
                 <!-- Pagination -->
-                <div class="d-flex justify-center mt-8 mb-4">
+                <div class="d-flex justify-center mt-6 mb-2">
                     <MudPagination Color="Color.Primary" Count="@_totalPages" Selected="@_currentPage" SelectedChanged="OnPageChanged" 
-                                   ShowFirstButton="true" ShowLastButton="true" Variant="Variant.Filled" Class="rounded-xl shadow-sm"/>
+                                   ShowFirstButton="true" ShowLastButton="true" Variant="Variant.Filled" Class="rounded-xl shadow-sm" Size="Size.Small"/>
                 </div>
             }
-        </MudContainer>
+        </div>
     </Authorized>
     <NotAuthorized>
         <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12">
@@ -173,10 +162,17 @@
 </AuthorizeView>
 
 <style>
+    .hover-elevation {
+        transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease-in-out, border-color 0.22s ease;
+    }
     .hover-elevation:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+        transform: translateY(-5px);
+        box-shadow: 0 16px 30px -10px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.06) !important;
         border-color: var(--mud-palette-primary) !important;
+    }
+    .mud-theme-dark .hover-elevation:hover {
+        box-shadow: 0 18px 32px -8px rgba(0, 0, 0, 0.75), 0 0 16px -2px rgba(129, 140, 248, 0.22) !important;
+        border-color: rgba(129, 140, 248, 0.5) !important;
     }
     .line-clamp-2 {
         display: -webkit-box;
@@ -207,13 +203,20 @@
     private int _totalPages = 1;
     private int _totalItems = 0;
 
-    private string GetGradient(string id)
+    private static readonly (string gradient, string iconColor)[] CardPalettes = new[]
     {
-        // Generate a pseudo-random cool gradient based on the item's Guid
-        var hash = id.GetHashCode();
-        var hue1 = Math.Abs(hash % 360);
-        var hue2 = (hue1 + 40) % 360;
-        return $"background: linear-gradient(135deg, hsl({hue1}, 80%, 65%) 0%, hsl({hue2}, 70%, 50%) 100%);";
+        ("linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)", "#ffffff"),  // Indigo
+        ("linear-gradient(135deg, #0284c7 0%, #0369a1 100%)", "#ffffff"),  // Sky
+        ("linear-gradient(135deg, #059669 0%, #047857 100%)", "#ffffff"),  // Emerald
+        ("linear-gradient(135deg, #d97706 0%, #b45309 100%)", "#ffffff"),  // Amber
+        ("linear-gradient(135deg, #db2777 0%, #9333ea 100%)", "#ffffff"),  // Rose/Violet
+        ("linear-gradient(135deg, #475569 0%, #334155 100%)", "#ffffff")   // Slate
+    };
+
+    private (string gradient, string iconColor) GetCardTheme(string id)
+    {
+        uint hash = (uint)(id?.GetHashCode() ?? 0);
+        return CardPalettes[hash % (uint)CardPalettes.Length];
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -269,7 +272,7 @@
         var dialog = await DialogService.ShowAsync<CreateProductDialog>("New Product", options);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (result is not null && !result.Canceled)
         {
             _currentPage = 1; // Return to first page to see the new product
             await LoadProducts();
@@ -283,7 +286,7 @@
         var dialog = await DialogService.ShowAsync<EditProductDialog>("Edit Product", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (result is not null && !result.Canceled)
         {
             await LoadProducts();
         }

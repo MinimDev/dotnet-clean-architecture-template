@@ -1,0 +1,117 @@
+@using Microsoft.AspNetCore.Components.Routing
+@implements IDisposable
+@inject NavigationManager NavigationManager
+
+@if (_crumbs.Count > 0 && !_isAuthPage)
+{
+    <nav class="app-breadcrumbs-bar" aria-label="breadcrumb">
+        @for (int i = 0; i < _crumbs.Count; i++)
+        {
+            var crumb = _crumbs[i];
+            var isLast = i == _crumbs.Count - 1;
+
+            if (i > 0)
+            {
+                <MudIcon Icon="@Icons.Material.Rounded.ChevronRight" Size="Size.Small" Style="font-size: 1rem; opacity: 0.5;" />
+            }
+
+            if (!isLast && !string.IsNullOrEmpty(crumb.Href))
+            {
+                <a href="@crumb.Href" class="app-breadcrumb-link">
+                    @if (!string.IsNullOrEmpty(crumb.Icon))
+                    {
+                        <MudIcon Icon="@crumb.Icon" Size="Size.Small" Style="font-size: 1rem;" />
+                    }
+                    <span>@crumb.Title</span>
+                </a>
+            }
+            else
+            {
+                <span class="app-breadcrumb-current d-inline-flex align-center gap-1">
+                    @if (!string.IsNullOrEmpty(crumb.Icon))
+                    {
+                        <MudIcon Icon="@crumb.Icon" Size="Size.Small" Color="Color.Primary" Style="font-size: 1rem;" />
+                    }
+                    <span>@crumb.Title</span>
+                </span>
+            }
+        }
+    </nav>
+}
+
+@code {
+    private record BreadcrumbItem(string Title, string? Href, string? Icon = null);
+
+    private List<BreadcrumbItem> _crumbs = new();
+    private bool _isAuthPage = false;
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += HandleLocationChanged;
+        BuildBreadcrumbs();
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        BuildBreadcrumbs();
+        StateHasChanged();
+    }
+
+    private void BuildBreadcrumbs()
+    {
+        _crumbs.Clear();
+
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var questionMarkIndex = relativePath.IndexOf('?');
+        if (questionMarkIndex >= 0)
+        {
+            relativePath = relativePath.Substring(0, questionMarkIndex);
+        }
+
+        relativePath = relativePath.Trim('/');
+
+        _isAuthPage = relativePath.Equals("login", StringComparison.OrdinalIgnoreCase);
+        if (_isAuthPage) return;
+
+        // Do not render breadcrumb bar on root dashboard page itself
+        if (string.IsNullOrEmpty(relativePath))
+        {
+            return;
+        }
+
+        // Root Dashboard link for subpages
+        _crumbs.Add(new BreadcrumbItem("Dashboard", "/", Icons.Material.Rounded.Dashboard));
+
+        var segments = relativePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var accumulatedPath = "";
+
+        for (int i = 0; i < segments.Length; i++)
+        {
+            var segment = segments[i];
+            accumulatedPath += "/" + segment;
+            var isLast = i == segments.Length - 1;
+
+            var (title, icon) = ResolveMetadata(segment);
+            _crumbs.Add(new BreadcrumbItem(title, isLast ? null : accumulatedPath, icon));
+        }
+    }
+
+    private (string Title, string? Icon) ResolveMetadata(string segment)
+    {
+        return segment.ToLowerInvariant() switch
+        {
+            "products" => ("Products", Icons.Material.Rounded.Inventory2),
+            "users" => ("Users & PBAC", Icons.Material.Rounded.AdminPanelSettings),
+            "audit-logs" => ("Audit Trail", Icons.Material.Rounded.HistoryEdu),
+            "settings" => ("App Settings", Icons.Material.Rounded.Tune),
+            "create" or "new" => ("New Entry", Icons.Material.Rounded.Add),
+            "edit" => ("Edit", Icons.Material.Rounded.Edit),
+            _ => (System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(segment.Replace("-", " ")), null)
+        };
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
+    }
+}

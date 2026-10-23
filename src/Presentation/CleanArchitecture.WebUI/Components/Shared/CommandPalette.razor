@@ -1,0 +1,387 @@
+@using Microsoft.JSInterop
+@using CleanArchitecture.WebUI.Services
+@using CleanArchitecture.WebUI.Services.Models
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+@inject AuthClient AuthClient
+@inject TokenProvider TokenProvider
+@inject ISnackbar Snackbar
+@inject ThemeStateService ThemeState
+
+@if (_isOpen)
+{
+    <!-- Backdrop Overlay -->
+    <div class="palette-backdrop" @onclick="Close" @onkeydown="HandleKeyDown" tabindex="-1">
+        <div class="palette-container" @onclick:stopPropagation="true">
+            <!-- Search Bar Header -->
+            <div class="d-flex align-center px-4 py-3 gap-3" style="border-bottom: 1px solid var(--mud-palette-lines-default);">
+                <MudIcon Icon="@Icons.Material.Rounded.Search" Color="Color.Primary" Size="Size.Medium" />
+                <input type="text"
+                       class="palette-input"
+                       placeholder="Type a command or search (e.g. Products, Users, Theme)..."
+                       @bind="_searchQuery"
+                       @bind:event="oninput"
+                       @onkeydown="HandleInputKeyDown"
+                       @ref="_searchInputRef"
+                       autofocus />
+                <span class="kbd-shortcut cursor-pointer" @onclick="Close">ESC</span>
+            </div>
+
+            <!-- Commands Results List -->
+            <div class="palette-results pa-2" style="max-height: 380px; overflow-y: auto;">
+                @if (FilteredCommands.Count == 0)
+                {
+                    <div class="pa-8 text-center">
+                        <MudIcon Icon="@Icons.Material.Rounded.SearchOff" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
+                        <MudText Typo="Typo.body1" Class="font-weight-bold">No results found</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">No commands or pages matched "@_searchQuery"</MudText>
+                    </div>
+                }
+                else
+                {
+                    var groupedCommands = FilteredCommands
+                        .Select((cmd, idx) => (cmd, idx))
+                        .GroupBy(x => x.cmd.Category);
+
+                    @foreach (var group in groupedCommands)
+                    {
+                        <div class="px-3 py-1 font-weight-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.08em; color: var(--mud-palette-text-disabled);">
+                            @group.Key
+                        </div>
+
+                        @foreach (var (cmd, globalIdx) in group)
+                        {
+                            var isSelected = globalIdx == _selectedIndex;
+                            <div class="command-item d-flex align-center justify-space-between @(isSelected ? "selected" : "")"
+                                 @onclick="() => ExecuteCommandAsync(cmd)"
+                                 @onmouseover="() => _selectedIndex = globalIdx">
+                                <div class="d-flex align-center gap-3">
+                                    <div class="icon-box icon-box-primary" style="width: 36px; height: 36px; border-radius: 8px;">
+                                        <MudIcon Icon="@cmd.Icon" Size="Size.Small" />
+                                    </div>
+                                    <div>
+                                        <MudText Typo="Typo.body2" Class="font-weight-bold" Style="line-height: 1.2;">
+                                            @cmd.Title
+                                        </MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @cmd.Description
+                                        </MudText>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-center gap-1">
+                                    @if (!string.IsNullOrEmpty(cmd.ShortcutBadge))
+                                    {
+                                        <span class="kbd-shortcut mr-1">@cmd.ShortcutBadge</span>
+                                    }
+                                    <MudIcon Icon="@Icons.Material.Rounded.ArrowForward" Size="Size.Small" Color="Color.Secondary" Style="opacity: 0.6;" />
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+
+            <!-- Footer Keyboard Legend -->
+            <div class="d-flex align-center justify-space-between px-4 py-2-5" 
+                 style="border-top: 1px solid var(--mud-palette-lines-default); background: rgba(var(--mud-palette-surface-rgb), 0.5); font-size: 0.72rem; color: var(--mud-palette-text-secondary);">
+                <div class="d-flex align-center gap-3">
+                    <span class="d-inline-flex align-center gap-1">
+                        <span class="kbd-shortcut">↑</span>
+                        <span class="kbd-shortcut">↓</span> to navigate
+                    </span>
+                    <span class="d-inline-flex align-center gap-1">
+                        <span class="kbd-shortcut">↵</span> to select
+                    </span>
+                    <span class="d-inline-flex align-center gap-1">
+                        <span class="kbd-shortcut">esc</span> to close
+                    </span>
+                </div>
+                <div>
+                    <span>Spotlight Search</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .palette-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 10vh;
+        animation: fadeIn 0.15s ease-out;
+    }
+
+    .palette-container {
+        width: 100%;
+        max-width: 620px;
+        background: var(--mud-palette-surface);
+        border: 1px solid var(--mud-palette-lines-default);
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+        overflow: hidden;
+        animation: slideDown 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .palette-input {
+        width: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 1.05rem;
+        color: var(--mud-palette-text-primary);
+        font-family: inherit;
+    }
+
+    .palette-input::placeholder {
+        color: var(--mud-palette-text-disabled);
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @@keyframes slideDown {
+        from { opacity: 0; transform: translateY(-16px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+</style>
+
+@code {
+    [Parameter] public EventCallback OnToggleDarkMode { get; set; }
+
+    private ElementReference _searchInputRef;
+    private bool _isOpen = false;
+    private string _searchQuery = "";
+    private int _selectedIndex = 0;
+    private DotNetObjectReference<CommandPalette>? _dotNetRef;
+
+    public record PaletteCommand(
+        string Id,
+        string Title,
+        string Description,
+        string Category,
+        string Icon,
+        string? ShortcutBadge,
+        string Keywords,
+        Func<Task> Action
+    );
+
+    private List<PaletteCommand> _allCommands = new();
+
+    protected override void OnInitialized()
+    {
+        InitializeCommands();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("setupCommandPaletteShortcut", _dotNetRef);
+            }
+            catch
+            {
+                // Ignore if running during prerender
+            }
+        }
+
+        if (_isOpen)
+        {
+            try
+            {
+                await _searchInputRef.FocusAsync();
+            }
+            catch
+            {
+                // Fallback
+            }
+        }
+    }
+
+    [JSInvokable]
+    public void ToggleFromShortcut()
+    {
+        if (_isOpen)
+        {
+            Close();
+        }
+        else
+        {
+            Open();
+        }
+        StateHasChanged();
+    }
+
+    public void Open()
+    {
+        InitializeCommands();
+        _isOpen = true;
+        _searchQuery = "";
+        _selectedIndex = 0;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        _isOpen = false;
+        _searchQuery = "";
+        _selectedIndex = 0;
+        StateHasChanged();
+    }
+
+    private List<PaletteCommand> FilteredCommands
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_searchQuery))
+            {
+                return _allCommands;
+            }
+
+            var query = _searchQuery.Trim().ToLowerInvariant();
+            return _allCommands
+                .Where(c => c.Title.ToLowerInvariant().Contains(query) ||
+                            c.Description.ToLowerInvariant().Contains(query) ||
+                            c.Keywords.ToLowerInvariant().Contains(query) ||
+                            c.Category.ToLowerInvariant().Contains(query))
+                .ToList();
+        }
+    }
+
+    private void HandleInputKeyDown(KeyboardEventArgs e)
+    {
+        var count = FilteredCommands.Count;
+        if (count == 0) return;
+
+        if (e.Key == "ArrowDown")
+        {
+            _selectedIndex = (_selectedIndex + 1) % count;
+        }
+        else if (e.Key == "ArrowUp")
+        {
+            _selectedIndex = (_selectedIndex - 1 + count) % count;
+        }
+        else if (e.Key == "Enter")
+        {
+            if (_selectedIndex >= 0 && _selectedIndex < count)
+            {
+                _ = ExecuteCommandAsync(FilteredCommands[_selectedIndex]);
+            }
+        }
+        else if (e.Key == "Escape")
+        {
+            Close();
+        }
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            Close();
+        }
+    }
+
+    private async Task ExecuteCommandAsync(PaletteCommand command)
+    {
+        Close();
+        await command.Action();
+    }
+
+    private void InitializeCommands()
+    {
+        _allCommands = new List<PaletteCommand>
+        {
+            // Navigation Commands
+            new("nav-dashboard", "Dashboard", "Go to executive overview & KPIs", "Navigation", Icons.Material.Rounded.Dashboard, null, "home overview stats kpi", () => {
+                NavigationManager.NavigateTo("");
+                return Task.CompletedTask;
+            }),
+            new("nav-products", "Products Catalog", "View and manage products & pricing", "Navigation", Icons.Material.Rounded.Inventory2, null, "items inventory goods", () => {
+                NavigationManager.NavigateTo("products");
+                return Task.CompletedTask;
+            }),
+        };
+
+        // RBAC / Management Navigation
+        if (TokenProvider.HasPermission(Permissions.Users.View) || TokenProvider.Roles.Contains("Admin"))
+        {
+            _allCommands.Add(new("nav-users", "Users & PBAC", "Manage system users, roles, and permission matrix", "Navigation", Icons.Material.Rounded.AdminPanelSettings, null, "members permissions security", () => {
+                NavigationManager.NavigateTo("users");
+                return Task.CompletedTask;
+            }));
+        }
+
+        if (TokenProvider.HasPermission(Permissions.AuditLogs.View) || TokenProvider.Roles.Contains("Admin"))
+        {
+            _allCommands.Add(new("nav-audit", "Audit Trail", "Inspect immutable audit log records & changes", "Navigation", Icons.Material.Rounded.HistoryEdu, null, "history logs tracking diff", () => {
+                NavigationManager.NavigateTo("audit-logs");
+                return Task.CompletedTask;
+            }));
+        }
+
+        if (TokenProvider.HasPermission(Permissions.AppSettings.View) || TokenProvider.Roles.Contains("Admin"))
+        {
+            _allCommands.Add(new("nav-settings", "App Settings", "Configure application parameters & key-value settings", "Navigation", Icons.Material.Rounded.Tune, null, "configuration options environment", () => {
+                NavigationManager.NavigateTo("settings");
+                return Task.CompletedTask;
+            }));
+        }
+
+        // Quick Actions
+        _allCommands.Add(new("act-theme", "Toggle Theme Mode", "Switch between Dark and Light mode", "Quick Actions", Icons.Material.Rounded.Brightness4, null, "dark light color theme appearance", async () => {
+            if (OnToggleDarkMode.HasDelegate)
+            {
+                await OnToggleDarkMode.InvokeAsync();
+            }
+        }));
+
+        // Theme Presets Selection Commands
+        foreach (var preset in AppTheme.GetAllPresets())
+        {
+            var p = preset;
+            _allCommands.Add(new($"theme-{p.Id.ToString().ToLowerInvariant()}", $"Theme: {p.Name}", $"Switch theme palette to {p.Name} ({p.Category})", "Theme Presets", Icons.Material.Rounded.Palette, null, $"theme preset palette {p.Name.ToLowerInvariant()} {p.Category}", async () => {
+                await ThemeState.SetPresetAsync(p.Id);
+                Snackbar.Add($"Theme switched to {p.Name}", Severity.Info);
+            }));
+        }
+
+        _allCommands.Add(new("act-logout", "Sign Out", "Safely terminate current session", "Quick Actions", Icons.Material.Rounded.Logout, null, "exit logout disconnect", async () => {
+            await AuthClient.LogoutAsync();
+            NavigationManager.NavigateTo("login");
+        }));
+
+        // Developer Tools
+        if (TokenProvider.Roles.Contains("Admin"))
+        {
+            var apiBase = Configuration["ApiBaseUrl"] ?? "";
+            _allCommands.Add(new("dev-hangfire", "Hangfire Background Jobs", "Open recurring jobs & background queue dashboard", "Developer Tools", Icons.Material.Rounded.PendingActions, "External", "queue tasks worker", async () => {
+                await JSRuntime.InvokeVoidAsync("open", $"{apiBase}/hangfire", "_blank");
+            }));
+
+            _allCommands.Add(new("dev-scalar", "Scalar API Documentation", "Interactive OpenAPI documentation & test client", "Developer Tools", Icons.Material.Rounded.Api, "External", "docs swagger openapi rest", async () => {
+                await JSRuntime.InvokeVoidAsync("open", $"{apiBase}/scalar/v1", "_blank");
+            }));
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetRef?.Dispose();
+        await Task.CompletedTask;
+    }
+}

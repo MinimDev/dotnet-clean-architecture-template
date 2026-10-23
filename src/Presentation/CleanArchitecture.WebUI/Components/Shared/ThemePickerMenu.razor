@@ -1,0 +1,231 @@
+@using CleanArchitecture.WebUI.Services
+@using CleanArchitecture.WebUI.Components.Layout
+@implements IDisposable
+@inject ThemeStateService ThemeState
+
+<div class="d-inline-flex align-center position-relative mr-1">
+    <MudTooltip Text="Choose Color Theme Preset">
+        <MudIconButton Icon="@Icons.Material.Rounded.Palette"
+                       Color="Color.Inherit"
+                       OnClick="TogglePicker"
+                       Class="theme-picker-btn" />
+    </MudTooltip>
+
+    <MudOverlay Visible="_isOpen"
+                VisibleChanged="OnOverlayChanged"
+                AutoClose="true"
+                DarkBackground="false"
+                ZIndex="1290" />
+
+    <MudPopover Open="_isOpen"
+                AnchorOrigin="Origin.BottomRight"
+                TransformOrigin="Origin.TopRight"
+                Fixed="true"
+                Class="theme-picker-popover-container"
+                Style="margin-top: 10px; z-index: 1300; background: transparent; box-shadow: none;">
+        <div class="theme-picker-card">
+            <!-- Header -->
+            <div class="d-flex align-center justify-space-between pa-4 border-b border-solid" style="border-color: var(--mud-palette-lines-default) !important;">
+                <div class="d-flex align-center gap-2">
+                    <div class="d-flex align-center justify-center rounded-lg" style="width: 32px; height: 32px; background: rgba(var(--mud-palette-primary-rgb), 0.12); color: var(--mud-palette-primary);">
+                        <MudIcon Icon="@Icons.Material.Rounded.ColorLens" Size="Size.Small" />
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Style="line-height: 1.2;">Theme Presets</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">Curated color palettes & modes</MudText>
+                    </div>
+                </div>
+
+                <!-- Dark / Light quick switch -->
+                <MudTooltip Text="@(ThemeState.IsDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode")">
+                    <MudButton StartIcon="@(ThemeState.IsDarkMode ? Icons.Material.Rounded.LightMode : Icons.Material.Rounded.DarkMode)"
+                               Size="Size.Small"
+                               Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               OnClick="ToggleDarkMode"
+                               Class="rounded-pill text-transform-none px-3"
+                               Style="font-size: 0.75rem;">
+                        @(ThemeState.IsDarkMode ? "Dark" : "Light")
+                    </MudButton>
+                </MudTooltip>
+            </div>
+
+            <!-- Palettes Grid (Matching Reference Image) -->
+            <div class="pa-3 theme-grid-scroll" style="max-height: 480px; overflow-y: auto;">
+                <div class="theme-swatch-grid">
+                    @foreach (var preset in AppTheme.GetAllPresets())
+                    {
+                        var isSelected = ThemeState.CurrentPreset == preset.Id;
+                        <div class="swatch-card @(isSelected ? "selected" : "")"
+                             @onclick="() => SelectPreset(preset.Id)"
+                             role="button"
+                             tabindex="0">
+                            <!-- Selected Checkmark Badge -->
+                            @if (isSelected)
+                            {
+                                <div class="swatch-selected-badge">
+                                    <MudIcon Icon="@Icons.Material.Rounded.Check" Size="Size.Small" Style="font-size: 0.85rem; color: white;" />
+                                </div>
+                            }
+
+                            <!-- 5 Mini Swatch Color Pills (Reference Design) -->
+                            <div class="swatch-chips-row mb-2">
+                                @foreach (var hex in preset.SwatchColors)
+                                {
+                                    <div class="swatch-chip" style="background-color: @hex;" title="@hex"></div>
+                                }
+                            </div>
+
+                            <!-- Title & Subtitle -->
+                            <div class="d-flex align-center justify-space-between mt-1">
+                                <span class="swatch-card-title">@preset.Name</span>
+                                <span class="swatch-card-category">@preset.Category</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="pa-2-5 px-4 text-center border-t border-solid" style="border-color: var(--mud-palette-lines-default) !important; background: rgba(var(--mud-palette-surface-rgb), 0.5);">
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">
+                    Active: <strong style="color: var(--mud-palette-primary);">@ThemeState.CurrentPresetInfo.Name</strong> · Saved to browser
+                </MudText>
+            </div>
+        </div>
+    </MudPopover>
+</div>
+
+<style>
+    .theme-picker-card {
+        width: 440px;
+        max-width: 92vw;
+        background: var(--mud-palette-surface);
+        border: 1px solid var(--mud-palette-lines-default);
+        border-radius: 16px;
+        box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.28);
+        overflow: hidden;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .theme-swatch-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    @@media (max-width: 480px) {
+        .theme-swatch-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .swatch-card {
+        position: relative;
+        background: var(--card-bg, #ffffff);
+        border: 1.5px solid var(--mud-palette-lines-default);
+        border-radius: 12px;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        user-select: none;
+    }
+
+    .swatch-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.12);
+        border-color: var(--mud-palette-primary);
+    }
+
+    .swatch-card.selected {
+        border-color: var(--mud-palette-primary) !important;
+        background: rgba(var(--mud-palette-primary-rgb), 0.05);
+        box-shadow: 0 0 0 1px var(--mud-palette-primary);
+    }
+
+    .swatch-selected-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--mud-palette-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .swatch-chips-row {
+        display: flex;
+        gap: 4px;
+        height: 26px;
+        width: 100%;
+    }
+
+    .swatch-chip {
+        flex: 1;
+        height: 100%;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        transition: transform 0.15s ease;
+    }
+
+    .swatch-card:hover .swatch-chip {
+        transform: scaleY(1.05);
+    }
+
+    .swatch-card-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--mud-palette-text-primary);
+    }
+
+    .swatch-card-category {
+        font-size: 0.65rem;
+        color: var(--mud-palette-text-secondary);
+        font-weight: 500;
+        text-transform: lowercase;
+    }
+</style>
+
+@code {
+    private bool _isOpen = false;
+
+    protected override void OnInitialized()
+    {
+        ThemeState.OnChange += OnThemeStateChanged;
+    }
+
+    private void OnThemeStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void TogglePicker()
+    {
+        _isOpen = !_isOpen;
+    }
+
+    private void OnOverlayChanged(bool visible)
+    {
+        _isOpen = visible;
+    }
+
+    private async Task SelectPreset(ThemePresetId presetId)
+    {
+        await ThemeState.SetPresetAsync(presetId);
+    }
+
+    private async Task ToggleDarkMode()
+    {
+        await ThemeState.ToggleDarkModeAsync();
+    }
+
+    public void Dispose()
+    {
+        ThemeState.OnChange -= OnThemeStateChanged;
+    }
+}

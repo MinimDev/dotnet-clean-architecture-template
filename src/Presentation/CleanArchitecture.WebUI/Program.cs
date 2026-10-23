@@ -114,6 +114,7 @@ builder.Services.AddScoped<AuditLogsClient>();
 builder.Services.AddScoped<AppSettingsClient>();
 builder.Services.AddScoped<NotificationsClient>();
 builder.Services.AddScoped<NotificationStateService>();
+builder.Services.AddScoped<ThemeStateService>();
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();

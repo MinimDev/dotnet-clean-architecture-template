@@ -12,34 +12,34 @@
     <!-- Brand Header -->
     <div class="text-center mb-6">
         <div class="d-inline-flex align-center justify-center rounded-2xl mb-3" 
-             style="width: 56px; height: 56px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);">
+             style="width: 56px; height: 56px; background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%); box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);">
             <MudIcon Icon="@Icons.Material.Filled.Layers" Style="color: white; font-size: 2rem;" />
         </div>
-        <MudText Typo="Typo.h4" Class="font-weight-bold text-gradient-primary" Style="letter-spacing: -0.02em;">
-            Selamat Datang
+        <MudText Typo="Typo.h4" Class="font-weight-bold" Style="letter-spacing: -0.02em;">
+            Welcome Back
         </MudText>
         <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
-            Masuk ke portal enterprise Clean Architecture
+            Sign in to Clean Architecture Enterprise Portal
         </MudText>
     </div>
 
     @if (SessionExpired)
     {
         <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="mb-4 rounded-xl" Dense="true" Icon="@Icons.Material.Rounded.AccessTime">
-            Sesi Anda telah berakhir demi keamanan. Silakan masuk kembali.
+            Your session has expired for security reasons. Please sign in again.
         </MudAlert>
     }
 
     <MudForm @ref="form" @bind-IsValid="@success">
         <!-- Email Field -->
-        <MudTextField T="string" Label="Alamat Email" Required="true" RequiredError="Alamat email wajib diisi!"
+        <MudTextField T="string" Label="Email Address" Required="true" RequiredError="Email address is required!"
                       @bind-Value="email" InputType="InputType.Email" Variant="Variant.Outlined"
                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Rounded.Email"
                       Placeholder="name@company.com"
                       Class="mb-4 rounded-xl" Margin="Margin.Dense" />
 
         <!-- Password Field -->
-        <MudTextField T="string" Label="Kata Sandi" Required="true" RequiredError="Kata sandi wajib diisi!"
+        <MudTextField T="string" Label="Password" Required="true" RequiredError="Password is required!"
                       @bind-Value="password" 
                       InputType="@(_showPassword ? InputType.Text : InputType.Password)"
                       Variant="Variant.Outlined"
@@ -51,10 +51,10 @@
                       Class="mb-2 rounded-xl" Margin="Margin.Dense" />
 
         <!-- Demo Account Quick Fill Section -->
-        <div class="pa-3 rounded-xl my-4" style="background: rgba(var(--mud-palette-primary-rgb), 0.05); border: 1px dashed var(--mud-palette-lines-default);">
+        <div class="pa-3 rounded-xl my-4 auth-demo-box">
             <div class="d-flex align-center justify-space-between mb-2">
                 <MudText Typo="Typo.caption" Color="Color.Secondary" Class="font-weight-bold">
-                    Demo Credentials (Sekali Klik):
+                    Demo Credentials (One-Click):
                 </MudText>
                 <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Primary" Class="pa-0" Style="font-size: 0.7rem;">Quick Fill</MudChip>
             </div>
@@ -74,16 +74,16 @@
         <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true"
                    OnClick="Submit" Disabled="@(_isLoading)"
                    Class="rounded-xl py-3 font-weight-bold hover-lift mt-2"
-                   Style="box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);">
+                   Style="box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);">
             @if (_isLoading)
             {
                 <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                <span class="ms-2">Memverifikasi Akun...</span>
+                <span class="ms-2">Authenticating...</span>
             }
             else
             {
                 <div class="d-flex align-center gap-2">
-                    <span>Masuk ke Akun</span>
+                    <span>Sign In</span>
                     <MudIcon Icon="@Icons.Material.Rounded.ArrowForward" Size="Size.Small" />
                 </div>
             }

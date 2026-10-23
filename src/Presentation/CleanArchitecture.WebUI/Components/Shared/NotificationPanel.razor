@@ -141,6 +141,18 @@
         overflow: hidden;
     }
 
+    .mud-theme-dark .notification-dropdown-panel,
+    .dark .notification-dropdown-panel {
+        background: #111827 !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+        box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.75) !important;
+    }
+
+    .mud-theme-dark .notification-unread,
+    .dark .notification-unread {
+        background-color: rgba(129, 140, 248, 0.08) !important;
+    }
+
     .notification-item {
         transition: background-color 0.18s ease;
         cursor: pointer;
@@ -214,14 +226,13 @@
     [Parameter]
     public EventCallback<int> OnUnreadCountChanged { get; set; }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         State.OnChange += OnStateChanged;
-    }
-
-    protected override void OnParametersSet()
-    {
-        // Sinkronisasi otomatis saat parameter luar berubah
+        if (State.Notifications.Count == 0 && !State.IsLoading)
+        {
+            await State.LoadNotificationsAsync();
+        }
     }
 
     private void OnStateChanged()

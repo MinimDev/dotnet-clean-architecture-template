@@ -8,37 +8,36 @@
 
 <PageTitle>Dashboard - Clean Architecture Template</PageTitle>
 
-<div class="mb-6">
+<div class="my-4">
     <!-- Hero Banner Card -->
-    <MudPaper Elevation="0" Class="pa-6 pa-md-8 rounded-2xl glass-panel position-relative overflow-hidden mb-6" 
-              Style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(124, 58, 237, 0.04) 100%);">
-        <div class="position-absolute" style="top: -20px; right: -20px; opacity: 0.08; pointer-events: none;">
-            <MudIcon Icon="@Icons.Material.Filled.Layers" Style="font-size: 240px; color: var(--mud-palette-primary);" />
+    <MudPaper Elevation="0" Class="pa-4 pa-sm-5 rounded-2xl hero-banner position-relative overflow-hidden mb-4">
+        <div class="position-absolute" style="top: -20px; right: -20px; opacity: 0.05; pointer-events: none;">
+            <MudIcon Icon="@Icons.Material.Filled.Layers" Style="font-size: 140px; color: var(--mud-palette-primary);" />
         </div>
 
-        <div class="d-flex flex-column flex-md-row justify-space-between align-start align-md-center gap-4 position-relative">
+        <div class="d-flex flex-column flex-md-row justify-space-between align-start align-md-center gap-3 position-relative">
             <div>
-                <div class="d-inline-flex align-center gap-2 status-pill mb-3" style="background: rgba(var(--mud-palette-primary-rgb), 0.12); color: var(--mud-palette-primary);">
+                <div class="d-inline-flex align-center gap-2 status-pill mb-2" style="background: rgba(var(--mud-palette-primary-rgb), 0.12); color: var(--mud-palette-primary); font-size: 0.72rem;">
                     <span class="pulse-dot pulse-primary"></span>
-                    <span>Clean Architecture Solution Template · v1.7.0 GA</span>
+                    <span>Clean Architecture Solution Template · v1.8.0 GA</span>
                 </div>
-                <MudText Typo="Typo.h3" Class="font-weight-bold mb-2 text-gradient-primary" Style="letter-spacing: -0.02em;">
+                <MudText Typo="Typo.h5" Class="font-weight-bold mb-1 text-gradient-primary" Style="letter-spacing: -0.01em;">
                     Welcome back, @(_userName ?? "Developer")!
                 </MudText>
-                <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Style="max-width: 680px;">
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Style="max-width: 680px; font-size: 0.8125rem; line-height: 1.45;">
                     Enterprise solution starter implementing Clean Architecture principles with .NET 10, Blazor Server, MediatR CQRS, and Permission-Based Access Control (PBAC).
                 </MudText>
             </div>
 
             <div class="d-flex gap-2 flex-wrap">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Rounded.Inventory2"
-                           OnClick='() => NavigationManager.NavigateTo("products")' Class="rounded-xl px-4 py-2 hover-lift">
+                           OnClick='() => NavigationManager.NavigateTo("products")' Class="rounded-lg px-3 py-1-5 hover-lift" Size="Size.Small">
                     View Products
                 </MudButton>
                 @if (TokenProvider.Roles.Contains("Admin"))
                 {
                     <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Rounded.AdminPanelSettings"
-                               OnClick='() => NavigationManager.NavigateTo("users")' Class="rounded-xl px-4 py-2 hover-lift">
+                               OnClick='() => NavigationManager.NavigateTo("users")' Class="rounded-lg px-3 py-1-5 hover-lift" Size="Size.Small">
                         PBAC Matrix
                     </MudButton>
                 }
@@ -47,182 +46,192 @@
     </MudPaper>
 
     <!-- Key Metrics / KPI Grid -->
-    <MudGrid Spacing="4" Class="mb-6">
+    <MudGrid Spacing="3" Class="mb-4">
         <!-- Metric 1: PBAC & Identity -->
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="0" Class="rounded-2xl glass-panel pa-5 hover-lift h-100">
-                <div class="d-flex align-center justify-space-between mb-4">
-                    <div class="icon-box icon-box-primary">
-                        <MudIcon Icon="@Icons.Material.Rounded.Security" Size="Size.Medium" />
+        <MudItem xs="12" sm="6" md="3" Class="d-flex flex-column">
+            <MudCard Elevation="0" Class="rounded-xl pa-3-5 hover-lift h-100 flex-grow-1 d-flex flex-column justify-space-between">
+                <div>
+                    <div class="d-flex align-center justify-space-between mb-3">
+                        <div class="icon-box icon-box-primary" style="width: 38px; height: 38px;">
+                            <MudIcon Icon="@Icons.Material.Rounded.Security" Size="Size.Small" />
+                        </div>
+                        <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold" Style="font-size: 0.65rem; height: 20px; padding: 0 6px;">
+                            PBAC Active
+                        </MudChip>
                     </div>
-                    <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold">
-                        PBAC Active
-                    </MudChip>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold" Style="font-size: 0.68rem; letter-spacing: 0.05em;">Access Control</MudText>
+                    <MudText Typo="Typo.h6" Class="font-weight-bold my-1" Style="font-size: 1.15rem;">14 Permissions</MudText>
                 </div>
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold">Access Control</MudText>
-                <MudText Typo="Typo.h4" Class="font-weight-bold my-1">14 Permissions</MudText>
                 <div class="d-flex align-center gap-1 mt-2">
-                    <MudIcon Icon="@Icons.Material.Rounded.CheckCircle" Color="Color.Success" Size="Size.Small" />
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Dynamic policy provider</MudText>
+                    <MudIcon Icon="@Icons.Material.Rounded.CheckCircle" Color="Color.Success" Size="Size.Small" Style="font-size: 0.9rem;" />
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">Dynamic policy provider</MudText>
                 </div>
             </MudCard>
         </MudItem>
 
         <!-- Metric 2: Products & Catalog -->
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="0" Class="rounded-2xl glass-panel pa-5 hover-lift h-100">
-                <div class="d-flex align-center justify-space-between mb-4">
-                    <div class="icon-box icon-box-success">
-                        <MudIcon Icon="@Icons.Material.Rounded.Inventory2" Size="Size.Medium" />
+        <MudItem xs="12" sm="6" md="3" Class="d-flex flex-column">
+            <MudCard Elevation="0" Class="rounded-xl pa-3-5 hover-lift h-100 flex-grow-1 d-flex flex-column justify-space-between">
+                <div>
+                    <div class="d-flex align-center justify-space-between mb-3">
+                        <div class="icon-box icon-box-success" style="width: 38px; height: 38px;">
+                            <MudIcon Icon="@Icons.Material.Rounded.Inventory2" Size="Size.Small" />
+                        </div>
+                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold" Style="font-size: 0.65rem; height: 20px; padding: 0 6px;">
+                            Output Cache
+                        </MudChip>
                     </div>
-                    <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold">
-                        Output Cache
-                    </MudChip>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold" Style="font-size: 0.68rem; letter-spacing: 0.05em;">Catalog Domain</MudText>
+                    <MudText Typo="Typo.h6" Class="font-weight-bold my-1" Style="font-size: 1.15rem;">CQRS Pipeline</MudText>
                 </div>
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold">Catalog Domain</MudText>
-                <MudText Typo="Typo.h4" Class="font-weight-bold my-1">CQRS Pipeline</MudText>
                 <div class="d-flex align-center gap-1 mt-2">
-                    <MudIcon Icon="@Icons.Material.Rounded.ElectricBolt" Color="Color.Warning" Size="Size.Small" />
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Idempotency-Key guarded</MudText>
+                    <MudIcon Icon="@Icons.Material.Rounded.ElectricBolt" Color="Color.Warning" Size="Size.Small" Style="font-size: 0.9rem;" />
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">Idempotency-Key guarded</MudText>
                 </div>
             </MudCard>
         </MudItem>
 
         <!-- Metric 3: Audit Trail -->
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="0" Class="rounded-2xl glass-panel pa-5 hover-lift h-100">
-                <div class="d-flex align-center justify-space-between mb-4">
-                    <div class="icon-box icon-box-warning">
-                        <MudIcon Icon="@Icons.Material.Rounded.HistoryEdu" Size="Size.Medium" />
+        <MudItem xs="12" sm="6" md="3" Class="d-flex flex-column">
+            <MudCard Elevation="0" Class="rounded-xl pa-3-5 hover-lift h-100 flex-grow-1 d-flex flex-column justify-space-between">
+                <div>
+                    <div class="d-flex align-center justify-space-between mb-3">
+                        <div class="icon-box icon-box-warning" style="width: 38px; height: 38px;">
+                            <MudIcon Icon="@Icons.Material.Rounded.HistoryEdu" Size="Size.Small" />
+                        </div>
+                        <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold" Style="font-size: 0.65rem; height: 20px; padding: 0 6px;">
+                            100% Tracked
+                        </MudChip>
                     </div>
-                    <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold">
-                        100% Tracked
-                    </MudChip>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold" Style="font-size: 0.68rem; letter-spacing: 0.05em;">Data Integrity</MudText>
+                    <MudText Typo="Typo.h6" Class="font-weight-bold my-1" Style="font-size: 1.15rem;">Audit Trail</MudText>
                 </div>
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold">Data Integrity</MudText>
-                <MudText Typo="Typo.h4" Class="font-weight-bold my-1">Audit Trail</MudText>
                 <div class="d-flex align-center gap-1 mt-2">
-                    <MudIcon Icon="@Icons.Material.Rounded.Difference" Color="Color.Info" Size="Size.Small" />
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Side-by-side JSON diffs</MudText>
+                    <MudIcon Icon="@Icons.Material.Rounded.Difference" Color="Color.Info" Size="Size.Small" Style="font-size: 0.9rem;" />
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">Side-by-side JSON diffs</MudText>
                 </div>
             </MudCard>
         </MudItem>
 
         <!-- Metric 4: Messaging & Jobs -->
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="0" Class="rounded-2xl glass-panel pa-5 hover-lift h-100">
-                <div class="d-flex align-center justify-space-between mb-4">
-                    <div class="icon-box icon-box-info">
-                        <MudIcon Icon="@Icons.Material.Rounded.PendingActions" Size="Size.Medium" />
+        <MudItem xs="12" sm="6" md="3" Class="d-flex flex-column">
+            <MudCard Elevation="0" Class="rounded-xl pa-3-5 hover-lift h-100 flex-grow-1 d-flex flex-column justify-space-between">
+                <div>
+                    <div class="d-flex align-center justify-space-between mb-3">
+                        <div class="icon-box icon-box-info" style="width: 38px; height: 38px;">
+                            <MudIcon Icon="@Icons.Material.Rounded.PendingActions" Size="Size.Small" />
+                        </div>
+                        <MudChip T="string" Color="Color.Info" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold" Style="font-size: 0.65rem; height: 20px; padding: 0 6px;">
+                            MassTransit
+                        </MudChip>
                     </div>
-                    <MudChip T="string" Color="Color.Info" Size="Size.Small" Variant="Variant.Filled" Class="font-weight-bold">
-                        MassTransit
-                    </MudChip>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold" Style="font-size: 0.68rem; letter-spacing: 0.05em;">Async Workers</MudText>
+                    <MudText Typo="Typo.h6" Class="font-weight-bold my-1" Style="font-size: 1.15rem;">Hangfire Jobs</MudText>
                 </div>
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-uppercase font-weight-bold">Async Workers</MudText>
-                <MudText Typo="Typo.h4" Class="font-weight-bold my-1">Hangfire Jobs</MudText>
                 <div class="d-flex align-center gap-1 mt-2">
-                    <MudIcon Icon="@Icons.Material.Rounded.NotificationsActive" Color="Color.Success" Size="Size.Small" />
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">In-app notifications integration</MudText>
+                    <MudIcon Icon="@Icons.Material.Rounded.NotificationsActive" Color="Color.Success" Size="Size.Small" Style="font-size: 0.9rem;" />
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">In-app notifications integration</MudText>
                 </div>
             </MudCard>
         </MudItem>
     </MudGrid>
 
     <!-- Two-Column Architecture & Tools Grid -->
-    <MudGrid Spacing="4">
+    <MudGrid Spacing="3">
         <!-- Left: Architecture Highlights & Stack Features -->
-        <MudItem xs="12" md="8">
-            <MudCard Elevation="0" Class="rounded-2xl glass-panel pa-6 h-100">
-                <div class="d-flex align-center justify-space-between mb-4">
-                    <div class="d-flex align-center gap-3">
-                        <MudIcon Icon="@Icons.Material.Rounded.AccountTree" Color="Color.Primary" Size="Size.Medium" />
-                        <div>
-                            <MudText Typo="Typo.h6" Class="font-weight-bold">Layered Architecture</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Strict unidirectional dependencies</MudText>
+        <MudItem xs="12" md="8" Class="d-flex flex-column">
+            <MudCard Elevation="0" Class="rounded-xl pa-4 pa-sm-5 h-100 flex-grow-1 d-flex flex-column justify-space-between">
+                <div>
+                    <div class="d-flex align-center justify-space-between mb-3">
+                        <div class="d-flex align-center gap-2">
+                            <MudIcon Icon="@Icons.Material.Rounded.AccountTree" Color="Color.Primary" Size="Size.Small" />
+                            <div>
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Style="font-size: 0.95rem;">Layered Architecture</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">Strict unidirectional dependencies</MudText>
+                            </div>
                         </div>
+                        <MudChip T="string" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small" Style="font-size: 0.7rem; height: 22px;">
+                            .NET 10.0
+                        </MudChip>
                     </div>
-                    <MudChip T="string" Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small">
-                        .NET 10.0
-                    </MudChip>
-                </div>
 
-                <MudGrid Spacing="3" Class="mt-1">
-                    <MudItem xs="12" sm="4">
-                        <div class="pa-4 rounded-xl" style="background: rgba(var(--mud-palette-primary-rgb), 0.05); border: 1px solid var(--mud-palette-lines-default);">
-                            <div class="d-flex align-center gap-2 mb-2">
-                                <MudIcon Icon="@Icons.Material.Rounded.Hub" Color="Color.Primary" Size="Size.Small" />
-                                <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Color="Color.Primary">Core Layer</MudText>
+                    <MudGrid Spacing="2" Class="mt-1">
+                        <MudItem xs="12" sm="4" Class="d-flex flex-column">
+                            <div class="pa-3 rounded-xl feature-block flex-grow-1 h-100 d-flex flex-column">
+                                <div class="d-flex align-center gap-2 mb-1">
+                                    <MudIcon Icon="@Icons.Material.Rounded.Hub" Color="Color.Primary" Size="Size.Small" Style="font-size: 1rem;" />
+                                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Color="Color.Primary" Style="font-size: 0.82rem;">Core Layer</MudText>
+                                </div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Style="font-size: 0.78rem; line-height: 1.4;">
+                                    Rich Domain Entities, MediatR CQRS handlers, Validation Behaviors, and Domain Events.
+                                </MudText>
                             </div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary" Style="font-size: 0.85rem;">
-                                Rich Domain Entities, MediatR CQRS handlers, Validation Behaviors, Result Pattern, and Domain Events.
-                            </MudText>
-                        </div>
-                    </MudItem>
+                        </MudItem>
 
-                    <MudItem xs="12" sm="4">
-                        <div class="pa-4 rounded-xl" style="background: rgba(var(--mud-palette-success-rgb), 0.05); border: 1px solid var(--mud-palette-lines-default);">
-                            <div class="d-flex align-center gap-2 mb-2">
-                                <MudIcon Icon="@Icons.Material.Rounded.Storage" Color="Color.Success" Size="Size.Small" />
-                                <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Color="Color.Success">Infrastructure</MudText>
+                        <MudItem xs="12" sm="4" Class="d-flex flex-column">
+                            <div class="pa-3 rounded-xl feature-block flex-grow-1 h-100 d-flex flex-column">
+                                <div class="d-flex align-center gap-2 mb-1">
+                                    <MudIcon Icon="@Icons.Material.Rounded.Storage" Color="Color.Success" Size="Size.Small" Style="font-size: 1rem;" />
+                                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Color="Color.Success" Style="font-size: 0.82rem;">Infrastructure</MudText>
+                                </div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Style="font-size: 0.78rem; line-height: 1.4;">
+                                    EF Core 10, ASP.NET Identity, PBAC matrix policies, MassTransit Bus, and Hangfire.
+                                </MudText>
                             </div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary" Style="font-size: 0.85rem;">
-                                EF Core 10 (SQL Server), ASP.NET Identity, PBAC with dynamic policies, MassTransit Event Bus, and Hangfire.
-                            </MudText>
-                        </div>
-                    </MudItem>
+                        </MudItem>
 
-                    <MudItem xs="12" sm="4">
-                        <div class="pa-4 rounded-xl" style="background: rgba(var(--mud-palette-info-rgb), 0.05); border: 1px solid var(--mud-palette-lines-default);">
-                            <div class="d-flex align-center gap-2 mb-2">
-                                <MudIcon Icon="@Icons.Material.Rounded.Web" Color="Color.Info" Size="Size.Small" />
-                                <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Color="Color.Info">Presentation</MudText>
+                        <MudItem xs="12" sm="4" Class="d-flex flex-column">
+                            <div class="pa-3 rounded-xl feature-block flex-grow-1 h-100 d-flex flex-column">
+                                <div class="d-flex align-center gap-2 mb-1">
+                                    <MudIcon Icon="@Icons.Material.Rounded.Web" Color="Color.Info" Size="Size.Small" Style="font-size: 1rem;" />
+                                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold" Color="Color.Info" Style="font-size: 0.82rem;">Presentation</MudText>
+                                </div>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Style="font-size: 0.78rem; line-height: 1.4;">
+                                    Versioned REST WebAPI with OpenTelemetry, Scalar UI, Rate Limiting, and Blazor WebUI.
+                                </MudText>
                             </div>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary" Style="font-size: 0.85rem;">
-                                Versioned REST WebAPI with OpenTelemetry, Scalar UI, Rate Limiting, and Interactive Blazor Server WebUI.
-                            </MudText>
-                        </div>
-                    </MudItem>
-                </MudGrid>
+                        </MudItem>
+                    </MudGrid>
 
-                <MudDivider Class="my-5" />
+                    <MudDivider Class="my-4" />
 
-                <MudText Typo="Typo.subtitle2" Class="font-weight-bold mb-3">Enterprise Capabilities Built-In</MudText>
-                <div class="d-flex gap-2 flex-wrap">
-                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.Fingerprint">
-                        Idempotency Key
-                    </MudChip>
-                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.SyncLock">
-                        Refresh Token Rotation
-                    </MudChip>
-                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.Tune">
-                        Dynamic App Settings
-                    </MudChip>
-                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.Notifications">
-                        In-App Notifications
-                    </MudChip>
-                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.History">
-                        Audit Trail Table
-                    </MudChip>
-                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.Shield">
-                        PBAC Matrix
-                    </MudChip>
-                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.Speed">
-                        Polly Resilience
-                    </MudChip>
+                    <MudText Typo="Typo.subtitle2" Class="font-weight-bold mb-2" Style="font-size: 0.82rem;">Enterprise Capabilities Built-In</MudText>
+                    <div class="d-flex gap-1-5 flex-wrap">
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.Fingerprint" Style="font-size: 0.72rem; height: 24px;">
+                            Idempotency Key
+                        </MudChip>
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.SyncLock" Style="font-size: 0.72rem; height: 24px;">
+                            Refresh Token Rotation
+                        </MudChip>
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.Tune" Style="font-size: 0.72rem; height: 24px;">
+                            Dynamic App Settings
+                        </MudChip>
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.Notifications" Style="font-size: 0.72rem; height: 24px;">
+                            In-App Notifications
+                        </MudChip>
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.History" Style="font-size: 0.72rem; height: 24px;">
+                            Audit Trail Table
+                        </MudChip>
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.Shield" Style="font-size: 0.72rem; height: 24px;">
+                            PBAC Matrix
+                        </MudChip>
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small" Icon="@Icons.Material.Rounded.Speed" Style="font-size: 0.72rem; height: 24px;">
+                            Polly Resilience
+                        </MudChip>
+                    </div>
                 </div>
             </MudCard>
         </MudItem>
 
         <!-- Right: Developer Tools & Direct Links -->
-        <MudItem xs="12" md="4">
-            <MudCard Elevation="0" Class="rounded-2xl glass-panel pa-6 h-100 d-flex flex-column justify-space-between">
+        <MudItem xs="12" md="4" Class="d-flex flex-column">
+            <MudCard Elevation="0" Class="rounded-xl pa-4 pa-sm-5 h-100 flex-grow-1 d-flex flex-column justify-space-between">
                 <div>
-                    <div class="d-flex align-center gap-3 mb-4">
-                        <MudIcon Icon="@Icons.Material.Rounded.RocketLaunch" Color="Color.Secondary" Size="Size.Medium" />
+                    <div class="d-flex align-center gap-2 mb-3">
+                        <MudIcon Icon="@Icons.Material.Rounded.RocketLaunch" Color="Color.Secondary" Size="Size.Small" />
                         <div>
-                            <MudText Typo="Typo.h6" Class="font-weight-bold">Developer Launchpad</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Quick access to runtime tools</MudText>
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold" Style="font-size: 0.95rem;">Developer Launchpad</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.72rem;">Quick access to runtime tools</MudText>
                         </div>
                     </div>
 

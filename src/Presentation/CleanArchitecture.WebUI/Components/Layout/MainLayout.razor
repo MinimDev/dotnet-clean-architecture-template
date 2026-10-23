@@ -1,34 +1,38 @@
 @inherits LayoutComponentBase
 @implements IDisposable
 @using CleanArchitecture.WebUI.Services
+@using CleanArchitecture.WebUI.Components.Shared
 @inject NotificationsClient NotificationsClient
 @inject NotificationStateService NotificationState
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 @inject AuthClient AuthClient
 @inject TokenProvider TokenProvider
+@inject IJSRuntime JSRuntime
+@inject ThemeStateService ThemeState
 
-<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
+<MudThemeProvider Theme="@ThemeState.CurrentTheme" IsDarkMode="@ThemeState.IsDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
-<MudLayout>
+<MudLayout Class="@(ThemeState.IsDarkMode ? "mud-theme-dark dark" : "mud-theme-light light")">
     <MudAppBar Elevation="0" Class="glass-panel" Style="border-bottom: 1px solid var(--mud-palette-lines-default); height: 72px;">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" Class="mr-2" />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" Class="mr-2" Style="flex-shrink: 0;" />
         
-        <!-- Brand Logo Area -->
-        <div class="d-flex align-center gap-3 cursor-pointer" @onclick='() => NavigationManager.NavigateTo("")'>
-            <div class="d-flex align-center justify-center rounded-xl" style="width: 38px; height: 38px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
-                <MudIcon Icon="@Icons.Material.Filled.Layers" Style="color: white; font-size: 1.35rem;" />
+        <!-- Brand Logo Area (flex-shrink: 0 prevents being crushed/hidden) -->
+        <div class="d-flex align-center gap-2 gap-sm-3 cursor-pointer" style="flex-shrink: 0;" @onclick='() => NavigationManager.NavigateTo("")'>
+            <div class="d-flex align-center justify-center rounded-xl" style="width: 36px; height: 36px; background: var(--primary-gradient); box-shadow: 0 4px 12px rgba(var(--mud-palette-primary-rgb), 0.35); flex-shrink: 0;">
+                <MudIcon Icon="@Icons.Material.Filled.Layers" Style="color: white; font-size: 1.25rem;" />
             </div>
-            <div>
-                <MudText Typo="Typo.h6" Class="font-weight-bold text-gradient-primary" Style="line-height: 1.1; letter-spacing: -0.02em;">CleanArch</MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">Enterprise v1.7.0</MudText>
+            <div style="flex-shrink: 0;">
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold text-gradient-primary" Style="line-height: 1.1; letter-spacing: -0.02em;">CleanArch</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-none d-sm-block" Style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">Enterprise v1.8.0</MudText>
             </div>
         </div>
 
-        <MudHidden Breakpoint="Breakpoint.Xs">
-            <div class="ml-4 pl-4 d-flex align-center" style="border-left: 1px solid var(--mud-palette-lines-default);">
+        <!-- API Online Status Pill (Show on Desktop only to prevent crowding) -->
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <div class="ml-4 pl-4 d-flex align-center" style="border-left: 1px solid var(--mud-palette-lines-default); flex-shrink: 0;">
                 <div class="status-pill" style="background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25);">
                     <span class="pulse-dot pulse-success"></span>
                     <span>API Online</span>
@@ -36,10 +40,35 @@
             </div>
         </MudHidden>
 
+        <!-- Command Palette Quick Search Pill (Desktop) -->
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <div class="ml-4 ml-lg-6" style="max-width: 260px; flex-shrink: 1;">
+                <div class="command-palette-trigger d-flex align-center justify-space-between px-3 py-1-5 rounded-xl cursor-pointer"
+                     @onclick="OpenCommandPalette"
+                     role="button"
+                     tabindex="0">
+                    <div class="d-flex align-center gap-2">
+                        <MudIcon Icon="@Icons.Material.Rounded.Search" Size="Size.Small" />
+                        <span class="py-1" style="font-size: 0.85rem;">Search or jump to...</span>
+                    </div>
+                    <div class="d-flex align-center gap-1">
+                        <span class="kbd-shortcut">Ctrl</span>
+                        <span class="kbd-shortcut">K</span>
+                    </div>
+                </div>
+            </div>
+        </MudHidden>
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+            <MudIconButton Icon="@Icons.Material.Rounded.Search" Color="Color.Inherit" OnClick="OpenCommandPalette" Class="ml-1" Style="flex-shrink: 0;" />
+        </MudHidden>
+
         <MudSpacer />
 
-        <!-- Theme Mode Toggle -->
-        <MudTooltip Text="@(_isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode")">
+        <!-- Theme Preset Picker (Desktop/Tablet only; keeps mobile AppBar clean) -->
+        <MudHidden Breakpoint="Breakpoint.Xs">
+            <ThemePickerMenu />
+        </MudHidden>
+        <MudTooltip Text="@(ThemeState.IsDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode")">
             <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" Class="mr-1" />
         </MudTooltip>
         
@@ -68,7 +97,7 @@
                                 AnchorOrigin="Origin.BottomRight"
                                 TransformOrigin="Origin.TopRight"
                                 Fixed="true"
-                                Class="notification-popover"
+                                Class="@($"notification-popover {(ThemeState.IsDarkMode ? "mud-theme-dark dark" : "mud-theme-light light")}")"
                                 Style="margin-top: 10px; z-index: 1300; background: transparent; box-shadow: none;">
                         <NotificationPanel @ref="_notificationPanel"
                                            UnreadCount="NotificationState.UnreadCount"
@@ -77,34 +106,50 @@
                     </MudPopover>
                 </div>
 
-                <!-- User Profile Avatar & Menu -->
-                <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="false">
-                    <ActivatorContent Context="menuActivatorContext">
-                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Text" Class="pa-1 pl-2 pr-3 cursor-pointer rounded-pill" Style="border: 1px solid var(--mud-palette-lines-default);">
-                            <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-2">
-                                @(string.IsNullOrEmpty(authContext.User.Identity?.Name) ? "U" : authContext.User.Identity.Name[0].ToString().ToUpperInvariant())
-                            </MudAvatar>
-                            <span class="font-weight-bold mr-1">@(authContext.User.Identity?.Name ?? "User")</span>
-                            <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Small" />
-                        </MudChip>
-                    </ActivatorContent>
-                    <ChildContent>
-                        <div class="pa-3" style="min-width: 200px;">
-                            <MudText Typo="Typo.body2" Class="font-weight-bold">@(authContext.User.Identity?.Name)</MudText>
+                <!-- User Profile Avatar & Menu (Fully Clickable Popover) -->
+                <div class="position-relative">
+                    <button type="button"
+                            @onclick="ToggleUserMenu"
+                            class="user-profile-btn d-flex align-center gap-1 rounded-pill px-2 py-1 cursor-pointer"
+                            style="border: 1px solid var(--mud-palette-lines-default); background: rgba(var(--mud-palette-surface-rgb), 0.85); outline: none;">
+                        <MudAvatar Color="Color.Primary" Size="Size.Small" Style="width: 26px; height: 26px; font-size: 0.75rem;" Class="mr-1">
+                            @(string.IsNullOrEmpty(authContext.User.Identity?.Name) ? "U" : authContext.User.Identity.Name[0].ToString().ToUpperInvariant())
+                        </MudAvatar>
+                        <span class="font-weight-bold d-none d-sm-inline mr-1 text-truncate" style="max-width: 140px; font-size: 0.8125rem; color: var(--mud-palette-text-primary);">
+                            @(authContext.User.Identity?.Name ?? "User")
+                        </span>
+                        <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Small" Style="opacity: 0.75; color: var(--mud-palette-text-secondary);" />
+                    </button>
+
+                    <MudOverlay Visible="_isUserMenuOpen"
+                                VisibleChanged="OnUserMenuOverlayChanged"
+                                AutoClose="true"
+                                DarkBackground="false"
+                                ZIndex="1290" />
+
+                    <MudPopover Open="_isUserMenuOpen"
+                                AnchorOrigin="Origin.BottomRight"
+                                TransformOrigin="Origin.TopRight"
+                                Fixed="true"
+                                Class="@(ThemeState.IsDarkMode ? "mud-theme-dark dark user-menu-popover" : "mud-theme-light light user-menu-popover")"
+                                Style="margin-top: 8px; z-index: 1300; min-width: 220px; border-radius: 14px; border: 1px solid var(--mud-palette-lines-default); background: var(--mud-palette-surface) !important; color: var(--mud-palette-text-primary) !important; box-shadow: 0 12px 30px -5px rgba(0,0,0,0.35); overflow: hidden;">
+                        <div class="pa-3 border-b border-solid" style="border-color: var(--mud-palette-lines-default) !important; background: var(--mud-palette-surface);">
+                            <MudText Typo="Typo.body2" Class="font-weight-bold" Style="color: var(--mud-palette-text-primary) !important;">@(authContext.User.Identity?.Name)</MudText>
                             <MudText Typo="Typo.caption" Color="Color.Secondary">@string.Join(", ", TokenProvider.Roles)</MudText>
                         </div>
-                        <MudDivider />
-                        <MudMenuItem Icon="@Icons.Material.Filled.Dashboard" OnClick='() => NavigationManager.NavigateTo("")'>Dashboard</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.Inventory" OnClick='() => NavigationManager.NavigateTo("products")'>Products</MudMenuItem>
-                        @if (TokenProvider.Roles.Contains("Admin"))
-                        {
-                            <MudMenuItem Icon="@Icons.Material.Filled.People" OnClick='() => NavigationManager.NavigateTo("users")'>Users & PBAC</MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Filled.Tune" OnClick='() => NavigationManager.NavigateTo("settings")'>App Settings</MudMenuItem>
-                        }
-                        <MudDivider />
-                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnClick="LogoutAsync">Sign Out</MudMenuItem>
-                    </ChildContent>
-                </MudMenu>
+                        <MudList T="string" Dense="true" Style="background: var(--mud-palette-surface) !important; color: var(--mud-palette-text-primary) !important;">
+                            <MudListItem Icon="@Icons.Material.Rounded.Dashboard" OnClick='() => { _isUserMenuOpen = false; NavigationManager.NavigateTo(""); }' Style="color: var(--mud-palette-text-primary) !important;">Dashboard</MudListItem>
+                            <MudListItem Icon="@Icons.Material.Rounded.Inventory2" OnClick='() => { _isUserMenuOpen = false; NavigationManager.NavigateTo("products"); }' Style="color: var(--mud-palette-text-primary) !important;">Products</MudListItem>
+                            @if (TokenProvider.Roles.Contains("Admin"))
+                            {
+                                <MudListItem Icon="@Icons.Material.Rounded.People" OnClick='() => { _isUserMenuOpen = false; NavigationManager.NavigateTo("users"); }' Style="color: var(--mud-palette-text-primary) !important;">Users & PBAC</MudListItem>
+                                <MudListItem Icon="@Icons.Material.Rounded.Tune" OnClick='() => { _isUserMenuOpen = false; NavigationManager.NavigateTo("settings"); }' Style="color: var(--mud-palette-text-primary) !important;">App Settings</MudListItem>
+                            }
+                            <MudDivider Class="my-1" />
+                            <MudListItem Icon="@Icons.Material.Rounded.Logout" IconColor="Color.Error" OnClick="LogoutAsync" Style="color: var(--mud-palette-error) !important;">Sign Out</MudListItem>
+                        </MudList>
+                    </MudPopover>
+                </div>
             </Authorized>
             <NotAuthorized>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Login"
@@ -114,12 +159,16 @@
             </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>
-    <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="1" Class="mud-theme-drawer">
+    <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2" Class="mud-theme-drawer" Width="220px">
         <NavMenu />
     </MudDrawer>
-    <MudMainContent Class="mt-16 pa-4 pa-sm-6">
-        @Body
+    <MudMainContent Class="pb-10">
+        <div class="main-content-container px-4 px-sm-5 px-md-6 pt-2">
+            <AppBreadcrumbs />
+            @Body
+        </div>
     </MudMainContent>
+    <CommandPalette @ref="_commandPalette" OnToggleDarkMode="DarkModeToggle" />
 </MudLayout>
 
 
@@ -131,19 +180,22 @@
 
 @code {
     private bool _drawerOpen = true;
-    private bool _isDarkMode = false;
-    private MudTheme? _theme = null;
     private CancellationTokenSource? _cts;
     private NotificationPanel? _notificationPanel;
     private bool _isNotificationOpen = false;
+    private bool _isUserMenuOpen = false;
+    private CommandPalette? _commandPalette;
+
+    private void OpenCommandPalette()
+    {
+        _commandPalette?.Open();
+    }
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        _theme = AppTheme.CreateTheme();
-        _theme.LayoutProperties.AppbarHeight = "72px";
-
+        ThemeState.OnChange += OnThemeChanged;
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         NavigationManager.LocationChanged += OnLocationChanged;
         NotificationState.OnChange += OnNotificationStateChanged;
@@ -156,8 +208,14 @@
     {
         if (firstRender)
         {
+            await ThemeState.InitializeAsync();
             await NotificationState.RefreshAsync();
         }
+    }
+
+    private void OnThemeChanged()
+    {
+        InvokeAsync(StateHasChanged);
     }
 
     private void OnNotificationStateChanged()
@@ -182,9 +240,9 @@
     private async Task ToggleNotificationPanelAsync()
     {
         _isNotificationOpen = !_isNotificationOpen;
-        if (_isNotificationOpen && _notificationPanel != null)
+        if (_isNotificationOpen)
         {
-            await _notificationPanel.LoadNotificationsAsync();
+            await NotificationState.LoadNotificationsAsync();
         }
     }
 
@@ -196,6 +254,16 @@
     private void OnNotificationOverlayChanged(bool visible)
     {
         _isNotificationOpen = visible;
+    }
+
+    private void ToggleUserMenu()
+    {
+        _isUserMenuOpen = !_isUserMenuOpen;
+    }
+
+    private void OnUserMenuOverlayChanged(bool visible)
+    {
+        _isUserMenuOpen = visible;
     }
 
     private void HandleUnreadCountChanged(int newCount)
@@ -226,9 +294,9 @@
         _drawerOpen = !_drawerOpen;
     }
 
-    private void DarkModeToggle()
+    private async Task DarkModeToggle()
     {
-        _isDarkMode = !_isDarkMode;
+        await ThemeState.ToggleDarkModeAsync();
     }
 
     private async Task LogoutAsync()
@@ -237,7 +305,7 @@
         NavigationManager.NavigateTo("/login");
     }
 
-    public string DarkLightModeButtonIcon => _isDarkMode switch
+    public string DarkLightModeButtonIcon => ThemeState.IsDarkMode switch
     {
         true => Icons.Material.Rounded.LightMode,
         false => Icons.Material.Outlined.DarkMode,
@@ -245,6 +313,7 @@
 
     public void Dispose()
     {
+        ThemeState.OnChange -= OnThemeChanged;
         AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         NavigationManager.LocationChanged -= OnLocationChanged;
         NotificationState.OnChange -= OnNotificationStateChanged;

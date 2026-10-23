@@ -5,7 +5,7 @@
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" IsValid="@_isValid">
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
             <MudTextField @bind-Value="Command.Name" Label="Product Name" Variant="Variant.Outlined" Required="true" RequiredError="Name is required!" Class="mb-4" />
             <MudTextField @bind-Value="Command.Description" Label="Description" Variant="Variant.Outlined" Lines="3" Class="mb-4" />
             <MudGrid>
@@ -68,7 +68,7 @@
         _isSaving = true;
         StateHasChanged();
 
-        await _form.Validate();
+        await _form.ValidateAsync();
 
         if (!_form.IsValid)
         {

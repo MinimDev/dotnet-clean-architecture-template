@@ -11,43 +11,37 @@
     <Authorized>
         @if (TokenProvider.HasPermission(Permissions.AuditLogs.View))
         {
-            <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
+            <div class="audit-logs-page">
             <!-- Header Section -->
-            <MudPaper Elevation="0" Class="pa-4 mb-6" Style="background-color: transparent;">
-                <MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                    <MudItem xs="12" md="6">
-                        <div class="d-flex align-center gap-3">
-                            <div class="header-icon-container">
-                                <MudIcon Icon="@Icons.Material.Filled.HistoryEdu" Size="Size.Large" Color="Color.Primary" />
-                            </div>
-                            <div>
-                                <MudText Typo="Typo.h3" Color="Color.Primary" Class="font-weight-bold" Style="letter-spacing: -0.02em;">Audit Trail</MudText>
-                                <MudText Typo="Typo.subtitle1" Color="Color.Secondary">Complete historical record of all database modifications</MudText>
-                            </div>
-                        </div>
-                    </MudItem>
-                    <MudItem xs="12" md="6">
-                        <div class="d-flex justify-end gap-2 flex-wrap">
-                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh"
-                                       OnClick="RefreshLogs" Class="rounded-lg" Disabled="@_isLoading">
-                                Refresh
-                            </MudButton>
-                            @if (HasActiveFilters)
-                            {
-                                <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.FilterAltOff"
-                                           OnClick="ResetFilters" Class="rounded-lg">
-                                    Reset Filters
-                                </MudButton>
-                            }
-                        </div>
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
+            <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center gap-3 mb-4">
+                <div class="d-flex align-center gap-2">
+                    <div class="header-icon-container" style="width: 38px; height: 38px; border-radius: 10px;">
+                        <MudIcon Icon="@Icons.Material.Filled.HistoryEdu" Size="Size.Small" Color="Color.Primary" />
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.h5" Color="Color.Primary" Class="font-weight-bold" Style="letter-spacing: -0.01em;">Audit Trail</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Complete historical record of database modifications</MudText>
+                    </div>
+                </div>
+                <div class="d-flex justify-end gap-2 flex-wrap">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh"
+                               OnClick="RefreshLogs" Class="rounded-lg" Size="Size.Small" Disabled="@_isLoading">
+                        Refresh
+                    </MudButton>
+                    @if (HasActiveFilters)
+                    {
+                        <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.FilterAltOff"
+                                   OnClick="ResetFilters" Class="rounded-lg" Size="Size.Small">
+                            Reset Filters
+                        </MudButton>
+                    }
+                </div>
+            </div>
 
             <!-- Filter Controls Panel -->
-            <MudCard Elevation="2" Class="rounded-xl mb-6 filter-card">
-                <MudCardContent Class="pa-4">
-                    <MudGrid Spacing="3" AlignItems="AlignItems.Center">
+            <MudCard Elevation="0" Class="rounded-xl mb-4 filter-card" Style="border: 1px solid var(--mud-palette-lines-default);">
+                <MudCardContent Class="pa-3">
+                    <MudGrid Spacing="3" Class="align-center">
                         <!-- Action Filter Chips -->
                         <MudItem xs="12" md="4">
                             <MudText Typo="Typo.caption" Class="font-weight-bold text-uppercase mb-1 d-block" Color="Color.Secondary">Action Type</MudText>
@@ -328,7 +322,7 @@
                                    ShowFirstButton="true" ShowLastButton="true" Variant="Variant.Filled" Class="rounded-xl shadow-sm" />
                 </div>
             }
-        </MudContainer>
+        </div>
         }
         else
         {

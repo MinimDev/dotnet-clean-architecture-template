@@ -1,23 +1,23 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @using CleanArchitecture.WebUI.Components.Layout
+@using CleanArchitecture.WebUI.Services
 @inject NavigationManager NavigationManager
+@inject ThemeStateService ThemeState
 
-<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
+<MudThemeProvider Theme="@ThemeState.CurrentTheme" IsDarkMode="@ThemeState.IsDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<div class="auth-wrapper">
-    <!-- Ambient Atmospheric Glows -->
-    <div class="auth-ambient-orb-1"></div>
-    <div class="auth-ambient-orb-2"></div>
+<div class="auth-wrapper @(ThemeState.IsDarkMode ? "mud-theme-dark dark" : "mud-theme-light light")">
     <div class="auth-grid-overlay"></div>
 
     <!-- Minimal Header with Brand & Theme Switcher -->
     <header class="d-flex align-center justify-space-between px-6 py-4 position-relative" style="z-index: 10;">
         <div class="d-flex align-center gap-3 cursor-pointer" @onclick='() => NavigationManager.NavigateTo("/")'>
             <div class="d-flex align-center justify-center rounded-xl" 
-                 style="width: 40px; height: 40px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
+                 style="width: 40px; height: 40px; background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%); box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);">
                 <MudIcon Icon="@Icons.Material.Filled.Layers" Style="color: white; font-size: 1.4rem;" />
             </div>
             <div>
@@ -36,7 +36,7 @@
                 <span>System Operational</span>
             </div>
 
-            <MudTooltip Text="@(_isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode")">
+            <MudTooltip Text="@(ThemeState.IsDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode")">
                 <MudIconButton Icon="@(DarkLightModeButtonIcon)" 
                                Color="Color.Default" 
                                OnClick="@DarkModeToggle"
@@ -54,7 +54,7 @@
     <!-- Minimal Modern Footer -->
     <footer class="d-flex flex-column flex-sm-row align-center justify-space-between px-6 py-4 position-relative gap-2" style="z-index: 10; border-top: 1px solid var(--mud-palette-lines-default);">
         <MudText Typo="Typo.caption" Color="Color.Secondary">
-            © 2026 Clean Architecture Enterprise Template. Built with .NET 9 & MudBlazor.
+            © 2026 Clean Architecture Enterprise Template. Built with .NET 10 & MudBlazor.
         </MudText>
         <div class="d-flex align-center gap-4">
             <div class="d-flex align-center gap-1">
@@ -68,17 +68,25 @@
 </div>
 
 @code {
-    private bool _isDarkMode = false;
-    private MudTheme _theme = AppTheme.CreateTheme();
-
-    private void DarkModeToggle()
+    protected override async Task OnInitializedAsync()
     {
-        _isDarkMode = !_isDarkMode;
+        ThemeState.OnChange += StateHasChanged;
+        await ThemeState.InitializeAsync();
     }
 
-    private string DarkLightModeButtonIcon => _isDarkMode switch
+    private async Task DarkModeToggle()
+    {
+        await ThemeState.ToggleDarkModeAsync();
+    }
+
+    private string DarkLightModeButtonIcon => ThemeState.IsDarkMode switch
     {
         true => Icons.Material.Rounded.LightMode,
         false => Icons.Material.Outlined.DarkMode,
     };
+
+    public void Dispose()
+    {
+        ThemeState.OnChange -= StateHasChanged;
+    }
 }
