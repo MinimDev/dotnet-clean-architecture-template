@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-10-23
+
+### Added
+- **Centralized Reactive Notification State** — Instant, zero-delay notification state updates across the frontend:
+  - `NotificationStateService` scoped service providing centralized unread count state, list storage, and `OnChange` event dispatching for instant Blazor UI reactivity.
+  - Silent token refresh fallback on `401 Unauthorized` in `AuthorizedHttpClient` to prevent UI lockouts and automatically maintain authentication sessions.
+  - Event-driven badge updates in `MainLayout.razor` via `NavigationManager.LocationChanged` and reduced fallback polling interval.
+  - Animated badge pulse/bounce indicators (`@key="_unreadCount"`) when new notifications arrive.
+- **Enterprise Application Shell & Navigation Modernization**:
+  - Spotlight-style global Command Palette (`CommandPalette.razor`) triggered via `Ctrl + K` or `Cmd + K`, featuring keyboard-navigable search across menus, modules, external docs (Scalar, Hangfire), and quick actions.
+  - Dynamic route hierarchy breadcrumbs bar (`AppBreadcrumbs.razor`) seamlessly integrated above page content.
+  - Theme Preset Engine (`ThemePickerMenu.razor`) offering 6 curated enterprise themes: Cobalt Blue, Emerald Green, Indigo Night, Deep Purple, Amber Sunset, and Crimson Red.
+  - Standalone dedicated `AuthLayout.razor` for authentication workflows with sleek slate/cobalt dark mode styling (eliminated magenta AI glow).
+- **Shared Reusable Component Library (`CleanArchitecture.WebUI.Components.Shared`)**:
+  - `PageHeader.razor` — standardized enterprise header component with title, subtitle, icon box, chips/badges, and responsive action button slots.
+  - `EmptyState.razor` — friendly empty state container with thematic iconography, descriptive guidance, and primary call-to-action buttons.
+  - `ConfirmDeleteDialog.razor` — enterprise modal confirmation for destructive operations with double-click protection, loading spinner, and target item highlight.
+  - `TableSkeleton.razor` — wave animation placeholder for data tables and grids.
+  - `StatCard.razor` — standardized metric/KPI summary card with icon containers, trend badges, and hover lift physics.
+- **Enterprise CRUD Pages Polish**:
+  - `Products.razor`: View Switcher with Grid Cards and Data Table views, integrated `PageHeader`, `EmptyState`, and `ConfirmDeleteDialog`.
+  - `Users.razor`: Modernized PBAC permission matrix with live search filtering, unsaved changes dirty state badge, `TableSkeleton`, and 100% English copywriting.
+  - `AuditLogs.razor`: Side-by-side JSON diff viewer, action filter chips, user search, `PageHeader`, and `TableSkeleton`.
+  - `AppSettings.razor`: Group category chips, dirty state indicators per field, `PageHeader`, and `EmptyState`.
+- **Design System & Micro-Interactions**:
+  - CSS keyframe animations for dialog entrance zoom (`dialogEntrance`).
+  - Smooth table row hover transitions.
+  - Mobile touch target accessibility (>= 32-44px) and smartphone modal viewport adjustments (`max-width: calc(100vw - 24px)`).
+
 ## [1.7.0] - 2026-10-20
 
 ### Added
