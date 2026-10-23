@@ -29,22 +29,24 @@
             </div>
         </div>
     </DialogContent>
-    <DialogActions Class="pa-4 pt-2">
-        <MudButton Variant="Variant.Text" OnClick="Cancel" Disabled="@_isProcessing" Class="rounded-lg px-4" Size="Size.Small">
-            @CancelText
-        </MudButton>
-        <MudButton Variant="Variant.Filled" Color="@ConfirmColor" OnClick="Confirm" Disabled="@_isProcessing"
-                   Class="rounded-lg px-5 hover-lift" Size="Size.Small">
-            @if (_isProcessing)
-            {
-                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                <span>Processing...</span>
-            }
-            else
-            {
-                <span>@ConfirmText</span>
-            }
-        </MudButton>
+    <DialogActions>
+        <div class="d-flex align-center gap-2 pa-3">
+            <MudButton Variant="Variant.Text" OnClick="Cancel" Disabled="@_isProcessing" Class="rounded-lg px-4" Size="Size.Small">
+                @CancelText
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="@ConfirmColor" OnClick="Confirm" Disabled="@_isProcessing"
+                       Class="rounded-lg px-5 hover-lift" Size="Size.Small">
+                @if (_isProcessing)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    <span>Processing...</span>
+                }
+                else
+                {
+                    <span>@ConfirmText</span>
+                }
+            </MudButton>
+        </div>
     </DialogActions>
 </MudDialog>
 
