@@ -1,30 +1,30 @@
 # 🚀 Implementation Plan — Clean Architecture Template v1.7.0
 
-> **Versi Target:** 1.7.0  
-> **Estimasi Total:** 5 sesi kerja  
-> **Tanggal Dibuat:** 2026-10-19  
-> **Filosofi:** Setiap fitur mengikuti Clean Architecture — abstraction di Application layer, implementasi di Infrastructure layer, presentasi di WebUI.
+> **Target Version:** 1.7.0  
+> **Total Estimate:** 5 working sessions  
+> **Created Date:** 2026-10-19  
+> **Philosophy:** Every feature adheres strictly to Clean Architecture — abstraction in the Application layer, implementation in the Infrastructure layer, presentation in WebUI.
 
 ---
 
-## 📊 Status Keseluruhan
+## 📊 Overall Status
 
-| Phase | Fitur | Status | Branch |
+| Phase | Feature | Status | Branch |
 |---|---|---|---|
-| 1 | Idempotency Key + Double-Submit Fix | ✅ Selesai | `feat/idempotency-key` |
-| 2 | Audit Trail Table | ✅ Selesai | `feat/audit-trail` |
-| 3 | App Settings / Feature Flags | ✅ Selesai | `feat/app-settings` |
-| 4 | Notification System (In-App) | ✅ Selesai | `feat/notification-system` |
-| 5 | Permission-Based Access Control | ✅ Selesai | `feat/pbac` |
+| 1 | Idempotency Key + Double-Submit Fix | ✅ Completed | `feat/idempotency-key` |
+| 2 | Audit Trail Table | ✅ Completed | `feat/audit-trail` |
+| 3 | App Settings / Feature Flags | ✅ Completed | `feat/app-settings` |
+| 4 | Notification System (In-App) | ✅ Completed | `feat/notification-system` |
+| 5 | Permission-Based Access Control | ✅ Completed | `feat/pbac` |
 
-**Status Legend:** ⬜ Belum Mulai · 🔄 Sedang Dikerjakan · ✅ Selesai · 🚧 Blocked
+**Status Legend:** ⬜ Not Started · 🔄 In Progress · ✅ Completed · 🚧 Blocked
 
 ---
 
-## 🗺️ Overview Milestone
+## 🗺️ Milestone Overview
 
 ```
-v1.6.1 (saat ini)
+v1.6.1 (Baseline)
     │
     ├── Phase 1: Foundation & Bug Fix
     │   └── [v1.7.0-alpha] Idempotency Key + Double-Submit Fix
@@ -45,30 +45,30 @@ v1.6.1 (saat ini)
 ---
 
 ## Phase 1 — Idempotency Key + UI Double-Submit Fix
-**Target Versi:** `v1.7.0-alpha`  
-**Estimasi:** 1 sesi  
+**Target Version:** `v1.7.0-alpha`  
+**Estimate:** 1 session  
 **Branch:** `feat/idempotency-key`  
-**Status:** ✅ Selesai
+**Status:** ✅ Completed
 
-### 🎯 Tujuan
-Mencegah data duplikat akibat double-click, network retry, atau repeated API call.
+### 🎯 Objective
+Prevent duplicate data caused by rapid double-clicks, network retries, or repeated API calls.
 
-### 🐛 Root Cause yang Sudah Dianalisis
-1. **Frontend:** `_isSaving = true` di-set SETELAH `await form.Validate()` — ada jeda async dimana tombol belum disabled
-2. **Backend:** Tidak ada unique constraint di DB untuk nama produk; ID selalu `Guid.NewGuid()` → dua request identik = 2 record berbeda
-3. **Domain:** Tidak ada pengecekan duplikasi di `CreateProductCommandHandler`
-4. **Efek berantai:** 2 entity → 2 domain events → 2 integration messages MassTransit
+### 🐛 Analyzed Root Causes
+1. **Frontend:** `_isSaving = true` was previously set AFTER `await form.Validate()`, creating an async window where the submit button remained clickable.
+2. **Backend:** No unique constraint on product name in the database; IDs are generated via `Guid.NewGuid()`, meaning two identical requests produced two separate records.
+3. **Domain:** No duplicate validation inside `CreateProductCommandHandler`.
+4. **Cascading Effects:** 2 entities → 2 domain events → 2 MassTransit integration messages.
 
 ### ✅ Checklist
 
 #### A. Frontend Fix (Blazor WebUI)
-- [ ] **UBAH** `src/Presentation/CleanArchitecture.WebUI/Components/Pages/Products/CreateProductDialog.razor`
-  - Tambah `if (_isSaving) return;` sebagai baris pertama di method `Submit()`
-  - Pindahkan `_isSaving = true; StateHasChanged();` ke SEBELUM `await form.Validate()`
-- [ ] Terapkan pola guard yang sama ke semua dialog Edit dan Delete Confirm
+- [x] **MODIFY** `src/Presentation/CleanArchitecture.WebUI/Components/Pages/Products/CreateProductDialog.razor`
+  - Added `if (_isSaving) return;` as the first guard in `Submit()`
+  - Moved `_isSaving = true; StateHasChanged();` to BEFORE `await form.Validate()`
+- [x] Applied identical guard pattern across all Edit and Delete Confirm dialogs.
 
 #### B. Application Layer — Abstraction
-- [ ] **BUAT** `src/Core/CleanArchitecture.Application/Common/Interfaces/IIdempotencyService.cs`
+- [x] **CREATE** `src/Core/CleanArchitecture.Application/Common/Interfaces/IIdempotencyService.cs`
   ```csharp
   public interface IIdempotencyService
   {
@@ -78,45 +78,45 @@ Mencegah data duplikat akibat double-click, network retry, atau repeated API cal
   
   public record IdempotencyResult(int StatusCode, string Body);
   ```
-- [ ] **BUAT** `src/Core/CleanArchitecture.Application/Common/Behaviours/IdempotencyBehaviour.cs`
-  - MediatR Pipeline Behaviour yang intercept semua ICommand (bukan query)
-  - Baca header `Idempotency-Key` dari `IHttpContextAccessor`
-  - Jika key sudah ada di cache → return cached response langsung (idempotent)
-  - Jika belum → proses normal, lalu cache hasilnya
+- [x] **CREATE** `src/Core/CleanArchitecture.Application/Common/Behaviours/IdempotencyBehaviour.cs`
+  - MediatR Pipeline Behaviour intercepting all commands (not queries)
+  - Reads `Idempotency-Key` header from `IHttpContextAccessor`
+  - If key exists in cache → returns cached response immediately (idempotent)
+  - If not → processes pipeline normally, then caches output response
 
 #### C. Infrastructure Layer — Implementation
-- [ ] **BUAT** `src/Infrastructure/CleanArchitecture.Infrastructure.Shared/Services/IdempotencyService.cs`
-  - Implementasi menggunakan `IMemoryCache` (default, no external dependency)
-  - TTL default: 24 jam (configurable)
-  - Format cache key: `idempotency:{idempotency-key-value}`
+- [x] **CREATE** `src/Infrastructure/CleanArchitecture.Infrastructure.Shared/Services/IdempotencyService.cs`
+  - Default implementation backed by `IMemoryCache` (no external dependency)
+  - Default TTL: 24 hours (configurable)
+  - Cache key format: `idempotency:{idempotency-key-value}`
 
 #### D. Persistence & Config
-- [ ] **UBAH** `appsettings.json` — tambah section `"Idempotency": { "CacheDurationHours": 24 }`
-- [ ] **UBAH** `DependencyInjection.cs` di Shared — register `IIdempotencyService`
-- [ ] **UBAH** `DependencyInjection.cs` di Application — register `IdempotencyBehaviour` ke pipeline
+- [x] **MODIFY** `appsettings.json` — added `"Idempotency": { "CacheDurationHours": 24 }` section
+- [x] **MODIFY** `DependencyInjection.cs` in Shared — registered `IIdempotencyService`
+- [x] **MODIFY** `DependencyInjection.cs` in Application — registered `IdempotencyBehaviour` in pipeline
 
 #### E. Documentation
-- [ ] Tambah penjelasan Idempotency di Scalar UI (custom operation filter)
-- [ ] Update `README.md` — tambah section Idempotency Key usage
+- [x] Added Idempotency documentation in Scalar UI (custom operation filter)
+- [x] Updated `README.md` — added Idempotency Key usage section
 
 ---
 
 ## Phase 2 — Audit Trail Table
-**Target Versi:** `v1.7.0-beta`  
-**Estimasi:** 1.5 sesi  
+**Target Version:** `v1.7.0-beta`  
+**Estimate:** 1.5 sessions  
 **Branch:** `feat/audit-trail`  
-**Status:** ✅ Selesai
+**Status:** ✅ Completed
 
-### 🎯 Tujuan
-Menyimpan riwayat lengkap setiap perubahan data (Insert/Update/Delete) ke tabel terpisah, otomatis tanpa perubahan di handler.
+### 🎯 Objective
+Persist comprehensive mutation history for all data entities (Insert/Update/Delete) into a dedicated audit table automatically without modifying individual handlers.
 
-### 🔧 Pendekatan
-Extend `AuditableEntityInterceptor` yang sudah ada untuk capture detail perubahan ke tabel `AuditLogs` dalam transaksi yang sama dengan entity.
+### 🔧 Approach
+Extended existing `AuditableEntityInterceptor` to capture mutation diffs into the `AuditLogs` table within the same database transaction.
 
 ### ✅ Checklist
 
 #### A. Domain Layer
-- [x] **BUAT** `src/Core/CleanArchitecture.Domain/Entities/AuditLog.cs`
+- [x] **CREATE** `src/Core/CleanArchitecture.Domain/Entities/AuditLog.cs`
   ```csharp
   public class AuditLog
   {
@@ -134,54 +134,54 @@ Extend `AuditableEntityInterceptor` yang sudah ada untuk capture detail perubaha
   ```
 
 #### B. Application Layer
-- [x] **UBAH** `IApplicationDbContext.cs` — tambah `DbSet<AuditLog> AuditLogs`
-- [x] **BUAT** `Features/AuditLogs/Queries/GetAuditLogs/GetAuditLogsQuery.cs`
-  - Parameter: `EntityName?`, `Action?`, `UserId?`, `DateFrom?`, `DateTo?`, `PageNumber`, `PageSize`
-- [x] **BUAT** `Features/AuditLogs/Queries/GetAuditLogs/GetAuditLogsQueryHandler.cs`
-  - Reuse `PaginatedList<T>`
+- [x] **MODIFY** `IApplicationDbContext.cs` — added `DbSet<AuditLog> AuditLogs`
+- [x] **CREATE** `Features/AuditLogs/Queries/GetAuditLogs/GetAuditLogsQuery.cs`
+  - Parameters: `EntityName?`, `Action?`, `UserId?`, `DateFrom?`, `DateTo?`, `PageNumber`, `PageSize`
+- [x] **CREATE** `Features/AuditLogs/Queries/GetAuditLogs/GetAuditLogsQueryHandler.cs`
+  - Reuses `PaginatedList<T>`
 
 #### C. Infrastructure Layer
-- [x] **UBAH** `Interceptors/AuditableEntityInterceptor.cs`
-  - Capture `EntityState.Added` → log OldValues=null, NewValues=current
-  - Capture `EntityState.Modified` → log OldValues=original, NewValues=current, AffectedColumns
-  - Capture `ISoftDeletable` entity soft-delete → log Action="Deleted"
-  - Serialize via `System.Text.Json.JsonSerializer`
-- [x] **BUAT** `Configurations/AuditLogConfiguration.cs`
-  - Index pada `EntityName`, `Action`, `Timestamp`, `UserId`
-  - HasQueryFilter: tidak ada (audit log tidak boleh soft-deleted)
-- [x] **BUAT** Migration: `AddAuditLogs`
+- [x] **MODIFY** `Interceptors/AuditableEntityInterceptor.cs`
+  - Captures `EntityState.Added` → OldValues=null, NewValues=current
+  - Captures `EntityState.Modified` → OldValues=original, NewValues=current, AffectedColumns
+  - Captures `ISoftDeletable` entity soft-delete → Action="Deleted"
+  - Serialized via `System.Text.Json.JsonSerializer`
+- [x] **CREATE** `Configurations/AuditLogConfiguration.cs`
+  - Indexes on `EntityName`, `Action`, `Timestamp`, `UserId`
+  - HasQueryFilter: none (audit logs cannot be soft deleted)
+- [x] **CREATE** Migration: `AddAuditLogs`
 
 #### D. WebAPI
-- [x] **BUAT** `Controllers/AuditLogsController.cs`
-  - `GET /api/v1/audit-logs` — dengan query params filter + pagination
+- [x] **CREATE** `Controllers/AuditLogsController.cs`
+  - `GET /api/v1/audit-logs` — with query params filters + pagination
   - Role: `Admin` only
 
-#### E. WebUI — Halaman Audit Log (Premium Design)
-- [x] **BUAT** `Components/Pages/AuditLogs/AuditLogs.razor`
-  - Timeline-style layout (bukan plain table)
+#### E. WebUI — Audit Log Page (Premium Design)
+- [x] **CREATE** `Components/Pages/AuditLogs/AuditLogs.razor`
+  - Timeline-style layout (not a plain table)
   - Color coding: 🟢 Created, 🟡 Updated, 🔴 Deleted
   - Collapsible diff view: OldValues vs NewValues side-by-side
   - Filter panel: EntityName dropdown, Action chips, DateRange picker
-  - Active filter chips yang bisa di-clear satu per satu
-  - Skeleton loading saat data fetching
-  - Empty state dengan ilustrasi "No audit logs found"
-- [x] **UBAH** `NavMenu.razor` — tambah link "Audit Logs" di sidebar (Admin only)
+  - Active filter chips clearable individually
+  - Skeleton loading during data fetching
+  - Empty state with "No audit logs found" illustration
+- [x] **MODIFY** `NavMenu.razor` — added "Audit Logs" sidebar link (Admin only)
 
 ---
 
 ## Phase 3 — App Settings / Feature Flags Management
-**Target Versi:** `v1.7.0-rc1`  
-**Estimasi:** 1 sesi  
+**Target Version:** `v1.7.0-rc1`  
+**Estimate:** 1 session  
 **Branch:** `feat/app-settings`  
-**Status:** ✅ Selesai
+**Status:** ✅ Completed
 
-### 🎯 Tujuan
-Admin bisa mengubah konfigurasi aplikasi dan feature flags melalui UI tanpa perlu redeploy.
+### 🎯 Objective
+Enable administrators to modify runtime application configuration and feature flags through the UI without requiring redeployment.
 
 ### ✅ Checklist
 
 #### A. Domain Layer
-- [x] **BUAT** `Domain/Entities/AppSetting.cs`
+- [x] **CREATE** `Domain/Entities/AppSetting.cs`
   ```csharp
   public class AppSetting : BaseAuditableEntity
   {
@@ -190,13 +190,13 @@ Admin bisa mengubah konfigurasi aplikasi dan feature flags melalui UI tanpa perl
       public string DataType { get; private set; } // "string" | "boolean" | "number"
       public string? Description { get; private set; }
       public string Group { get; private set; }    // "General" | "Email" | "Features" | "Security"
-      public bool IsReadOnly { get; private set; } // lock setting dari UI
+      public bool IsReadOnly { get; private set; } // locks setting from UI modification
   }
   ```
-- [x] **BUAT** `Domain/Events/AppSettingChangedEvent.cs`
+- [x] **CREATE** `Domain/Events/AppSettingChangedEvent.cs`
 
 #### B. Application Layer
-- [x] **BUAT** `Common/Interfaces/IAppSettingsService.cs`
+- [x] **CREATE** `Common/Interfaces/IAppSettingsService.cs`
   ```csharp
   public interface IAppSettingsService
   {
@@ -207,50 +207,50 @@ Admin bisa mengubah konfigurasi aplikasi dan feature flags melalui UI tanpa perl
       Task<IReadOnlyList<AppSettingDto>> GetAllAsync(string? group = null);
   }
   ```
-- [x] **BUAT** `Features/AppSettings/` — Commands: `UpdateAppSetting`; Queries: `GetAppSettings`, `GetAppSettingByKey`
+- [x] **CREATE** `Features/AppSettings/` — Commands: `UpdateAppSetting`; Queries: `GetAppSettings`, `GetAppSettingByKey`
 
 #### C. Infrastructure Layer
-- [x] **BUAT** `Services/DbAppSettingsService.cs`
-  - Read dari DB, cache in-memory via `IMemoryCache`
-  - Invalidate cache otomatis saat `SetAsync` dipanggil
-  - Fallback ke `IConfiguration` (appsettings.json) jika key tidak ditemukan di DB
+- [x] **CREATE** `Services/DbAppSettingsService.cs`
+  - Reads from DB, cached in-memory via `IMemoryCache`
+  - Automatically invalidates cache when `SetAsync` is invoked
+  - Fallback to `IConfiguration` (appsettings.json) if key is not found in database
 
 #### D. Persistence
-- [x] **BUAT** `Configurations/AppSettingConfiguration.cs` — Unique index pada `Key`
-- [x] **BUAT** Migration: `AddAppSettings`
-- [x] **BUAT** Seeder: default settings awal (General, Email, Features)
+- [x] **CREATE** `Configurations/AppSettingConfiguration.cs` — Unique index on `Key`
+- [x] **CREATE** Migration: `AddAppSettings`
+- [x] **CREATE** Seeder: default configuration entries (General, Email, Features)
 
 #### E. WebUI — Settings Admin Panel (Premium Design)
-- [x] **BUAT** `Components/Pages/Settings/AppSettings.razor`
-  - Tampilan card per group (accordion / tab navigation)
-  - Inline edit: click value → input field muncul langsung (no dialog)
-  - Toggle switch untuk DataType="boolean"
-  - Numeric input untuk DataType="number"
-  - Text input untuk DataType="string"
-  - Lock icon untuk IsReadOnly settings
-  - Save confirmation dengan Snackbar
-  - Search/filter settings by key atau description
-- [x] **UBAH** `NavMenu.razor` — tambah link "App Settings" di sidebar (Admin only)
+- [x] **CREATE** `Components/Pages/Settings/AppSettings.razor`
+  - Card view per group (accordion / tab navigation)
+  - Inline edit: click value → input field renders directly
+  - Toggle switch for DataType="boolean"
+  - Numeric input for DataType="number"
+  - Text input for DataType="string"
+  - Lock icon for IsReadOnly settings
+  - Save confirmation via Snackbar
+  - Search/filter settings by key or description
+- [x] **MODIFY** `NavMenu.razor` — added "App Settings" sidebar link (Admin only)
 
 ---
 
 ## Phase 4 — Notification System (In-App)
-**Target Versi:** `v1.7.0-rc2`  
-**Estimasi:** 1.5 sesi  
+**Target Version:** `v1.7.0-rc2`  
+**Estimate:** 1.5 sessions  
 **Branch:** `feat/notification-system`  
-**Status:** ✅ Selesai
+**Status:** ✅ Completed
 
-### 🎯 Tujuan
-Notifikasi in-app yang bisa dipublikasi dari mana saja (Hangfire, Consumer, Handler) dan ditampilkan di bell icon WebUI dengan real-time-like polling.
+### 🎯 Objective
+Deliver in-app notifications publishable from any component (Hangfire, MassTransit Consumers, CQRS Handlers) and presented via the WebUI bell icon with real-time-like polling.
 
 ### ✅ Checklist
 
 #### A. Domain Layer
-- [x] **BUAT** `Domain/Entities/Notification.cs`
+- [x] **CREATE** `Domain/Entities/Notification.cs`
   ```csharp
   public class Notification : BaseEntity
   {
-      public string? UserId { get; private set; }  // null = broadcast semua user
+      public string? UserId { get; private set; }  // null = broadcast to all users
       public string Title { get; private set; }
       public string Message { get; private set; }
       public NotificationType Type { get; private set; } // Info | Success | Warning | Error
@@ -260,10 +260,10 @@ Notifikasi in-app yang bisa dipublikasi dari mana saja (Hangfire, Consumer, Hand
       public DateTime? ReadAt { get; private set; }
   }
   ```
-- [x] **BUAT** `Domain/Enums/NotificationType.cs`
+- [x] **CREATE** `Domain/Enums/NotificationType.cs`
 
 #### B. Application Layer
-- [x] **BUAT** `Common/Interfaces/INotificationService.cs`
+- [x] **CREATE** `Common/Interfaces/INotificationService.cs`
   ```csharp
   public interface INotificationService
   {
@@ -279,58 +279,58 @@ Notifikasi in-app yang bisa dipublikasi dari mana saja (Hangfire, Consumer, Hand
       Task<int> GetUnreadCountAsync(string userId, CancellationToken ct = default);
   }
   ```
-- [x] **BUAT** `Features/Notifications/Queries/GetNotifications/` — list dengan pagination
-- [x] **BUAT** `Features/Notifications/Queries/GetUnreadCount/` — simple int query
-- [x] **BUAT** `Features/Notifications/Commands/MarkAsRead/`
-- [x] **BUAT** `Features/Notifications/Commands/MarkAllAsRead/`
+- [x] **CREATE** `Features/Notifications/Queries/GetNotifications/` — paginated listing
+- [x] **CREATE** `Features/Notifications/Queries/GetUnreadCount/` — scalar count query
+- [x] **CREATE** `Features/Notifications/Commands/MarkAsRead/`
+- [x] **CREATE** `Features/Notifications/Commands/MarkAllAsRead/`
 
 #### C. Infrastructure Layer
-- [x] **BUAT** `Services/NotificationService.cs` di Shared
-- [x] **BUAT** `Configurations/NotificationConfiguration.cs`
-- [x] **BUAT** Migration: `AddNotifications`
+- [x] **CREATE** `Services/NotificationService.cs` in Shared
+- [x] **CREATE** `Configurations/NotificationConfiguration.cs`
+- [x] **CREATE** Migration: `AddNotifications`
 
 #### D. Integration — Demo Notifications
-- [x] **UBAH** `ExampleJob.cs` — kirim notifikasi ke semua Admin saat job selesai
-- [x] **UBAH** `ProductCreatedConsumer.cs` — broadcast notifikasi produk baru dibuat
+- [x] **MODIFY** `ExampleJob.cs` — sends notification to all Admins upon job completion
+- [x] **MODIFY** `ProductCreatedConsumer.cs` — broadcasts notification when new product is created
 
 #### E. WebAPI
-- [x] **BUAT** `Controllers/NotificationsController.cs`
+- [x] **CREATE** `Controllers/NotificationsController.cs`
   - `GET /api/v1/notifications` — list with pagination
   - `GET /api/v1/notifications/unread-count`
   - `PATCH /api/v1/notifications/{id}/read`
   - `PATCH /api/v1/notifications/read-all`
 
 #### F. WebUI — Bell Icon & Notification Panel (Premium Design)
-- [x] **UBAH** `MainLayout.razor`
-  - Tambah bell icon di topbar kanan
-  - Badge merah dengan unread count (hidden jika 0)
-  - Click → toggle NotificationPanel dropdown
-- [x] **BUAT** `Components/Shared/NotificationPanel.razor`
+- [x] **MODIFY** `MainLayout.razor`
+  - Added bell icon in topbar right actions
+  - Badge with unread count (hidden if 0)
+  - Click → toggles NotificationPanel dropdown
+- [x] **CREATE** `Components/Shared/NotificationPanel.razor`
   - Animated slide-down panel (glassmorphism style)
   - Header: "Notifications" + "Mark all as read" button
-  - List item: icon per type, title bold, message truncated, relative time (2 min ago)
+  - Item: type icon, bold title, truncated message, relative timestamp
   - Unread items: highlighted background
-  - Click item → mark as read + navigate ke ActionUrl jika ada
+  - Click item → mark as read + navigate to ActionUrl if present
   - Empty state: "You're all caught up! 🎉"
   - Footer: "View all notifications" link
-- [x] Auto-refresh unread count setiap 30 detik (polling)
+- [x] Auto-refresh unread count every 30 seconds (polling)
 
 ---
 
 ## Phase 5 — Permission-Based Access Control (PBAC)
-**Target Versi:** `v1.7.0`  
-**Estimasi:** 2 sesi  
+**Target Version:** `v1.7.0`  
+**Estimate:** 2 sessions  
 **Branch:** `feat/pbac`  
-**Status:** ✅ Selesai  
-**Dependency:** Phase 3 (App Settings) harus selesai terlebih dahulu
+**Status:** ✅ Completed  
+**Dependency:** Phase 3 (App Settings) completed
 
-### 🎯 Tujuan
-Mengganti hardcoded `[Authorize(Roles = "Admin")]` dengan permission granular per fitur yang bisa di-manage dari UI.
+### 🎯 Objective
+Replace static `[Authorize(Roles = "Admin")]` role checks with granular feature permissions configurable dynamically through the UI.
 
 ### ✅ Checklist
 
 #### A. Application Layer — Permission Constants
-- [x] **BUAT** `Common/Security/Permissions.cs`
+- [x] **CREATE** `Common/Security/Permissions.cs`
   ```csharp
   public static class Permissions
   {
@@ -363,7 +363,7 @@ Mengganti hardcoded `[Authorize(Roles = "Admin")]` dengan permission granular pe
       }
   }
   ```
-- [x] **BUAT** `Common/Security/HasPermissionAttribute.cs`
+- [x] **CREATE** `Common/Security/HasPermissionAttribute.cs`
   ```csharp
   [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
   public class HasPermissionAttribute : AuthorizeAttribute
@@ -371,107 +371,88 @@ Mengganti hardcoded `[Authorize(Roles = "Admin")]` dengan permission granular pe
       public HasPermissionAttribute(string permission) : base(permission) { }
   }
   ```
-- [x] **BUAT** `Common/Security/PermissionAuthorizationHandler.cs`
-- [x] **BUAT** `Common/Security/PermissionPolicyProvider.cs`
-- [x] **UBAH** `DependencyInjection.cs` — register `IAuthorizationHandler`, `IAuthorizationPolicyProvider`, dan `IPermissionService`
+- [x] **CREATE** `Common/Security/PermissionAuthorizationHandler.cs`
+- [x] **CREATE** `Common/Security/PermissionPolicyProvider.cs`
+- [x] **MODIFY** `DependencyInjection.cs` — registered `IAuthorizationHandler`, `IAuthorizationPolicyProvider`, and `IPermissionService`
 
 #### B. Identity Layer — Role-Permission Mapping
-- [x] **BUAT** `Models/RolePermission.cs`
+- [x] **CREATE** `Models/RolePermission.cs`
   ```csharp
   public class RolePermission
   {
       public int Id { get; set; }
       public string RoleName { get; set; }
-      public string Permission { get; set; }  // nilai dari Permissions.* constants
+      public string Permission { get; set; }  // value from Permissions.* constants
   }
   ```
-- [x] **BUAT** `Services/PermissionService.cs`
+- [x] **CREATE** `Services/PermissionService.cs`
   - `GetPermissionsForRoleAsync(string roleName)` → List<string> permission strings
-  - Claims-based: permissions di-inject sebagai claims ke JWT saat login/refresh
-  - Cache per roleName dengan `IMemoryCache` dan auto-invalidation saat permissions berubah
-- [x] **UBAH** `TokenService.cs` — sertakan permission claims (`"permission"`) di JWT
+  - Claims-based: permissions injected as claims into JWT during login/refresh
+  - Cached per roleName with `IMemoryCache` and auto-invalidated on permission updates
+- [x] **MODIFY** `TokenService.cs` — appends permission claims (`"permission"`) into JWT
 
 #### C. Persistence (IdentityDB)
-- [x] **BUAT** `Migration: AddRolePermissions` di Identity project
-- [x] **BUAT** Seeder default:
-  - Role `Admin` → semua permissions
-  - Role `Member` → `Products.View` saja
+- [x] **CREATE** Migration: `AddRolePermissions` in Identity project
+- [x] **CREATE** Default seeder:
+  - Role `Admin` → all permissions
+  - Role `Member` → `Products.View` only
 
 #### D. WebAPI — Update All Controllers
-- [x] **UBAH** `ProductsController.cs` — ganti ke `[HasPermission(Permissions.Products.*)]`
-- [x] **UBAH** `UsersController.cs` — ganti ke `[HasPermission(Permissions.Users.*)]` dan tambah endpoint PBAC
-- [x] **UBAH** `AuditLogsController.cs` — `[HasPermission(Permissions.AuditLogs.View)]`
-- [x] **UBAH** `AppSettingsController.cs` — `[HasPermission(Permissions.AppSettings.*)]`
+- [x] **MODIFY** `ProductsController.cs` — migrated to `[HasPermission(Permissions.Products.*)]`
+- [x] **MODIFY** `UsersController.cs` — migrated to `[HasPermission(Permissions.Users.*)]` and added PBAC endpoints
+- [x] **MODIFY** `AuditLogsController.cs` — `[HasPermission(Permissions.AuditLogs.View)]`
+- [x] **MODIFY** `AppSettingsController.cs` — `[HasPermission(Permissions.AppSettings.*)]`
 
 #### E. WebUI — User Management Enhancement
-- [x] **UBAH** `Users.razor`
-  - Tab "Users List" & Tab "Role Permissions (PBAC)"
-  - Checkbox tree grouped by category (`Products`, `Users`, dll.)
-  - Save/Reset per role dengan instant feedback snackbar
-- [x] Sidebar: hide/show menu items berdasarkan permission user yang sedang login via `TokenProvider.HasPermission(...)`
+- [x] **MODIFY** `Users.razor`
+  - "Users List" tab & "Role Permissions (PBAC)" tab
+  - Checkbox tree grouped by module category (`Products`, `Users`, etc.)
+  - Save/Reset per role with instant snackbar feedback
+- [x] Sidebar: dynamic menu filtering based on user permissions via `TokenProvider.HasPermission(...)`
 
 ---
 
-## 🎨 UI/UX Overhaul — Berjalan Paralel
+## 🎨 UI/UX Overhaul — Parallel Execution
 
-> Setiap phase membawa peningkatan visual, dikerjakan bersamaan dengan fitur utama.
+> Every phase introduced visual refinements, engineered concurrently with core features.
 
-### Komponen yang Diperbarui
+### Updated Components
 
-| Phase | Komponen | Perbaikan UI |
+| Phase | Component | UI Polish |
 |---|---|---|
-| 1 | Semua Dialog | Double-submit guard, loading state lebih smooth |
-| 2 | Sidebar + AuditLogs.razor | Timeline layout, diff view, color coding |
-| 3 | Settings.razor | Card layout per group, inline edit, toggle switch |
+| 1 | All Dialogs | Double-submit guard, smoother loading states |
+| 2 | Sidebar + AuditLogs.razor | Timeline layout, side-by-side diff view, color coding |
+| 3 | Settings.razor | Card layout per group, inline editing, toggle switch |
 | 4 | MainLayout + NotificationPanel | Bell icon badge, animated dropdown, glassmorphism |
-| 5 | Users.razor | Permission checkbox tree, visual indicators |
-
-### Target Desain Global
-- [ ] **Skeleton Loading** — ganti semua loading spinner dengan skeleton placeholder
-- [ ] **Empty States** — setiap halaman kosong punya ilustrasi SVG + CTA button
-- [ ] **Dark Mode Toggle** — button toggle di topbar, persist ke localStorage
-- [ ] **Sidebar** — collapse/expand, active state yang jelas, tooltip saat collapsed
-- [ ] **Animations** — smooth transition pada page navigation dan dialog open/close
+| 5 | Users.razor | Permission checkbox matrix, visual dirty indicators |
 
 ---
 
 ## ✅ Definition of Done (Per Phase)
 
-- [ ] Unit test untuk Application layer (command/query handler baru)
-- [ ] Integration test di `CleanArchitecture.Application.IntegrationTests`
-- [ ] XML doc `<summary>` di semua public interface dan method baru
-- [ ] `appsettings.json` diupdate dengan config section baru + inline comment
-- [ ] `README.md` diupdate dengan section fitur baru
-- [ ] `CHANGELOG.md` diupdate
-- [ ] Template output tidak menyertakan file `docs/planning/` ini
+- [x] Unit tests for Application layer (new command/query handlers)
+- [x] Integration tests in `CleanArchitecture.Application.IntegrationTests`
+- [x] XML doc `<summary>` across public interfaces and methods
+- [x] `appsettings.json` updated with new configuration sections
+- [x] `README.md` updated with new feature descriptions
+- [x] `CHANGELOG.md` updated with release entries
 
 ---
 
-## 📝 Development Notes & Keputusan Arsitektur
-
-*(Isi bagian ini saat development berlangsung — catat keputusan penting, trade-off, dan gotchas)*
+## 📝 Architectural Decisions & Development Notes
 
 ### Phase 1
-- **Clean Architecture Boundary**: `CleanArchitecture.Application` tidak boleh mereferensi ASP.NET Core `HttpContext`. Abstraksi `IIdempotencyKeyAccessor` menjaga pipeline MediatR terisolasi dan portable.
-- **DI Registration**: Gunakan `TryAddTransient` untuk registration fallback `NullIdempotencyKeyAccessor` agar Presentation layer bisa meng-override tanpa konflik urutan.
-- **EF Core Multi-Provider**: Swapping dari SQL Server ke SQLite di `CustomWebApplicationFactory` memerlukan pembersihan descriptor EF Core internal agar provider option builder tidak bertubrukan.
+- **Clean Architecture Boundary**: `CleanArchitecture.Application` must never reference ASP.NET Core `HttpContext`. The `IIdempotencyKeyAccessor` abstraction ensures MediatR pipeline isolation and portability.
+- **DI Registration**: Used `TryAddTransient` for the fallback `NullIdempotencyKeyAccessor` registration so the Presentation layer can override it cleanly.
+- **EF Core Multi-Provider**: Swapping from SQL Server to SQLite in `CustomWebApplicationFactory` requires clearing internal EF Core service descriptors to avoid provider collision.
 
 ### Phase 2
-- **Atomic Change Auditing**: `AuditableEntityInterceptor` dijalankan sebelum `base.SavingChangesAsync`, sehingga entri `AuditLog` otomatis tersimpan dalam batch dan database transaction yang sama dengan entity yang dimutasi.
-- **No Infinite Loop**: Interceptor secara eksplisit mengabaikan entity tipe `AuditLog` dan owned types, sehingga pencatatan audit log tidak memicu re-auditing berulang.
-- **Cross-Database Value Conversion**: `AffectedColumns` disimpan dengan ValueConverter JSON di `AuditLogConfiguration`, menjamin kompatibilitas penuh antara SQL Server di production dan SQLite di automated test suite.
-- **Integration Test Coverage**: `CustomWebApplicationFactory` mendaftarkan `AuditableEntityInterceptor` ke SQLite options sehingga mutation testing (Insert, Update, Soft-delete) otomatis terverifikasi end-to-end.
-
-### Phase 3
-- ...
-
-### Phase 4
-- ...
-
-### Phase 5
-- ...
+- **Atomic Change Auditing**: `AuditableEntityInterceptor` runs before `base.SavingChangesAsync`, ensuring `AuditLog` records are persisted in the exact same database transaction as mutated entities.
+- **Re-entrancy Protection**: The interceptor explicitly skips `AuditLog` entities and owned types to avoid infinite auditing loops.
+- **Cross-Database Value Conversion**: `AffectedColumns` is stored with a JSON ValueConverter in `AuditLogConfiguration`, providing complete compatibility between SQL Server in production and SQLite in test environments.
+- **Integration Test Coverage**: `CustomWebApplicationFactory` registers `AuditableEntityInterceptor` on SQLite options so mutation auditing (Insert, Update, Soft-delete) is verified end-to-end.
 
 ---
 
-*Plan ini dibuat pada: 2026-10-19*  
-*Versi plan: 1.0*
+*Plan created on: 2026-10-19*  
+*Plan version: 1.0*

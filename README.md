@@ -467,7 +467,7 @@ public class YourController : ControllerBase
 
 ### 5. Add MassTransit Consumer (Messaging Layer)
 
-Contoh: react terhadap Domain Event yang dipublish secara **otomatis** oleh MediatR Pipeline `DomainEventPublishingBehaviour` setelah entitas sukses tersimpan.
+Example: React to domain events published **automatically** by the MediatR pipeline `DomainEventPublishingBehaviour` after entities are committed to the database:
 
 ```csharp
 // src/Infrastructure/YourProject.Infrastructure.Messaging/Consumers/YourEntityCreatedConsumer.cs
@@ -486,7 +486,7 @@ public sealed class YourEntityCreatedConsumer : IConsumer<YourEntityCreatedEvent
     {
         _logger.LogInformation("Received: {Id}", context.Message.EntityId);
 
-        // Handoff ke Hangfire untuk proses berat (retry-able, persistent)
+        // Handoff to Hangfire for heavy background tasks (retry-able, persistent)
         // _hangfire.Enqueue<INotificationService>(s =>
         //     s.SendCreatedNotificationAsync(context.Message.EntityId, CancellationToken.None));
 
@@ -495,11 +495,11 @@ public sealed class YourEntityCreatedConsumer : IConsumer<YourEntityCreatedEvent
 }
 ```
 
-> **Auto-discovery:** MassTransit akan otomatis menemukan semua class `IConsumer<T>` di project `Infrastructure.Messaging` — tidak perlu register manual. Dan setiap entitas yang didaftarkan event-nya via `AddDomainEvent()` akan dipublish otomatis tanpa kode tambahan di Handler Anda!
+> **Auto-discovery:** MassTransit will automatically discover and register all `IConsumer<T>` classes located in the `Infrastructure.Messaging` project — no manual registration required. Any entity registering events via `AddDomainEvent()` will have them published automatically without additional handler code!
 
 ### 6. Switch Message Transport
 
-Ubah satu baris di `appsettings.json`:
+Change a single configuration value in `appsettings.json`:
 
 ```json
 {
@@ -509,7 +509,7 @@ Ubah satu baris di `appsettings.json`:
 }
 ```
 
-Atau via environment variable:
+Or configure via environment variables:
 ```bash
 MassTransit__Transport=RabbitMQ
 MassTransit__RabbitMQ__Host=my-rabbit-server
@@ -517,9 +517,9 @@ MassTransit__RabbitMQ__Host=my-rabbit-server
 
 ### 7. Add Background Job (Hangfire)
 
-Hangfire memungkinkan Anda untuk menjalankan *background tasks* (seperti mengirim email, generate laporan bulanan, dsb.) di luar request API utama.
+Hangfire enables you to execute reliable background jobs (such as sending emails, generating reports, running batch tasks, etc.) asynchronously outside the primary HTTP request lifecycle.
 
-**1. Buat Interface Job (Application Layer)**
+**1. Define Job Interface (Application Layer)**
 ```csharp
 // src/Core/CleanArchitecture.Application/Common/Interfaces/Jobs/IMyBackgroundJob.cs
 public interface IMyBackgroundJob
@@ -528,33 +528,33 @@ public interface IMyBackgroundJob
 }
 ```
 
-**2. Buat Implementasi Job (Infrastructure Layer)**
+**2. Implement Background Job (Infrastructure Layer)**
 ```csharp
 // src/Infrastructure/CleanArchitecture.Infrastructure.Shared/Jobs/MyBackgroundJob.cs
 public class MyBackgroundJob : IMyBackgroundJob
 {
     private readonly ILogger<MyBackgroundJob> _logger;
-    // Inject service apapun di sini (misal: IApplicationDbContext)
+    // Inject any required services here (e.g., IApplicationDbContext)
 
     public MyBackgroundJob(ILogger<MyBackgroundJob> logger) => _logger = logger;
 
     public async Task ExecuteAsync(string data, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Processing data: {Data}", data);
-        await Task.Delay(1000, cancellationToken); // Simulasi proses
+        await Task.Delay(1000, cancellationToken); // Simulate background work
     }
 }
 ```
 
-**3. Daftarkan di Dependency Injection**
+**3. Register in Dependency Injection**
 ```csharp
 // src/Infrastructure/CleanArchitecture.Infrastructure.Shared/DependencyInjection.cs
 services.AddTransient<IMyBackgroundJob, MyBackgroundJob>();
 ```
 
-**4. Jadwalkan Job (Presentation/API Layer atau CQRS Handler)**
+**4. Schedule or Enqueue the Job (Presentation Layer or CQRS Handler)**
 ```csharp
-// Di dalam Controller atau CQRS Command Handler
+// Inside an API Controller or MediatR Command Handler
 private readonly IBackgroundJobClient _backgroundJobClient;
 
 // ...
