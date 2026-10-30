@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-10-30
+
+### Added
+- **Source-Generated Mediator Migration (100% Free MIT License)**:
+  - Replaced commercial/dual-licensed MediatR with compile-time **martinothamar/Mediator** (Mediator.Abstractions & Mediator.SourceGenerator), removing all licensing friction and commercial fees.
+  - Eliminated runtime reflection overhead with Roslyn Source Generators generating strongly-typed in-process dispatchers at build-time.
+  - Converted CQRS handlers and pipeline behaviors to ValueTask<TResult> to achieve zero-allocation on synchronous paths and minimize GC churn.
+  - Full compatibility with **.NET 10 Native AOT** compilation for lightning-fast container startup.
+  - Configured compile-time [assembly: MediatorOptions(ServiceLifetime = ServiceLifetime.Scoped)] to perfectly integrate with Entity Framework Core scoped DbContexts without captive dependencies.
+  - Purified CleanArchitecture.Domain layer to **zero external package dependencies** with a decoupled, framework-agnostic IDomainEvent interface.
+  - Retained 100% compatibility across all custom pipeline behaviors (IdempotencyBehaviour, LoggingBehaviour, ValidationBehaviour, and DomainEventPublishingBehaviour).
 ## [1.8.0] - 2026-10-23
 
 ### Added

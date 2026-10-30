@@ -5,8 +5,8 @@
     <PackageId>Minimdev.CleanArchitecture.Template</PackageId>
     <Title>Clean Architecture Solution Template</Title>
     <Authors>Minimdev</Authors>
-    <Description>Clean Architecture Solution Template by Minimdev. Features layered architecture (Core, Infrastructure, Presentation), .NET 10 support, Refresh Token system, Integration Tests, and full Visual Studio 2022 &amp; 2026 compatibility via 'dotnet new' or New Project dialog.</Description>
-    <PackageTags>clean-architecture;csharp;dotnet-new;template;solution</PackageTags>
+    <Description>Clean Architecture Solution Template by Minimdev. Features layered architecture (Core, Infrastructure, Presentation), .NET 10 support, Compile-Time Source-Generated Mediator (100% Free MIT), Refresh Token system, PBAC Security, Integration Tests, and full Visual Studio 2022 &amp; 2026 compatibility via 'dotnet new' or New Project dialog.</Description>
+    <PackageTags>clean-architecture;csharp;dotnet-new;template;solution;mediator;cqrs;blazor;mudblazor;net10</PackageTags>
     <TargetFramework>net10.0</TargetFramework>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <IncludeContentInPack>true</IncludeContentInPack>
@@ -17,8 +17,8 @@
     <PackageProjectUrl>https://github.com/MinimDev/dotnet-clean-architecture-template</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.8.0</Version>
-    <PackageReleaseNotes>v1.8.0 GA: Comprehensive UI/UX enterprise polish release featuring centralized reactive notification state management with instant badge updates, global Command Palette (Ctrl+K), dynamic breadcrumbs, 6 enterprise theme presets, reusable component library (PageHeader, EmptyState, ConfirmDeleteDialog, TableSkeleton, StatCard), Grid/Table view toggles on Products, PBAC matrix search &amp; dirty-state guards, side-by-side JSON diff viewer for Audit Logs, and micro-interactions.</PackageReleaseNotes>
+    <Version>1.9.0</Version>
+    <PackageReleaseNotes>v1.9.0 GA: Performance &amp; Licensing Freedom milestone. Migrated the core CQRS engine from commercial/dual-licensed MediatR to high-performance, compile-time Source-Generated Mediator (100% Free MIT License). Features zero reflection overhead, ValueTask low-allocation pipeline, Native AOT compilation readiness for .NET 10, purified Domain layer with zero external package dependencies, and seamless preservation of all pipeline behaviors (Idempotency, Validation, Logging, Domain Event Publishing).</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
