@@ -59,7 +59,7 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
         {
             Title = "Clean Architecture API",
             Version = description.ApiVersion.ToString(),
-            Description = "A Clean Architecture template API with CQRS, MediatR, and JWT Authentication"
+            Description = "A Clean Architecture template API with CQRS, Source-Generated Mediator, and JWT Authentication"
         };
 
         if (description.IsDeprecated)

@@ -1,3 +1,4 @@
+using Mediator;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using CleanArchitecture.Application;
@@ -21,6 +22,8 @@ using Hangfire.SqlServer;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using CleanArchitecture.WebAPI.Infrastructure;
+
+[assembly: MediatorOptions(ServiceLifetime = ServiceLifetime.Scoped)]
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -76,6 +79,7 @@ builder.Services.AddScoped<CleanArchitecture.Application.Common.Interfaces.IIdem
 
 // Add Application Layer
 builder.Services.AddApplication();
+builder.Services.AddMediator();
 
 // Add Infrastructure Layers
 builder.Services.AddPersistence(builder.Configuration);

@@ -6,7 +6,7 @@ using CleanArchitecture.Application.Features.Products.Queries.GetProductById;
 using CleanArchitecture.Application.Features.Products.Queries.GetProductsList;
 using CleanArchitecture.Domain.Enums;
 using CleanArchitecture.Infrastructure.Identity.Security;
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;

@@ -82,7 +82,7 @@ builder.Services.AddMudServices(config =>
 // Add services to the container.
 Action<HttpClient> configureClient = client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7253");
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5136");
 };
 
 IHttpClientBuilder httpClientBuilder = builder.Services.AddHttpClient("WebAPI", configureClient);

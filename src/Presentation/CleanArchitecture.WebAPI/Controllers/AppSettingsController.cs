@@ -6,7 +6,7 @@ using CleanArchitecture.Application.Features.AppSettings.DTOs;
 using CleanArchitecture.Application.Features.AppSettings.Queries.GetAppSettingByKey;
 using CleanArchitecture.Application.Features.AppSettings.Queries.GetAppSettings;
 using CleanArchitecture.Infrastructure.Identity.Security;
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;

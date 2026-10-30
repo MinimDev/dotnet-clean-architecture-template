@@ -5,7 +5,7 @@ using CleanArchitecture.Application.Features.Notifications.Commands.MarkAsRead;
 using CleanArchitecture.Application.Features.Notifications.DTOs;
 using CleanArchitecture.Application.Features.Notifications.Queries.GetNotifications;
 using CleanArchitecture.Application.Features.Notifications.Queries.GetUnreadCount;
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;

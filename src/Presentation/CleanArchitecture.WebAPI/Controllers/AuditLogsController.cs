@@ -3,7 +3,7 @@ using CleanArchitecture.Application.Common.Models;
 using CleanArchitecture.Application.Common.Security;
 using CleanArchitecture.Application.Features.AuditLogs.Queries.GetAuditLogs;
 using CleanArchitecture.Infrastructure.Identity.Security;
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
