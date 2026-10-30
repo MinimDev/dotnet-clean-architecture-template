@@ -1,463 +1,369 @@
-# Clean Architecture Template Solution (.NET 10)
+# ⚡ Clean Architecture Enterprise Template (.NET 10)
 
-A comprehensive, production-ready **ASP.NET Core** starter template implementing **Clean Architecture** principles with CQRS, MediatR, JWT Authentication, and modern API documentation.
+> **The premier, production-ready ASP.NET Core solution template engineered with Clean Architecture principles, compile-time Source-Generated CQRS (100% Free MIT), Granular PBAC Security, Real-Time Notifications, Automated Audit Diffing, and an Enterprise MudBlazor UI.**
 
-[![.NET 10.0](https://img.shields.io/badge/.NET-10.0-512BD4.svg?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/download)
-[![Mapster](https://img.shields.io/badge/Mapping-Mapster_v10-00AFF0?style=flat-square)](https://github.com/MapsterMapper/Mapster)
-[![NuGet](https://img.shields.io/nuget/v/Minimdev.CleanArchitecture.Template.svg?style=flat-square&logo=nuget&color=004880)](https://www.nuget.org/packages/Minimdev.CleanArchitecture.Template)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/Minimdev.CleanArchitecture.Template.svg?style=flat-square&logo=nuget&color=004880)](https://www.nuget.org/packages/Minimdev.CleanArchitecture.Template)
-[![GitHub Stars](https://img.shields.io/github/stars/MinimDev/dotnet-clean-architecture-template.svg?style=flat-square&logo=github)](https://github.com/MinimDev/dotnet-clean-architecture-template/stargazers)
-[![License: MIT](https://img.shields.io/badge/license-MIT-22c55e.svg?style=flat-square)](LICENSE)
+[![.NET 10.0](https://img.shields.io/badge/.NET-10.0-512BD4.svg?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/download)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg?style=for-the-badge)](LICENSE)
+[![CQRS: Source-Gen Mediator](https://img.shields.io/badge/CQRS-Mediator_(Source_Gen)-f97316.svg?style=for-the-badge)](https://github.com/martinothamar/Mediator)
+[![Frontend: MudBlazor](https://img.shields.io/badge/Frontend-MudBlazor-7e6fff.svg?style=for-the-badge&logo=blazor)](https://mudblazor.com/)
+[![ORM: EF Core 10](https://img.shields.io/badge/ORM-EF_Core_10-22c55e.svg?style=for-the-badge)](https://learn.microsoft.com/ef/core/)
+[![NuGet](https://img.shields.io/nuget/v/Minimdev.CleanArchitecture.Template.svg?style=for-the-badge&logo=nuget&color=004880)](https://www.nuget.org/packages/Minimdev.CleanArchitecture.Template)
+[![Tests: 100% Passing](https://img.shields.io/badge/Tests-39%2F39_Passing-brightgreen.svg?style=for-the-badge)](tests)
 
 ---
 
-## 🏗️ Project Structure
+## ⚡ Quickstart (Get Running in 60 Seconds)
 
+Create a fully scaffolded, production-grade enterprise solution with a single CLI command:
+
+```bash
+# 1. Install template from NuGet
+dotnet new install Minimdev.CleanArchitecture.Template
+
+# 2. Scaffold your new enterprise solution
+dotnet new cleanarch -n MyCompany.OrderService -o MyCompany.OrderService
+
+# 3. Enter project and run
+cd MyCompany.OrderService
+dotnet build
 ```
+
+> **Prefer Visual Studio?** Open Visual Studio 2022/2026 ➔ **Create New Project** ➔ Search for **"Clean Architecture Solution"** ➔ Click **Create**. All namespaces and project references rename automatically!
+
+---
+
+## 🌟 Why Choose This Template?
+
+Most Clean Architecture templates offer bare-bones skeletons with legacy reflection and mock implementations. **Minimdev Clean Architecture** is built from the ground up to be an **enterprise workhorse** that you can immediately take to production:
+
+| Feature | Minimdev Clean Architecture v1.9.0 | Traditional Templates |
+|---|---|---|
+| **CQRS Dispatcher** | 🚀 **Source-Generated `Mediator`** (Compile-time, zero reflection, `ValueTask` zero-allocation, Native AOT ready) | 🐢 Reflection-heavy `MediatR` |
+| **Licensing** | 🛡️ **100% Free & Open Source (MIT)** — Zero royalty, no commercial license friction | ⚠️ MediatR v13+ dual-license / commercial keys |
+| **Pure Domain Layer** | 💎 **Zero External Package Dependencies** | ❌ Tied to 3rd-party `INotification` packages |
+| **Authorization** | 🔐 **Granular PBAC (Permission-Based Access Control)** with dynamic policy provider & UI matrix | ❌ Hardcoded string roles (`[Authorize(Roles = "Admin")]`) |
+| **Audit Trail** | 📜 **Automated JSON Property Diffing** (`OldValues` vs `NewValues`) with side-by-side WebUI diff modal | ❌ Basic timestamps only or none |
+| **In-App Notifications** | 🔔 **Reactive State Management** with instant badge pulse & MassTransit/Hangfire triggers | ❌ Missing or raw WebSockets without state |
+| **Interactive UI** | 🎨 **Modern MudBlazor Server** with Spotlight Command Palette (`Ctrl + K`), 6 theme presets, & breadcrumbs | ❌ Static Razor pages or no frontend |
+| **API Documentation** | 📄 **100% Offline Scalar OpenAPI UI** (`scalar.min.js` bundled locally for air-gapped intranets) | ❌ Swagger dependent on public CDN assets |
+| **Testing Pyramid** | 🧪 **39 Automated Tests** (Unit + SQLite In-Memory `WebApplicationFactory` Integration Tests) | ⚠️ Few or broken test suites |
+
+---
+
+## 🏛️ High-Level System Architecture
+
+This solution strictly adheres to **Clean Architecture (Onion / Hexagonal)** dependency rules. Outer layers depend inward; the core domain knows nothing about frameworks, databases, or UI.
+
+```text
+                     ┌───────────────────────────────────────────────┐
+                     │            CleanArchitecture.WebUI            │
+                     │          (Blazor Server + MudBlazor)          │
+                     └───────────────────────┬───────────────────────┘
+                                             │ HTTP REST Client
+                                             ▼
+                     ┌───────────────────────────────────────────────┐
+                     │            CleanArchitecture.WebAPI           │
+                     │        (REST Controllers, Scalar, OTel)       │
+                     └───┬───────────────┬───────────────┬───────┬───┘
+                         │               │               │       │
+                         ▼               ▼               ▼       ▼
+    ┌────────────────────────┐ ┌───────────────────┐ ┌─────────┐ ┌───────────┐
+    │ Persistence            │ │ Identity          │ │ Shared  │ │ Messaging │
+    │ (EF Core 10, UoW)      │ │ (PBAC, JWT, Roles)│ │ (Tasks) │ │ (Events)  │
+    └───────────┬────────────┘ └─────────┬─────────┘ └────┬────┘ └─────┬─────┘
+                │                        │                │            │
+                └────────────────────────┼────────────────┴────────────┘
+                                         │ Implements Interfaces & Handlers
+                                         ▼
+                     ┌───────────────────────────────────────────────┐
+                     │         CleanArchitecture.Application         │
+                     │     (CQRS, Source-Gen Mediator, Pipelines)    │
+                     └───────────────────────┬───────────────────────┘
+                                             │ Depends Inward Only
+                                             ▼
+                     ┌───────────────────────────────────────────────┐
+                     │            CleanArchitecture.Domain           │
+                     │      (Pure Entities & Events — 0 Packages)    │
+                     └───────────────────────────────────────────────┘
+```
+
+<details>
+<summary><b>📊 Click to view Mermaid Interactive Diagram</b></summary>
+
+```mermaid
+flowchart TD
+    WebUI["CleanArchitecture.WebUI<br/>(Blazor Server + MudBlazor)"] -->|"HTTP REST Client"| WebAPI["CleanArchitecture.WebAPI<br/>(Controllers, Scalar, OTel)"]
+
+    WebAPI --> Application["CleanArchitecture.Application<br/>(CQRS, Mediator, Pipelines)"]
+    WebAPI --> Persistence["CleanArchitecture.Infrastructure.Persistence<br/>(EF Core 10, Interceptors, UoW)"]
+    WebAPI --> Identity["CleanArchitecture.Infrastructure.Identity<br/>(ASP.NET Identity, PBAC, JWT)"]
+    WebAPI --> Shared["CleanArchitecture.Infrastructure.Shared<br/>(Settings, Notification, Hangfire)"]
+    WebAPI --> Messaging["CleanArchitecture.Infrastructure.Messaging<br/>(MassTransit Event Bus)"]
+
+    Persistence --> Application
+    Identity --> Application
+    Shared --> Application
+    Messaging --> Application
+
+    Persistence --> Domain["CleanArchitecture.Domain<br/>(Pure Entities, Events — 0 Packages)"]
+    Identity --> Domain
+    Shared --> Domain
+    Messaging --> Domain
+    Application --> Domain
+```
+
+</details>
+
+---
+
+## 🏗️ Solution Structure
+
+```text
 YourProject/
 ├── src/
 │   ├── Core/
-│   │   ├── YourProject.Domain/                        # Enterprise business rules & entities
-│   │   └── YourProject.Application/                   # Use cases, CQRS, validators, interfaces
+│   │   ├── YourProject.Domain/                        # 💎 Pure Domain: Entities, Value Objects, Domain Events (Zero Package Dependencies!)
+│   │   └── YourProject.Application/                   # ⚡ Application: CQRS Handlers, Pipeline Behaviours, FluentValidation, DTOs
 │   ├── Infrastructure/
-│   │   ├── YourProject.Infrastructure.Persistence/    # Data access (EF Core, migrations)
-│   │   ├── YourProject.Infrastructure.Identity/       # Authentication & JWT
-│   │   └── YourProject.Infrastructure.Shared/         # Shared services (email, datetime, etc.)
+│   │   ├── YourProject.Infrastructure.Persistence/    # 🗄️ EF Core 10, Multi-DbContext, AuditableEntityInterceptor, Repositories
+│   │   ├── YourProject.Infrastructure.Identity/       # 🔐 Identity: PBAC Engine, JWT TokenService, Refresh Token rotation
+│   │   ├── YourProject.Infrastructure.Shared/         # 🛠️ Shared Services: Dynamic AppSettings, In-App Notifications, Hangfire Jobs
+│   │   └── YourProject.Infrastructure.Messaging/      # 📨 MassTransit Event Bus: InMemory / RabbitMQ / ActiveMQ switchable
 │   └── Presentation/
-│       ├── YourProject.WebAPI/                        # REST API controllers, middleware, DI
-│       └── YourProject.WebUI/                         # Blazor Server interactive frontend
+│       ├── YourProject.WebAPI/                        # 🚀 REST API: Versioning, Offline Scalar UI, Rate Limiting, OpenTelemetry
+│       └── YourProject.WebUI/                         # 🎨 Blazor Server: MudBlazor UI, Command Palette (Ctrl+K), PBAC Matrix, Themes
 ├── tests/
-│   ├── YourProject.Domain.UnitTests/
-│   ├── YourProject.Application.UnitTests/
-│   └── YourProject.Application.IntegrationTests/
-├── docker-compose.yml
-├── Dockerfile
+│   ├── YourProject.Domain.UnitTests/                  # Domain invariant & business rule unit tests
+│   ├── YourProject.Application.UnitTests/             # CQRS handler & pipeline behavior tests
+│   └── YourProject.Application.IntegrationTests/     # End-to-end API tests with SQLite In-Memory (Zero SQL Server setup required!)
+├── docker-compose.yml                                 # Ready-to-run SQL Server, RabbitMQ, and API stack
+├── Dockerfile                                         # Multi-stage production container build
 ├── YourProject.sln
 └── README.md
 ```
 
 ---
 
-## ✨ Features
+## ✨ Core Feature Highlights
 
-### 🏛️ Architecture & Patterns
-- ✅ **Clean Architecture** — Clear layer separation with strict dependency rules *(see [Architecture Guide](docs/ARCHITECTURE.md))*
-- ✅ **CQRS** — Command Query Responsibility Segregation via MediatR
-- ✅ **Domain-Driven Design** — Rich domain models encapsulating business logic
-- ✅ **Repository Pattern** — Abstracted data access layer
-- ✅ **Result Pattern** — Consistent, explicit error handling without exceptions
+### ⚡ 1. Compile-Time Source-Generated CQRS (Mediator)
+* Powered by [`martinothamar/Mediator`](https://github.com/martinothamar/Mediator) under the **MIT License**.
+* **Zero Runtime Reflection:** Handler discovery and pipeline generation happen during compilation via Roslyn Source Generators.
+* **Low Allocation (`ValueTask`):** Handlers utilize `ValueTask<TResult>` to eliminate GC heap allocations on the hot path.
+* **Full Pipeline Behaviours:**
+  1. `IdempotencyBehaviour` — Short-circuits duplicate requests via `Idempotency-Key` HTTP headers.
+  2. `LoggingBehaviour` — Request logging and execution time tracking.
+  3. `ValidationBehaviour` — Automatic input validation using FluentValidation.
+  4. `DomainEventPublishingBehaviour` — Automatically dispatches domain events to MassTransit after database commit.
 
-### ⚙️ Technology Stack
-- ✅ **.NET 10** — Latest long-term support framework
-- ✅ **Blazor Server WebUI** — Interactive frontend with **MudBlazor** Material Design components
-- ✅ **MediatR v12.x** — In-process messaging for CQRS implementation
-- ✅ **Entity Framework Core 10** — Code-First ORM with full migration support
-- ✅ **SQL Server** — Separate databases for Application and Identity
-- ✅ **ASP.NET Core Identity** — User and role management
-- ✅ **JWT Bearer Authentication** — Stateless, secure API authentication
-- ✅ **Mapster v10.x** — High-performance object-to-object mapping
-- ✅ **FluentValidation** — Expressive and testable request validation
-- ✅ **Scalar UI** — Modern API documentation with JWT support *(fully offline — `scalar.min.js` is bundled as a local static file with proxy and telemetry disabled)*
-- ✅ **OpenTelemetry** — Distributed tracing and observability (Console + OTLP exporters)
-- ✅ **xUnit** — Unit and integration testing framework
+### 🔐 2. Enterprise PBAC Security (Permission-Based Access Control)
+* Replaces brittle role strings (`[Authorize(Roles = "Admin")]`) with granular permissions (`[HasPermission(Permissions.Products.Create)]`).
+* **Dynamic Policy Synthesis:** `PermissionPolicyProvider` registers authorization policies on-demand.
+* **Cached Evaluation:** `IPermissionService` caches permissions with `IMemoryCache` (15m TTL) with automatic invalidation.
+* **Claims Enrichment:** Permissions are baked directly into JWT access token claims for zero database overhead during requests.
+* **Superadmin Bypass:** Users in the `Admin` role automatically possess all system permissions.
+* **Interactive Matrix UI:** Manage role permissions dynamically from the Blazor WebUI without redeploying code.
 
-### 🚀 Key Capabilities
-- ✅ **Idempotency Key & Double-Submit Protection** — MediatR pipeline behaviour with `Idempotency-Key` header support to prevent duplicate transactions (e.g. double-clicks, network retries) with automatic caching and short-circuiting.
-- ✅ **Refresh Token** — Secure token rotation with `POST /api/v1/Auth/refresh` and revoke via `POST /api/v1/Auth/revoke`
-- ✅ **Integration Tests** — `WebApplicationFactory` with SQLite in-memory, no SQL Server required for testing
-- ✅ **Permission-Based Access Control (PBAC)** — Enterprise granular security model replacing static role strings with dynamic permission policies (`[HasPermission(...)]`), dynamic `IAuthorizationPolicyProvider`, cached role-permission mapping with `IMemoryCache`, superadmin bypass for `Admin`, and an interactive Role Permissions Matrix in Blazor WebUI.
-- ✅ **User Management & PBAC Dashboard** — Manage users, assign roles, and configure module permissions dynamically from the WebUI
-- ✅ **API Versioning** — Versioned endpoints (`/api/v1/...`) via URL segment & request header
-- ✅ **Rate Limiting** — Built-in ASP.NET Core rate limiting (global & auth-specific limits)
-- ✅ **Response Caching** — Output caching configured for GET endpoints
-- ✅ **Background Jobs** — Hangfire integration with SQL Server storage & `/hangfire` dashboard
-- ✅ **Message Bus (MassTransit)** — Async messaging with switchable transports: **InMemory** (default), **RabbitMQ**, **ActiveMQ** — enabled via single config line
-- ✅ **Resilience (Polly)** — Retry and circuit-breaker policies via `Microsoft.Extensions.Http.Resilience`
-- ✅ **Email Service** — `IEmailService` abstraction with built-in `SmtpEmailService` implementation
-- ✅ **Audit Trail System** — Comprehensive database mutation tracking into a dedicated `AuditLogs` table capturing Created, Updated, and Deleted actions with JSON property diffs (OldValues vs NewValues), affected columns, user metadata, and an interactive timeline WebUI with side-by-side diff comparison.
-- ✅ **Dynamic App Settings & Feature Flags** — Centralized runtime configuration stored in the database with in-memory caching (`IMemoryCache`), automatic fallback to `IConfiguration` (`appsettings.json`), read-only guards, automatic audit tracking, and an interactive Blazor WebUI admin panel for runtime adjustments without redeployment.
-- ✅ **In-App Notification System** — Event-driven notification framework with `INotificationService` supporting targeted user notifications and system-wide broadcasts (integrated with MassTransit consumers and Hangfire background jobs), with real-time-like polling, unread count badges, and an interactive glassmorphism slide-down notification panel in Blazor WebUI.
-- ✅ **Soft Delete** — Global EF Core query filters for logical record deletion
-- ✅ **Health Checks** — Database connectivity monitoring endpoint
-- ✅ **Global Exception Handling** — Centralized middleware for consistent error responses
-- ✅ **CORS Support** — Configurable cross-origin resource sharing
-- ✅ **Docker Support** — Containerization-ready with `Dockerfile` and `docker-compose.yml`
-- ✅ **Visual Studio 2022 & 2026** — Full IDE support via the New Project dialog
-- ✅ **.editorconfig** — Comprehensive code style and formatting rules
+### 📜 3. Automated Audit Trail & Side-by-Side Diffing
+* EF Core `AuditableEntityInterceptor` monitors entity state changes inside `ApplicationDbContext`.
+* Captures user metadata (`UserId`, `UserName`), timestamps, affected columns, and full **JSON property snapshots (`OldValues` vs `NewValues`)**.
+* Interactive WebUI modal provides side-by-side color-coded visual diff comparison for compliance and forensic auditing.
 
----
+### 🔔 4. Centralized Reactive Notification Framework
+* Unified in-app notification system supporting targeted personal alerts (`UserId`) and system-wide broadcast alerts.
+* Built-in event-driven dispatching via MassTransit consumers and Hangfire background jobs.
+* WebUI `NotificationStateService` provides instant reactive badge updates, pulse animations, and optimistic mark-as-read.
 
-## 📦 Using as a Template
+### 🛠️ 5. Dynamic Runtime App Settings & Feature Flags
+* System settings stored in the database, queryable via `DbAppSettingsService`.
+* In-memory cached with graceful fallback to `IConfiguration` (`appsettings.json`).
+* Modify settings and toggle feature flags live from the WebUI admin dashboard without application restarts.
 
-### Install from NuGet
+### 🎨 6. Modern MudBlazor Enterprise Shell
+* **Spotlight Command Palette (`Ctrl + K` / `Cmd + K`):** Instant keyboard navigation across menus, features, docs, and quick actions.
+* **Dynamic Route Breadcrumbs:** Auto-generated hierarchy bar for navigation context.
+* **6 Enterprise Theme Presets:** Cobalt Blue, Emerald Green, Indigo Night, Deep Purple, Amber Sunset, and Crimson Red.
+* **Shared Component Library:** Enterprise-grade reusable components (`PageHeader`, `EmptyState`, `ConfirmDeleteDialog`, `TableSkeleton`, `StatCard`).
+* **Catalog View Switcher:** Instant toggle between interactive Grid Cards and structured Data Table views.
 
-```bash
-dotnet new install Minimdev.CleanArchitecture.Template
-```
-
-### Create a New Project
-
-#### Via CLI
-
-```bash
-# Syntax: dotnet new cleanarch -n [YourProjectName] -o [OutputDirectory]
-dotnet new cleanarch -n MyProject -o MyProject
-```
-
-**What happens automatically on project creation:**
-
-| Original | Replaced With |
-|---|---|
-| `CleanArchitecture.Domain` | `MyProject.Domain` |
-| `namespace CleanArchitecture.Domain` | `namespace MyProject.Domain` |
-| `src/Core/CleanArchitecture.Domain/` | `src/Core/MyProject.Domain/` |
-
-#### Via Visual Studio 2022 / 2026
-
-1. Open **Visual Studio 2022** or **Visual Studio 2026**
-2. Click **Create a new project**
-3. Search for **"Clean Architecture Solution"**
-4. Select the template, enter your project name → **Create**
-
-> The template automatically renames **all** projects and namespaces to match your chosen project name.
-
-### Uninstall Template
-
-```bash
-dotnet new uninstall Minimdev.CleanArchitecture.Template
-```
+### 📄 7. Offline Scalar OpenAPI Documentation
+* Modern interactive API explorer available at `/scalar/v1`.
+* **100% Offline:** The JavaScript bundle (`scalar.min.js`) is served locally from `WebAPI/wwwroot`, ensuring complete reliability in isolated intranets, air-gapped networks, or secure enterprise VPCs.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start Guide
 
-### A. Template User (Generated Project)
+### Prerequisites
+* [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+* SQL Server (Local, Express, or Docker)
+* Visual Studio 2022/2026, VS Code, or Rider
 
-After creating your project from the template (`dotnet new cleanarch -n MyProject`), replace `MyProject` with your actual project name in the steps below.
-
-#### Prerequisites
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- SQL Server or SQL Server Express
-- Visual Studio 2022 / 2026, or VS Code
-
-#### Setup Steps
-
-**1. Update connection strings**
-
-Edit `src/Presentation/MyProject.WebAPI/appsettings.Development.json`:
+### Step 1: Configure Connection Strings
+In `src/Presentation/YourProject.WebAPI/appsettings.json`:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection":  "Server=localhost;Database=MyProjectDB;Trusted_Connection=True;TrustServerCertificate=True;",
-    "IdentityConnection": "Server=localhost;Database=MyProjectIdentityDB;Trusted_Connection=True;TrustServerCertificate=True;",
-    "HangfireConnection": "Server=localhost;Database=MyProjectHangfireDB;Trusted_Connection=True;TrustServerCertificate=True;"
+    "DefaultConnection": "Server=localhost;Database=CleanArchitectureDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true",
+    "IdentityConnection": "Server=localhost;Database=CleanArchitectureIdentityDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true",
+    "HangfireConnection": "Server=localhost;Database=CleanArchitectureHangfireDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
   }
 }
 ```
 
-**2. Apply database migrations**
+> **Using Docker SQL Server or Linux/macOS?**  
+> Simply change `Trusted_Connection=True;` to `User Id=sa;Password=Your_password123;`.
+
+### Step 2: Apply Database Migrations
+Run the migrations for both the Application and Identity databases:
 
 ```bash
-# Application DB
+# Update Application Database (Products, AuditLogs, AppSettings, Notifications)
 dotnet ef database update \
-  --project "src/Infrastructure/MyProject.Infrastructure.Persistence" \
-  --startup-project "src/Presentation/MyProject.WebAPI" \
+  --project "src/Infrastructure/YourProject.Infrastructure.Persistence" \
+  --startup-project "src/Presentation/YourProject.WebAPI" \
   --context ApplicationDbContext
 
-# Identity DB
+# Update Identity Database (Users, Roles, RolePermissions, RefreshTokens)
 dotnet ef database update \
-  --project "src/Infrastructure/MyProject.Infrastructure.Identity" \
-  --startup-project "src/Presentation/MyProject.WebAPI" \
+  --project "src/Infrastructure/YourProject.Infrastructure.Identity" \
+  --startup-project "src/Presentation/YourProject.WebAPI" \
   --context IdentityDbContext
 ```
 
-**3. Run the application**
+### Step 3: Run the Solution
+Launch both the WebAPI and WebUI:
 
 ```bash
-dotnet run --project "src/Presentation/MyProject.WebAPI"
+# Terminal 1: Run WebAPI
+dotnet run --project "src/Presentation/YourProject.WebAPI"
+
+# Terminal 2: Run WebUI (Blazor)
+dotnet run --project "src/Presentation/YourProject.WebUI"
 ```
 
-**4. Access the application**
-
-| URL | Description |
-|---|---|
-| `https://localhost:{port}/scalar/v1` | Scalar API Documentation |
-| `https://localhost:{port}/health` | Health Check |
-| `https://localhost:{port}/hangfire` | Hangfire Job Dashboard |
-
-> [!NOTE]
-> The port number depends on how you run the application:
-> - **CLI (`dotnet run`)** — port is defined in `Properties/launchSettings.json` (default: `7253` for HTTPS, `5022` for HTTP)
-> - **Visual Studio 2022 / 2026** — Visual Studio may assign a different port automatically based on the selected launch profile. Check the **Output** window or browser tab opened by VS for the actual URL.
-> - To always use a fixed port, set `applicationUrl` explicitly in `launchSettings.json`.
+### Step 4: Explore the Applications
+* **Blazor WebUI:** `http://localhost:5263`
+  * Default Admin: `admin@localhost` / `Admin123!`
+  * Default Member: `member@localhost` / `Member123!`
+* **WebAPI (Default HTTP `http://localhost:5136`):**
+  * **Scalar API Docs:** `http://localhost:5136/scalar/v1`
+  * **Hangfire Dashboard:** `http://localhost:5136/hangfire`
+  * **Health Checks:** `http://localhost:5136/health`
+  * *(Note: If launched with HTTPS profile `--launch-profile https`, use `https://localhost:7253/...`)*
 
 ---
 
-### B. Contributor (Template Source)
+## 📖 API Endpoints Reference
 
-> This section is for contributors who want to develop or modify the template itself.
+### 🔐 Authentication
+| Method | Endpoint | Description | Rate Limit |
+|---|---|---|---|
+| `POST` | `/api/v1/Auth/register` | Register new user account | 10 req/min |
+| `POST` | `/api/v1/Auth/login` | Login, returns access token + refresh token | 10 req/min |
+| `POST` | `/api/v1/Auth/refresh` | Rotate expired access token with valid refresh token | 10 req/min |
+| `POST` | `/api/v1/Auth/revoke` | Revoke refresh token and invalidate session | Global |
 
-**1. Clone the repository**
-
-```bash
-git clone https://github.com/MinimDev/dotnet-clean-architecture-template.git
-cd dotnet-clean-architecture-template
-```
-
-**2. Update connection strings**
-
-Edit `src/Presentation/CleanArchitecture.WebAPI/appsettings.Development.json` with your local SQL Server details.
-
-**3. Apply migrations**
-
-```bash
-dotnet ef database update \
-  --project "src/Infrastructure/CleanArchitecture.Infrastructure.Persistence" \
-  --startup-project "src/Presentation/CleanArchitecture.WebAPI" \
-  --context ApplicationDbContext
-
-dotnet ef database update \
-  --project "src/Infrastructure/CleanArchitecture.Infrastructure.Identity" \
-  --startup-project "src/Presentation/CleanArchitecture.WebAPI" \
-  --context IdentityDbContext
-```
-
-**4. Run**
-
-```bash
-dotnet run --project "src/Presentation/CleanArchitecture.WebAPI"
-```
-
----
-
-## 📖 API Endpoints
-
-### Authentication
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/Auth/register` | Register a new user — returns `accessToken` + `refreshToken` |
-| `POST` | `/api/v1/Auth/login` | Login — returns `accessToken` + `refreshToken` *(Rate limited: 10 req/min)* |
-| `POST` | `/api/v1/Auth/refresh` | Exchange a valid refresh token for new token pair |
-| `POST` | `/api/v1/Auth/revoke` | Revoke refresh token (logout) *(Requires Auth)* |
-
-### Products *(Requires Authentication & Permission)*
-
+### 📦 Products (Catalog Module)
 | Method | Endpoint | Description | Required Permission |
-|--------|----------|-------------|---------------------|
-| `GET`    | `/api/v1/Products`      | Get paginated list *(Output Cached: 30s)* | `Permissions.Products.View` |
-| `GET`    | `/api/v1/Products/{id}` | Get product by ID *(Output Cached: 60s)* | `Permissions.Products.View` |
-| `POST`   | `/api/v1/Products`      | Create a new product | `Permissions.Products.Create` |
-| `PUT`    | `/api/v1/Products/{id}` | Update an existing product | `Permissions.Products.Edit` |
-| `DELETE` | `/api/v1/Products/{id}` | Delete a product | `Permissions.Products.Delete` |
+|---|---|---|---|
+| `GET` | `/api/v1/Products` | Paginated product list *(Output Cached: 30s)* | `Permissions.Products.View` |
+| `GET` | `/api/v1/Products/{id}` | Get product details by ID | `Permissions.Products.View` |
+| `POST` | `/api/v1/Products` | Create product *(Supports `Idempotency-Key`)* | `Permissions.Products.Create` |
+| `PUT` | `/api/v1/Products/{id}` | Update product details | `Permissions.Products.Edit` |
+| `DELETE` | `/api/v1/Products/{id}` | Logical soft-delete of product | `Permissions.Products.Delete` |
 
-### Users & Permissions (PBAC) *(Requires Authentication & Permission)*
-
+### 👥 Users & PBAC Authorization
 | Method | Endpoint | Description | Required Permission |
-|--------|----------|-------------|---------------------|
-| `GET` | `/api/v1/Users` | Get list of all users and their assigned roles | `Permissions.Users.View` |
-| `PUT` | `/api/v1/Users/{email}/roles` | Update assigned role for a user | `Permissions.Users.ManageRoles` |
-| `GET` | `/api/v1/Users/permissions` | Get all system permissions grouped by module | `Permissions.Users.View` |
-| `GET` | `/api/v1/Users/roles/{roleName}/permissions` | Get active permissions for a specific role | `Permissions.Users.View` |
-| `PUT` | `/api/v1/Users/roles/{roleName}/permissions` | Update permissions assigned to a role | `Permissions.Users.ManagePermissions` |
+|---|---|---|---|
+| `GET` | `/api/v1/Users` | List all registered users and assigned roles | `Permissions.Users.View` |
+| `PUT` | `/api/v1/Users/{email}/roles` | Assign role to user | `Permissions.Users.ManageRoles` |
+| `GET` | `/api/v1/Users/permissions` | Retrieve all system permissions grouped by module | `Permissions.Users.View` |
+| `GET` | `/api/v1/Users/roles/{role}/permissions` | Get active permissions for role | `Permissions.Users.View` |
+| `PUT` | `/api/v1/Users/roles/{role}/permissions` | Update permissions assigned to role | `Permissions.Users.ManagePermissions` |
 
-### Dynamic App Settings *(Requires Authentication & Permission)*
-
+### ⚙️ App Settings & Feature Flags
 | Method | Endpoint | Description | Required Permission |
-|--------|----------|-------------|---------------------|
-| `GET` | `/api/v1/AppSettings` | Get all configuration settings (filterable by group) | `Permissions.AppSettings.View` |
+|---|---|---|---|
+| `GET` | `/api/v1/AppSettings` | Get all configuration settings | `Permissions.AppSettings.View` |
 | `GET` | `/api/v1/AppSettings/{key}` | Get setting details by key | `Permissions.AppSettings.View` |
-| `PUT` | `/api/v1/AppSettings/{key}` | Update setting value | `Permissions.AppSettings.Edit` |
+| `PUT` | `/api/v1/AppSettings/{key}` | Update runtime setting value | `Permissions.AppSettings.Edit` |
 
-### In-App Notifications *(Requires Authentication)*
-
+### 🔔 In-App Notifications
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/v1/Notifications` | Get paginated list of user and broadcast notifications |
-| `GET` | `/api/v1/Notifications/unread-count` | Get unread notification counter |
-| `PATCH` | `/api/v1/Notifications/{id}/read` | Mark a specific notification as read |
+|---|---|---|
+| `GET` | `/api/v1/Notifications` | Get paginated user notifications |
+| `GET` | `/api/v1/Notifications/unread-count` | Get total unread notifications count |
+| `PATCH` | `/api/v1/Notifications/{id}/read` | Mark single notification as read |
 | `PATCH` | `/api/v1/Notifications/read-all` | Mark all notifications as read |
 
-### Audit Logs *(Requires Authentication & Permission)*
-
+### 📜 Audit Logs
 | Method | Endpoint | Description | Required Permission |
-|--------|----------|-------------|---------------------|
-| `GET` | `/api/v1/AuditLogs` | Query audit trail with entity, action, date, & user filters | `Permissions.AuditLogs.View` |
-
-### Background Jobs *(Requires Authentication)*
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/Jobs/fire-and-forget` | Enqueue an immediate background task |
-| `POST` | `/api/v1/Jobs/delayed`         | Schedule a delayed background task |
-| `POST` | `/api/v1/Jobs/recurring`       | Register a CRON-based recurring task |
-| `POST` | `/api/v1/Jobs/recurring/trigger` | Trigger the daily recurring task immediately |
-
-**Hangfire Dashboard:** `https://localhost:7253/hangfire`
-
-### Authenticating in Scalar UI
-
-1. Open Scalar UI at `https://localhost:{port}/scalar/v1`
-2. Call `POST /api/v1/Auth/login` and copy the returned `accessToken`
-3. In **Scalar UI**, click **Authentication** → **Bearer Token** → paste your `accessToken`
-
-> [!NOTE]
-> Access tokens expire in **15 minutes** by default. Use `POST /api/v1/Auth/refresh` to get a new pair without logging in again.
+|---|---|---|---|
+| `GET` | `/api/v1/AuditLogs` | Filterable mutation audit trail (Entity, Action, Date, User) | `Permissions.AuditLogs.View` |
 
 ---
 
-## 🐳 Docker Support
+## 🛠️ How to Add a New Feature (CQRS Guide)
 
-```bash
-# Build and start all services (API + SQL Server)
-docker-compose up -d
+Adding a use case takes just 4 straightforward steps:
 
-# Stop and remove containers
-docker-compose down
-```
-
-The API will be available at `http://localhost:8080`.
-
----
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-dotnet test
-
-# Run with detailed output
-dotnet test --logger "console;verbosity=detailed"
-```
-
----
-
-## 🔧 Configuration Reference
-
-Key sections in `appsettings.json`:
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection":  "Server=localhost;Database=CleanArchitectureDb;Trusted_Connection=True;TrustServerCertificate=True;",
-    "IdentityConnection": "Server=localhost;Database=CleanArchitectureIdentityDb;Trusted_Connection=True;TrustServerCertificate=True;",
-    "HangfireConnection": "Server=localhost;Database=CleanArchitectureHangfireDb;Trusted_Connection=True;TrustServerCertificate=True;"
-  },
-  "Jwt": {
-    "Secret": "your-very-strong-secret-key-min-32-chars",
-    "Issuer": "CleanArchitecture",
-    "Audience": "CleanArchitectureUsers",
-    "AccessTokenExpiryMinutes": 15,
-    "RefreshTokenExpiryDays": 7
-  },
-  "Cors": {
-    "AllowedOrigins": ["http://localhost:3000", "https://localhost:5001"]
-  },
-  "RateLimiting": {
-    "WindowSeconds": 60,
-    "PermitLimit": 100,
-    "Auth": {
-      "WindowSeconds": 60,
-      "PermitLimit": 10
-    }
-  },
-  "Email": {
-    "Host": "smtp.gmail.com",
-    "Port": 587,
-    "EnableSsl": true,
-    "UserName": "your-email@gmail.com",
-    "Password": "your-app-password",
-    "From": "your-email@gmail.com",
-    "DisplayName": "Clean Architecture App"
-  }
-}
-```
-
-**Recommended environment variables for production overrides:**
-
-```bash
-ConnectionStrings__DefaultConnection
-ConnectionStrings__IdentityConnection
-ConnectionStrings__HangfireConnection
-Jwt__Secret
-Email__Password
-```
-
----
-
-## 📝 Adding New Features
-
-### 1. Create Entity (Domain Layer)
-
+### 1. Create Pure Entity (Domain)
 ```csharp
-// src/Core/CleanArchitecture.Domain/Entities/YourEntity.cs
-public class YourEntity : BaseAuditableEntity, ISoftDeletable
+// src/Core/YourProject.Domain/Entities/Customer.cs
+public class Customer : BaseAuditableEntity, ISoftDeletable
 {
     public string Name { get; private set; } = string.Empty;
+    public string Email { get; private set; } = string.Empty;
 
-    public static YourEntity Create(string name) =>
-        new YourEntity { Name = name };
+    public static Customer Create(string name, string email)
+        => new Customer { Name = name, Email = email };
 }
 ```
 
-### 2. Add Command & Handler (Application Layer)
-
+### 2. Define Command & Handler (Application)
 ```csharp
-// Command
-public record CreateYourEntityCommand(string Name) : IRequest<Result<Guid>>;
+// src/Core/YourProject.Application/Features/Customers/Commands/CreateCustomer/CreateCustomerCommand.cs
+using Mediator;
+using CleanArchitecture.Application.Common.Models;
 
-// Handler
-public class CreateYourEntityCommandHandler
-    : IRequestHandler<CreateYourEntityCommand, Result<Guid>>
+public record CreateCustomerCommand(string Name, string Email) : IRequest<Result<Guid>>;
+
+public class CreateCustomerCommandHandler : IRequestHandler<CreateCustomerCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
-    public CreateYourEntityCommandHandler(IApplicationDbContext context)
-        => _context = context;
+    public CreateCustomerCommandHandler(IApplicationDbContext context) => _context = context;
 
-    public async Task<Result<Guid>> Handle(CreateYourEntityCommand request, CancellationToken ct)
+    public async ValueTask<Result<Guid>> Handle(CreateCustomerCommand request, CancellationToken ct)
     {
-        var entity = YourEntity.Create(request.Name);
-        _context.YourEntities.Add(entity);
+        var customer = Customer.Create(request.Name, request.Email);
+        _context.Customers.Add(customer);
         await _context.SaveChangesAsync(ct);
-        return Result<Guid>.Success(entity.Id);
+        return Result<Guid>.Success(customer.Id);
     }
 }
 ```
 
-### 3. Configure Mapping (Application Layer)
-
-Mapster is configured to auto-scan for `IRegister` implementations — simply create the class and it will be picked up automatically.
-
+### 3. Expose via Controller (Presentation)
 ```csharp
-// src/Core/CleanArchitecture.Application/Features/YourFeature/Mappings/YourEntityMapping.cs
-public class YourEntityMapping : IRegister
-{
-    public void Register(TypeAdapterConfig config)
-    {
-        config.NewConfig<YourEntity, YourEntityDto>()
-            .Map(dest => dest.CustomProperty, src => src.Calculation())
-            .IgnoreNullValues(true);
-    }
-}
-```
+// src/Presentation/YourProject.WebAPI/Controllers/CustomersController.cs
+using Mediator;
 
-### 4. Create Controller (Presentation Layer)
-
-```csharp
-[ApiController]
-[Route("api/v{version:apiVersion}/[controller]")]
-[ApiVersion("1.0")]
 [Authorize]
-public class YourController : ControllerBase
+[ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
+public class CustomersController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public YourController(IMediator mediator) => _mediator = mediator;
+    public CustomersController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateYourEntityCommand command)
+    [HasPermission(Permissions.Customers.Create)]
+    public async Task<IActionResult> Create([FromBody] CreateCustomerCommand command)
     {
         var result = await _mediator.Send(command);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
@@ -465,165 +371,76 @@ public class YourController : ControllerBase
 }
 ```
 
-### 5. Add MassTransit Consumer (Messaging Layer)
-
-Example: React to domain events published **automatically** by the MediatR pipeline `DomainEventPublishingBehaviour` after entities are committed to the database:
-
+### 4. Switchable Messaging (Optional)
+If you need asynchronous reactions, MassTransit will automatically discover and register your consumers:
 ```csharp
-// src/Infrastructure/YourProject.Infrastructure.Messaging/Consumers/YourEntityCreatedConsumer.cs
-public sealed class YourEntityCreatedConsumer : IConsumer<YourEntityCreatedEvent>
+public sealed class CustomerCreatedConsumer : IConsumer<CustomerCreatedEvent>
 {
-    private readonly IBackgroundJobClient _hangfire;
-    private readonly ILogger<YourEntityCreatedConsumer> _logger;
-
-    public YourEntityCreatedConsumer(IBackgroundJobClient hangfire, ILogger<YourEntityCreatedConsumer> logger)
+    public Task Consume(ConsumeContext<CustomerCreatedEvent> context)
     {
-        _hangfire = hangfire;
-        _logger = logger;
-    }
-
-    public Task Consume(ConsumeContext<YourEntityCreatedEvent> context)
-    {
-        _logger.LogInformation("Received: {Id}", context.Message.EntityId);
-
-        // Handoff to Hangfire for heavy background tasks (retry-able, persistent)
-        // _hangfire.Enqueue<INotificationService>(s =>
-        //     s.SendCreatedNotificationAsync(context.Message.EntityId, CancellationToken.None));
-
+        // React asynchronously (e.g., send welcome email)
         return Task.CompletedTask;
     }
 }
 ```
 
-> **Auto-discovery:** MassTransit will automatically discover and register all `IConsumer<T>` classes located in the `Infrastructure.Messaging` project — no manual registration required. Any entity registering events via `AddDomainEvent()` will have them published automatically without additional handler code!
+---
 
-### 6. Switch Message Transport
+## 🐳 Docker Stack
 
-Change a single configuration value in `appsettings.json`:
+Spin up the entire solution including SQL Server and the WebAPI with a single command:
 
-```json
-{
-  "MassTransit": {
-    "Transport": "RabbitMQ"  // InMemory | RabbitMQ | ActiveMQ
-  }
-}
-```
-
-Or configure via environment variables:
 ```bash
-MassTransit__Transport=RabbitMQ
-MassTransit__RabbitMQ__Host=my-rabbit-server
+# Start all containers in the background
+docker-compose up -d
+
+# Check running status
+docker-compose ps
+
+# Stop containers
+docker-compose down
 ```
 
-### 7. Add Background Job (Hangfire)
-
-Hangfire enables you to execute reliable background jobs (such as sending emails, generating reports, running batch tasks, etc.) asynchronously outside the primary HTTP request lifecycle.
-
-**1. Define Job Interface (Application Layer)**
-```csharp
-// src/Core/CleanArchitecture.Application/Common/Interfaces/Jobs/IMyBackgroundJob.cs
-public interface IMyBackgroundJob
-{
-    Task ExecuteAsync(string data, CancellationToken cancellationToken);
-}
-```
-
-**2. Implement Background Job (Infrastructure Layer)**
-```csharp
-// src/Infrastructure/CleanArchitecture.Infrastructure.Shared/Jobs/MyBackgroundJob.cs
-public class MyBackgroundJob : IMyBackgroundJob
-{
-    private readonly ILogger<MyBackgroundJob> _logger;
-    // Inject any required services here (e.g., IApplicationDbContext)
-
-    public MyBackgroundJob(ILogger<MyBackgroundJob> logger) => _logger = logger;
-
-    public async Task ExecuteAsync(string data, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Processing data: {Data}", data);
-        await Task.Delay(1000, cancellationToken); // Simulate background work
-    }
-}
-```
-
-**3. Register in Dependency Injection**
-```csharp
-// src/Infrastructure/CleanArchitecture.Infrastructure.Shared/DependencyInjection.cs
-services.AddTransient<IMyBackgroundJob, MyBackgroundJob>();
-```
-
-**4. Schedule or Enqueue the Job (Presentation Layer or CQRS Handler)**
-```csharp
-// Inside an API Controller or MediatR Command Handler
-private readonly IBackgroundJobClient _backgroundJobClient;
-
-// ...
-_backgroundJobClient.Enqueue<IMyBackgroundJob>(job => 
-    job.ExecuteAsync("Hello Hangfire", CancellationToken.None));
-```
+The WebAPI will be reachable at `http://localhost:8080`.
 
 ---
 
-## 🔒 Security Checklist (Before Production)
+## 🧪 Automated Testing
 
-> **⚠️ Do not deploy with default development settings.**
+The template comes equipped with a comprehensive 3-tier testing pyramid:
 
-- [ ] **Change JWT Secret** — Use a cryptographically strong secret (min 32 characters)
-- [ ] **Update Connection Strings** — Use secure, dedicated production database credentials
-- [ ] **Enable HTTPS** — Ensure TLS is properly configured and enforce HTTPS redirection
-- [ ] **Restrict CORS Origins** — Allow only known, trusted origins
-- [ ] **Review Password Policies** — Customize in `Infrastructure.Identity/DependencyInjection.cs`
-- [ ] **Secure Hangfire Dashboard** — Restrict access to authenticated admin users only
-- [ ] **Rotate Secrets Regularly** — Implement a secrets management strategy (e.g., Azure Key Vault)
+```bash
+# Run all 39 tests across Domain, Application, and Integration suites
+dotnet test
 
----
+# Run tests with detailed test execution report
+dotnet test --logger "console;verbosity=detailed"
+```
 
-## 📚 Architecture Overview
-
-| Layer | Project Suffix | Responsibility |
-|-------|---------------|----------------|
-| **Domain** | `*.Domain` | Entities, value objects, domain events, business rules |
-| **Application** | `*.Application` | Use cases, CQRS handlers, validators, interfaces, message contracts |
-| **Persistence** | `*.Infrastructure.Persistence` | EF Core, DbContext, migrations, repositories |
-| **Identity** | `*.Infrastructure.Identity` | ASP.NET Core Identity, JWT token service |
-| **Shared** | `*.Infrastructure.Shared` | Cross-cutting services (email, datetime, background queue) |
-| **Messaging** | `*.Infrastructure.Messaging` | MassTransit bus, consumers, transport configuration |
-| **WebAPI** | `*.WebAPI` | REST controllers, middleware pipeline, DI configuration |
-| **WebUI** | `*.WebUI` | Blazor Server interactive frontend |
+> **Zero Database Required for Tests:** Integration tests use `CustomWebApplicationFactory` with SQLite in-memory, allowing full end-to-end HTTP request testing inside CI/CD pipelines without provisioning external database servers.
 
 ---
 
-## 🤝 Contributing
+## 📦 Publishing the NuGet Template
 
-Contributions are very welcome! Please follow the steps below:
+To pack and publish this template to NuGet:
 
-1. **Fork** the repository
-2. **Create** your feature branch: `git checkout -b feature/AmazingFeature`
-3. **Commit** your changes: `git commit -m 'feat: add amazing feature'`
-4. **Push** to the branch: `git push origin feature/AmazingFeature`
-5. **Open** a Pull Request on [GitHub](https://github.com/MinimDev/dotnet-clean-architecture-template)
+```powershell
+# Using the automated publishing script
+.\publish.ps1 -ApiKey "your-nuget-api-key"
+```
 
----
-
-## 📦 Release & Publishing Process
-
-Detailed guidelines for versioning, release management, and GitHub tag protection rules are documented in:
-👉 **[Release Process & Tag Protection Guide](docs/RELEASE_PROCESS.md)**
+For complete release workflow steps and GitHub tag protection policies, see the **[Release Process Guide](docs/RELEASE_PROCESS.md)**.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
+This project is licensed under the **MIT License** — you are free to use, modify, and distribute it for both open-source and commercial enterprise projects without royalty or restriction. See [LICENSE](LICENSE) for details.
 
 ---
 
-## 🙏 Acknowledgments
-
-- [Clean Architecture](https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html) by **Robert C. Martin (Uncle Bob)**
-- [Ardalis CleanArchitecture](https://github.com/ardalis/CleanArchitecture) by **Steve Smith**
-- [Jason Taylor's CleanArchitecture](https://github.com/jasontaylordev/CleanArchitecture) by **Jason Taylor**
-
----
-
-**Built with ❤️ by [MinimDev](https://github.com/MinimDev)**
+<p align="center">
+  <b>Built with ❤️ by <a href="https://github.com/MinimDev">MinimDev</a></b><br/>
+  <i>Star ⭐ this repository if it helped accelerate your .NET development!</i>
+</p>

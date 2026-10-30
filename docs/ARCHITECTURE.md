@@ -17,7 +17,7 @@ This document describes the technical architecture, design principles, layer dep
    - [Presentation: WebAPI](#g-presentation--cleanarchitecturewebapi)
    - [Presentation: WebUI (Blazor Server)](#h-presentation--cleanarchitecturewebui)
 4. [Key Design Patterns & Cross-Cutting Concerns](#4-key-design-patterns--cross-cutting-concerns)
-   - [CQRS & MediatR Pipeline Behaviours](#a-cqrs--mediatr-pipeline-behaviours)
+   - [CQRS & Mediator Pipeline Behaviours](#a-cqrs--mediator-pipeline-behaviours)
    - [Audit Trail & Mutation Diffing Interceptor](#b-audit-trail--mutation-diffing-interceptor)
    - [Permission-Based Access Control (PBAC) Engine](#c-permission-based-access-control-pbac-engine)
    - [Dynamic Runtime App Settings & Feature Flags](#d-dynamic-runtime-app-settings--feature-flags)
@@ -44,33 +44,65 @@ This solution is designed following the tenets of **Clean Architecture (Onion / 
 
 ## 2. Solution Diagram & Dependency Rules
 
-```mermaid
-graph TD
-    classDef ui fill:#4a154b,stroke:#e01e5a,stroke-width:2px,color:#fff;
-    classDef api fill:#0f4c81,stroke:#2d9cdb,stroke-width:2px,color:#fff;
-    classDef app fill:#1b4d3e,stroke:#27ae60,stroke-width:2px,color:#fff;
-    classDef domain fill:#7d3c98,stroke:#bb8fce,stroke-width:2px,color:#fff;
-    classDef infra fill:#784212,stroke:#f39c12,stroke-width:2px,color:#fff;
+```text
+                     ┌───────────────────────────────────────────────┐
+                     │            CleanArchitecture.WebUI            │
+                     │          (Blazor Server + MudBlazor)          │
+                     └───────────────────────┬───────────────────────┘
+                                             │ HTTP REST Client
+                                             ▼
+                     ┌───────────────────────────────────────────────┐
+                     │            CleanArchitecture.WebAPI           │
+                     │        (REST Controllers, Scalar, OTel)       │
+                     └───┬───────────────┬───────────────┬───────┬───┘
+                         │               │               │       │
+                         ▼               ▼               ▼       ▼
+    ┌────────────────────────┐ ┌───────────────────┐ ┌─────────┐ ┌───────────┐
+    │ Persistence            │ │ Identity          │ │ Shared  │ │ Messaging │
+    │ (EF Core 10, UoW)      │ │ (PBAC, JWT, Roles)│ │ (Tasks) │ │ (Events)  │
+    └───────────┬────────────┘ └─────────┬─────────┘ └────┬────┘ └─────┬─────┘
+                │                        │                │            │
+                └────────────────────────┼────────────────┴────────────┘
+                                         │ Implements Interfaces & Handlers
+                                         ▼
+                     ┌───────────────────────────────────────────────┐
+                     │         CleanArchitecture.Application         │
+                     │     (CQRS, Source-Gen Mediator, Pipelines)    │
+                     └───────────────────────┬───────────────────────┘
+                                             │ Depends Inward Only
+                                             ▼
+                     ┌───────────────────────────────────────────────┐
+                     │            CleanArchitecture.Domain           │
+                     │      (Pure Entities & Events — 0 Packages)    │
+                     └───────────────────────────────────────────────┘
+```
 
-    WebUI[CleanArchitecture.WebUI<br/>Blazor Server + MudBlazor]:::ui -->|HTTP REST Client| WebAPI[CleanArchitecture.WebAPI<br/>Controllers, Scalar, OTel]:::api
-    
-    WebAPI --> Application[CleanArchitecture.Application<br/>CQRS, Behaviours, Interfaces]:::app
-    WebAPI --> Persistence[CleanArchitecture.Infrastructure.Persistence<br/>EF Core, Interceptors, UoW]:::infra
-    WebAPI --> Identity[CleanArchitecture.Infrastructure.Identity<br/>ASP.NET Identity, PBAC, JWT]:::infra
-    WebAPI --> Shared[CleanArchitecture.Infrastructure.Shared<br/>Settings, Notification, Hangfire]:::infra
-    WebAPI --> Messaging[CleanArchitecture.Infrastructure.Messaging<br/>MassTransit]:::infra
+<details>
+<summary><b>📊 Click to view Mermaid Interactive Diagram</b></summary>
+
+```mermaid
+flowchart TD
+    WebUI["CleanArchitecture.WebUI<br/>(Blazor Server + MudBlazor)"] -->|"HTTP REST Client"| WebAPI["CleanArchitecture.WebAPI<br/>(Controllers, Scalar, OTel)"]
+
+    WebAPI --> Application["CleanArchitecture.Application<br/>(CQRS, Mediator, Pipelines)"]
+    WebAPI --> Persistence["CleanArchitecture.Infrastructure.Persistence<br/>(EF Core 10, Interceptors, UoW)"]
+    WebAPI --> Identity["CleanArchitecture.Infrastructure.Identity<br/>(ASP.NET Identity, PBAC, JWT)"]
+    WebAPI --> Shared["CleanArchitecture.Infrastructure.Shared<br/>(Settings, Notification, Hangfire)"]
+    WebAPI --> Messaging["CleanArchitecture.Infrastructure.Messaging<br/>(MassTransit Event Bus)"]
 
     Persistence --> Application
     Identity --> Application
     Shared --> Application
     Messaging --> Application
 
-    Persistence --> Domain[CleanArchitecture.Domain<br/>Entities, Events, Common]:::domain
+    Persistence --> Domain["CleanArchitecture.Domain<br/>(Pure Entities, Events — 0 Packages)"]
     Identity --> Domain
     Shared --> Domain
     Messaging --> Domain
     Application --> Domain
 ```
+
+</details>
 
 ---
 
@@ -91,7 +123,7 @@ The innermost layer with zero dependencies on third-party packages or other solu
 ### B. Core: [`CleanArchitecture.Application`](../src/Core/CleanArchitecture.Application)
 Defines application use cases and orchestrates business execution flow.
 - **CQRS Handlers:** Organized modularly under `Features/` (`AppSettings`, `AuditLogs`, `Notifications`, `Products`). Each feature contains dedicated `Commands/` and `Queries/`.
-- **Pipeline Behaviours (MediatR):** Intercepts every request consistently (Logging, Validation, Idempotency, Event Dispatching).
+- **Pipeline Behaviours (Mediator):** Intercepts every request consistently (Logging, Validation, Idempotency, Event Dispatching).
 - **Abstractions (Interfaces):**
   - [`IApplicationDbContext`](../src/Core/CleanArchitecture.Application/Common/Interfaces/IApplicationDbContext.cs) & [`IUnitOfWork`](../src/Core/CleanArchitecture.Application/Common/Interfaces/IUnitOfWork.cs): Transactional data access contracts.
   - [`IPermissionService`](../src/Core/CleanArchitecture.Application/Common/Interfaces/IPermissionService.cs): Granular permission evaluation contract.
@@ -149,12 +181,12 @@ Interactive enterprise frontend built with **Blazor Server** (.NET 10) and **Mud
 
 ## 4. Key Design Patterns & Cross-Cutting Concerns
 
-### A. CQRS & MediatR Pipeline Behaviours
+### A. CQRS & Mediator Pipeline Behaviours
 Request execution follows a consistent, decoupled pipeline:
 ```mermaid
 sequenceDiagram
     participant C as Controller / Client
-    participant M as MediatR Pipeline
+    participant M as Mediator Pipeline
     participant L as LoggingBehaviour
     participant I as IdempotencyBehaviour
     participant V as ValidationBehaviour
@@ -240,7 +272,7 @@ The solution cleanly decouples application domain data from security and backgro
 The solution includes a multi-layered testing pyramid utilizing **xUnit**, **FluentAssertions**, and **Moq**:
 
 1. **Domain Unit Tests ([`CleanArchitecture.Domain.UnitTests`](../tests/CleanArchitecture.Domain.UnitTests)):** Tests domain entity invariants, business rules, and domain event dispatching.
-2. **Application Unit Tests ([`CleanArchitecture.Application.UnitTests`](../tests/CleanArchitecture.Application.UnitTests)):** Tests FluentValidation rules, Mapster profiles, and MediatR handlers with mocked dependencies.
+2. **Application Unit Tests ([`CleanArchitecture.Application.UnitTests`](../tests/CleanArchitecture.Application.UnitTests)):** Tests FluentValidation rules, Mapster profiles, and CQRS handlers with mocked dependencies.
 3. **Integration Tests ([`CleanArchitecture.Application.IntegrationTests`](../tests/CleanArchitecture.Application.IntegrationTests)):**
    - Utilizes `Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`.
    - Uses **SQLite In-Memory** to replace SQL Server during automated test execution.
