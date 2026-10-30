@@ -1,7 +1,7 @@
-﻿using CleanArchitecture.Application.Common.Interfaces;
+using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
 using CleanArchitecture.Domain.Entities;
-using MediatR;
+using Mediator;
 
 namespace CleanArchitecture.Application.Features.Products.Commands.DeleteProduct;
 
@@ -14,7 +14,7 @@ public class DeleteProductCommandHandler : IRequestHandler<DeleteProductByIdComm
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> Handle(DeleteProductByIdCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(DeleteProductByIdCommand request, CancellationToken cancellationToken)
     {
         var product = await _unitOfWork.Repository<Product>().GetByIdAsync(request.Id, cancellationToken);
         if (product == null)

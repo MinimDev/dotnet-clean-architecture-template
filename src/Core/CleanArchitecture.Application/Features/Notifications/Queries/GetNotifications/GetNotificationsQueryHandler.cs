@@ -1,7 +1,7 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
 using CleanArchitecture.Application.Features.Notifications.DTOs;
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Application.Features.Notifications.Queries.GetNotifications;
@@ -22,7 +22,7 @@ public class GetNotificationsQueryHandler : IRequestHandler<GetNotificationsQuer
         _currentUserService = currentUserService;
     }
 
-    public async Task<Result<PaginatedList<NotificationDto>>> Handle(
+    public async ValueTask<Result<PaginatedList<NotificationDto>>> Handle(
         GetNotificationsQuery request,
         CancellationToken cancellationToken)
     {

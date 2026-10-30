@@ -1,7 +1,7 @@
 using System.Globalization;
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Application.Features.AppSettings.Commands.UpdateAppSetting;
@@ -23,7 +23,7 @@ public class UpdateAppSettingCommandHandler : IRequestHandler<UpdateAppSettingCo
         _context = context;
     }
 
-    public async Task<Result> Handle(UpdateAppSettingCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(UpdateAppSettingCommand request, CancellationToken cancellationToken)
     {
         try
         {

@@ -1,6 +1,6 @@
 using CleanArchitecture.Application.Common.Models;
 using CleanArchitecture.Domain.Enums;
-using MediatR;
+using Mediator;
 
 namespace CleanArchitecture.Application.Features.Products.Queries.GetProductsList;
 

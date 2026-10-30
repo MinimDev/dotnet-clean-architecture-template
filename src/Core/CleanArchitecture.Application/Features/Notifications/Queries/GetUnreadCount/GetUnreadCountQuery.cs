@@ -1,6 +1,6 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Application.Features.Notifications.Queries.GetUnreadCount;
@@ -26,7 +26,7 @@ public class GetUnreadCountQueryHandler : IRequestHandler<GetUnreadCountQuery, R
         _currentUserService = currentUserService;
     }
 
-    public async Task<Result<int>> Handle(GetUnreadCountQuery request, CancellationToken cancellationToken)
+    public async ValueTask<Result<int>> Handle(GetUnreadCountQuery request, CancellationToken cancellationToken)
     {
         try
         {

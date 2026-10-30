@@ -2,7 +2,7 @@ using System.Text.Json;
 using CleanArchitecture.Application.Common.Behaviours;
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
-using MediatR;
+using Mediator;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
@@ -36,10 +36,10 @@ public class IdempotencyBehaviourTests
 
         var expectedResult = Result<Guid>.Success(Guid.NewGuid());
         var nextCalled = false;
-        RequestHandlerDelegate<Result<Guid>> next = (ct) =>
+        MessageHandlerDelegate<TestCommand, Result<Guid>> next = (msg, ct) =>
         {
             nextCalled = true;
-            return Task.FromResult(expectedResult);
+            return ValueTask.FromResult(expectedResult);
         };
 
         // Act
@@ -62,7 +62,7 @@ public class IdempotencyBehaviourTests
             .ReturnsAsync((IdempotencyResult?)null);
 
         var expectedResult = Result<Guid>.Success(Guid.NewGuid());
-        RequestHandlerDelegate<Result<Guid>> next = (ct) => Task.FromResult(expectedResult);
+        MessageHandlerDelegate<TestCommand, Result<Guid>> next = (msg, ct) => ValueTask.FromResult(expectedResult);
 
         // Act
         var result = await _behaviour.Handle(new TestCommand(), next, CancellationToken.None);
@@ -90,10 +90,10 @@ public class IdempotencyBehaviourTests
             .ReturnsAsync(new IdempotencyResult(serialized, DateTime.UtcNow.AddMinutes(-5)));
 
         var nextCalled = false;
-        RequestHandlerDelegate<Result<Guid>> next = (ct) =>
+        MessageHandlerDelegate<TestCommand, Result<Guid>> next = (msg, ct) =>
         {
             nextCalled = true;
-            return Task.FromResult(Result<Guid>.Failure("Should not be called"));
+            return ValueTask.FromResult(Result<Guid>.Failure("Should not be called"));
         };
 
         // Act

@@ -1,7 +1,7 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
 using Mapster;
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Application.Features.Products.Queries.GetProductsList;
@@ -18,7 +18,7 @@ public class GetProductsListQueryHandler : IRequestHandler<GetProductsListQuery,
         _context = context;
     }
 
-    public async Task<Result<PaginatedList<ProductDto>>> Handle(GetProductsListQuery request, CancellationToken cancellationToken)
+    public async ValueTask<Result<PaginatedList<ProductDto>>> Handle(GetProductsListQuery request, CancellationToken cancellationToken)
     {
         try
         {

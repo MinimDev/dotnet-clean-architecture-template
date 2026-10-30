@@ -1,7 +1,7 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
 using CleanArchitecture.Application.Features.AppSettings.DTOs;
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Application.Features.AppSettings.Queries.GetAppSettingByKey;
@@ -23,7 +23,7 @@ public class GetAppSettingByKeyQueryHandler : IRequestHandler<GetAppSettingByKey
         _context = context;
     }
 
-    public async Task<Result<AppSettingDto>> Handle(GetAppSettingByKeyQuery request, CancellationToken cancellationToken)
+    public async ValueTask<Result<AppSettingDto>> Handle(GetAppSettingByKeyQuery request, CancellationToken cancellationToken)
     {
         try
         {

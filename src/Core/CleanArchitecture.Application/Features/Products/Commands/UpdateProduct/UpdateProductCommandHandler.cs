@@ -1,13 +1,12 @@
-﻿using CleanArchitecture.Application.Common.Interfaces;
+using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
 using CleanArchitecture.Domain.Entities;
-using MediatR;
-
 using CleanArchitecture.Domain.Exceptions;
+using Mediator;
 
 namespace CleanArchitecture.Application.Features.Products.Commands.UpdateProduct;
 
-public class UpdateProductCommandHandler: IRequestHandler<UpdateProductCommandById, Result>
+public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommandById, Result>
 {
     private readonly IUnitOfWork _unitOfWork;
 
@@ -16,7 +15,7 @@ public class UpdateProductCommandHandler: IRequestHandler<UpdateProductCommandBy
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> Handle(UpdateProductCommandById request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(UpdateProductCommandById request, CancellationToken cancellationToken)
     {
         try
         {

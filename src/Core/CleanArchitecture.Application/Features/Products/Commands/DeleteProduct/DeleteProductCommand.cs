@@ -1,8 +1,7 @@
-﻿using CleanArchitecture.Application.Common.Models;
-using MediatR;
+using CleanArchitecture.Application.Common.Models;
+using Mediator;
 
 namespace CleanArchitecture.Application.Features.Products.Commands.DeleteProduct;
-
 
 /// <summary>
 ///     Command untuk menghapus product

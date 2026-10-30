@@ -3,7 +3,7 @@ using CleanArchitecture.Application.Common.Behaviours;
 using FluentValidation;
 using Mapster;
 using MapsterMapper;
-using MediatR;
+using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CleanArchitecture.Application;
@@ -15,14 +15,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        // Register MediatR
-        services.AddMediatR(cfg =>
-        {
-            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-        });
-
         // Register Pipeline Behaviors
-        // URUTAN PENTING: MediatR menjalankan behaviour dari atas ke bawah.
+        // URUTAN PENTING: Mediator menjalankan behaviour dari atas ke bawah.
         // 1. IdempotencyBehaviour — intercept paling awal, short-circuit jika duplicate request
         // 2. LoggingBehaviour — log setiap request yang lolos
         // 3. ValidationBehaviour — validasi input

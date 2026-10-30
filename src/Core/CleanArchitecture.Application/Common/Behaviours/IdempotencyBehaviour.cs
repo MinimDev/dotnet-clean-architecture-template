@@ -1,12 +1,12 @@
 using System.Text.Json;
 using CleanArchitecture.Application.Common.Interfaces;
-using MediatR;
+using Mediator;
 using Microsoft.Extensions.Logging;
 
 namespace CleanArchitecture.Application.Common.Behaviours;
 
 /// <summary>
-/// MediatR Pipeline Behaviour untuk mencegah pemrosesan request duplikat (idempotency).
+/// Mediator Pipeline Behaviour untuk mencegah pemrosesan request duplikat (idempotency).
 ///
 /// CARA KERJA:
 /// 1. Membaca <c>Idempotency-Key</c> melalui abstraksi <see cref="IIdempotencyKeyAccessor"/>.
@@ -24,7 +24,7 @@ namespace CleanArchitecture.Application.Common.Behaviours;
 /// </code>
 /// </summary>
 public class IdempotencyBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
+    where TRequest : notnull, IMessage
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -45,14 +45,14 @@ public class IdempotencyBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
         _logger = logger;
     }
 
-    public async Task<TResponse> Handle(
+    public async ValueTask<TResponse> Handle(
         TRequest request,
-        RequestHandlerDelegate<TResponse> next,
+        MessageHandlerDelegate<TRequest, TResponse> next,
         CancellationToken cancellationToken)
     {
         var idempotencyKey = _idempotencyKeyAccessor.GetIdempotencyKey();
         if (string.IsNullOrWhiteSpace(idempotencyKey))
-            return await next();
+            return await next(request, cancellationToken);
 
         _logger.LogDebug("[Idempotency] Memeriksa key: {Key} untuk request: {Request}",
             idempotencyKey, typeof(TRequest).Name);
@@ -72,7 +72,7 @@ public class IdempotencyBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
         }
 
         // Proses request secara normal
-        var response = await next();
+        var response = await next(request, cancellationToken);
 
         // Simpan response ke cache setelah berhasil diproses
         try

@@ -1,6 +1,6 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Application.Features.Notifications.Commands.MarkAsRead;
@@ -26,7 +26,7 @@ public class MarkNotificationAsReadCommandHandler : IRequestHandler<MarkNotifica
         _currentUserService = currentUserService;
     }
 
-    public async Task<Result> Handle(MarkNotificationAsReadCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(MarkNotificationAsReadCommand request, CancellationToken cancellationToken)
     {
         try
         {

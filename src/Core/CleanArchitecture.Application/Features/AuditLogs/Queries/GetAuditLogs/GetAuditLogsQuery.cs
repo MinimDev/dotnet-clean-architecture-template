@@ -1,5 +1,5 @@
 using CleanArchitecture.Application.Common.Models;
-using MediatR;
+using Mediator;
 
 namespace CleanArchitecture.Application.Features.AuditLogs.Queries.GetAuditLogs;
 

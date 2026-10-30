@@ -1,16 +1,16 @@
-using MediatR;
+using Mediator;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace CleanArchitecture.Application.Common.Behaviours;
 
 /// <summary>
-/// MediatR Pipeline Behavior untuk logging request/response dan performance monitoring
+/// Mediator Pipeline Behavior untuk logging request/response dan performance monitoring
 /// </summary>
 /// <typeparam name="TRequest">Request type</typeparam>
 /// <typeparam name="TResponse">Response type</typeparam>
 public class LoggingBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
+    where TRequest : notnull, IMessage
 {
     private readonly ILogger<LoggingBehaviour<TRequest, TResponse>> _logger;
 
@@ -19,7 +19,7 @@ public class LoggingBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest,
         _logger = logger;
     }
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async ValueTask<TResponse> Handle(TRequest request, MessageHandlerDelegate<TRequest, TResponse> next, CancellationToken cancellationToken)
     {
         var requestName = typeof(TRequest).Name;
         
@@ -29,7 +29,7 @@ public class LoggingBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest,
 
         try
         {
-            var response = await next();
+            var response = await next(request, cancellationToken);
             
             stopwatch.Stop();
             

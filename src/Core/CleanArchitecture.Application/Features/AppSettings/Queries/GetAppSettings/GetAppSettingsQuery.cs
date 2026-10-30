@@ -1,7 +1,7 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
 using CleanArchitecture.Application.Features.AppSettings.DTOs;
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Application.Features.AppSettings.Queries.GetAppSettings;
@@ -23,7 +23,7 @@ public class GetAppSettingsQueryHandler : IRequestHandler<GetAppSettingsQuery, R
         _context = context;
     }
 
-    public async Task<Result<List<AppSettingDto>>> Handle(GetAppSettingsQuery request, CancellationToken cancellationToken)
+    public async ValueTask<Result<List<AppSettingDto>>> Handle(GetAppSettingsQuery request, CancellationToken cancellationToken)
     {
         try
         {

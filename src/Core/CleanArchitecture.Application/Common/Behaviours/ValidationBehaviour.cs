@@ -1,16 +1,16 @@
 using FluentValidation;
-using MediatR;
+using Mediator;
 
 namespace CleanArchitecture.Application.Common.Behaviours;
 
 /// <summary>
-/// MediatR Pipeline Behavior untuk validasi menggunakan FluentValidation
+/// Mediator Pipeline Behavior untuk validasi menggunakan FluentValidation
 /// Akan otomatis validate request sebelum masuk ke handler
 /// </summary>
 /// <typeparam name="TRequest">Request type</typeparam>
 /// <typeparam name="TResponse">Response type</typeparam>
 public class ValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
+    where TRequest : notnull, IMessage
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
 
@@ -19,11 +19,11 @@ public class ValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TReque
         _validators = validators;
     }
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async ValueTask<TResponse> Handle(TRequest request, MessageHandlerDelegate<TRequest, TResponse> next, CancellationToken cancellationToken)
     {
         if (!_validators.Any())
         {
-            return await next();
+            return await next(request, cancellationToken);
         }
 
         var context = new ValidationContext<TRequest>(request);
@@ -41,6 +41,6 @@ public class ValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TReque
             throw new ValidationException(failures);
         }
 
-        return await next();
+        return await next(request, cancellationToken);
     }
 }

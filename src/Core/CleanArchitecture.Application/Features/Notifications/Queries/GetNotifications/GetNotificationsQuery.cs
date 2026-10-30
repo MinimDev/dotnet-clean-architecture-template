@@ -1,6 +1,6 @@
 using CleanArchitecture.Application.Common.Models;
 using CleanArchitecture.Application.Features.Notifications.DTOs;
-using MediatR;
+using Mediator;
 
 namespace CleanArchitecture.Application.Features.Notifications.Queries.GetNotifications;
 

@@ -1,7 +1,7 @@
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Application.Common.Models;
 using Mapster;
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanArchitecture.Application.Features.Products.Queries.GetProductById;
@@ -18,7 +18,7 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
         _context = context;
     }
 
-    public async Task<Result<ProductDetailDto>> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<Result<ProductDetailDto>> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
     {
         try
         {
