@@ -2,13 +2,13 @@
 
 > **The premier, production-ready ASP.NET Core solution template engineered with Clean Architecture principles, compile-time Source-Generated CQRS (100% Free MIT), Granular PBAC Security, Real-Time Notifications, Automated Audit Diffing, and an Enterprise MudBlazor UI.**
 
-[![.NET 10.0](https://img.shields.io/badge/.NET-10.0-512BD4.svg?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/download)
-[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg?style=for-the-badge)](LICENSE)
-[![CQRS: Source-Gen Mediator](https://img.shields.io/badge/CQRS-Mediator_(Source_Gen)-f97316.svg?style=for-the-badge)](https://github.com/martinothamar/Mediator)
-[![Frontend: MudBlazor](https://img.shields.io/badge/Frontend-MudBlazor-7e6fff.svg?style=for-the-badge&logo=blazor)](https://mudblazor.com/)
-[![ORM: EF Core 10](https://img.shields.io/badge/ORM-EF_Core_10-22c55e.svg?style=for-the-badge)](https://learn.microsoft.com/ef/core/)
-[![NuGet](https://img.shields.io/nuget/v/Minimdev.CleanArchitecture.Template.svg?style=for-the-badge&logo=nuget&color=004880)](https://www.nuget.org/packages/Minimdev.CleanArchitecture.Template)
-[![Tests: 100% Passing](https://img.shields.io/badge/Tests-39%2F39_Passing-brightgreen.svg?style=for-the-badge)](tests)
+[![.NET 10.0](https://img.shields.io/badge/.NET-10.0-512BD4.svg?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/download)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg?style=flat-square)](https://github.com/MinimDev/dotnet-clean-architecture-template/blob/main/LICENSE)
+[![CQRS: Source-Gen Mediator](https://img.shields.io/badge/CQRS-Mediator_(Source_Gen)-f97316.svg?style=flat-square)](https://github.com/martinothamar/Mediator)
+[![Frontend: MudBlazor](https://img.shields.io/badge/Frontend-MudBlazor-7e6fff.svg?style=flat-square&logo=blazor)](https://mudblazor.com/)
+[![ORM: EF Core 10](https://img.shields.io/badge/ORM-EF_Core_10-22c55e.svg?style=flat-square)](https://learn.microsoft.com/ef/core/)
+[![NuGet](https://img.shields.io/nuget/v/Minimdev.CleanArchitecture.Template.svg?style=flat-square&logo=nuget&color=004880)](https://www.nuget.org/packages/Minimdev.CleanArchitecture.Template)
+[![Tests: 100% Passing](https://img.shields.io/badge/Tests-39%2F39_Passing-brightgreen.svg?style=flat-square)](https://github.com/MinimDev/dotnet-clean-architecture-template/tree/main/tests)
 
 ---
 
@@ -87,32 +87,7 @@ This solution strictly adheres to **Clean Architecture (Onion / Hexagonal)** dep
                      └───────────────────────────────────────────────┘
 ```
 
-<details>
-<summary><b>📊 Click to view Mermaid Interactive Diagram</b></summary>
-
-```mermaid
-flowchart TD
-    WebUI["CleanArchitecture.WebUI<br/>(Blazor Server + MudBlazor)"] -->|"HTTP REST Client"| WebAPI["CleanArchitecture.WebAPI<br/>(Controllers, Scalar, OTel)"]
-
-    WebAPI --> Application["CleanArchitecture.Application<br/>(CQRS, Mediator, Pipelines)"]
-    WebAPI --> Persistence["CleanArchitecture.Infrastructure.Persistence<br/>(EF Core 10, Interceptors, UoW)"]
-    WebAPI --> Identity["CleanArchitecture.Infrastructure.Identity<br/>(ASP.NET Identity, PBAC, JWT)"]
-    WebAPI --> Shared["CleanArchitecture.Infrastructure.Shared<br/>(Settings, Notification, Hangfire)"]
-    WebAPI --> Messaging["CleanArchitecture.Infrastructure.Messaging<br/>(MassTransit Event Bus)"]
-
-    Persistence --> Application
-    Identity --> Application
-    Shared --> Application
-    Messaging --> Application
-
-    Persistence --> Domain["CleanArchitecture.Domain<br/>(Pure Entities, Events — 0 Packages)"]
-    Identity --> Domain
-    Shared --> Domain
-    Messaging --> Domain
-    Application --> Domain
-```
-
-</details>
+> 💡 **Tip:** You can also explore the interactive Mermaid diagram directly on [GitHub](https://github.com/MinimDev/dotnet-clean-architecture-template#high-level-system-architecture).
 
 ---
 
@@ -430,17 +405,15 @@ To pack and publish this template to NuGet:
 .\publish.ps1 -ApiKey "your-nuget-api-key"
 ```
 
-For complete release workflow steps and GitHub tag protection policies, see the **[Release Process Guide](docs/RELEASE_PROCESS.md)**.
+For complete release workflow steps and GitHub tag protection policies, see the **[Release Process Guide](https://github.com/MinimDev/dotnet-clean-architecture-template/blob/main/docs/RELEASE_PROCESS.md)**.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — you are free to use, modify, and distribute it for both open-source and commercial enterprise projects without royalty or restriction. See [LICENSE](LICENSE) for details.
+This project is licensed under the **MIT License** — you are free to use, modify, and distribute it for both open-source and commercial enterprise projects without royalty or restriction. See [LICENSE](https://github.com/MinimDev/dotnet-clean-architecture-template/blob/main/LICENSE) for details.
 
 ---
 
-<p align="center">
-  <b>Built with ❤️ by <a href="https://github.com/MinimDev">MinimDev</a></b><br/>
-  <i>Star ⭐ this repository if it helped accelerate your .NET development!</i>
-</p>
+**Built with ❤️ by [MinimDev](https://github.com/MinimDev)**  
+*Star ⭐ this repository if it helped accelerate your .NET development!*

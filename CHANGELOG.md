@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.1] - 2026-11-24
+
+### Changed
+- **NuGet & GitHub README Presentation Polish**:
+  - Replaced raw HTML footer with pure Markdown to ensure clean rendering on NuGet.org without unescaped tags.
+  - Replaced unsupported `<details>` and Mermaid diagrams with clean Markdown callout linking directly to interactive GitHub diagrams.
+  - Converted shields.io badges to compact `style=flat-square` (20px) and fixed relative links (`LICENSE`, `tests`, `docs`) to absolute GitHub URLs to avoid 404s on NuGet.org.
+- **Dependency & Package Updates**:
+  - Updated MudBlazor to `9.14.0`.
+  - Updated OpenTelemetry instrumentation & exporters to `1.21.0`.
+  - Updated Microsoft.Data.SqlClient to `7.1.2`.
+  - Updated FluentValidation & DI extensions to `12.2.0`.
+  - Updated Hangfire (Core, AspNetCore, SqlServer) to `1.8.25`.
+  - Updated Mapster & DI to `10.0.14`.
+  - Unified Microsoft Entity Framework Core & ASP.NET Core packages to `10.0.11`.
+  - Updated test runner SDK (`Microsoft.NET.Test.Sdk` to `18.12.0`, `coverlet.collector` to `10.1.1`, `Moq` to `4.21.0`).
+- **Security**:
+  - Patched `System.Security.Cryptography.Xml` to `10.0.15` to resolve security advisories (GHSA-r955-8q5j-3h83, GHSA-7hqp-7c5m-4vq6, GHSA-c399-9853-6jmj).
+  - Patched `Microsoft.AspNetCore.Http` to `2.3.14`.
+
 ## [1.9.0] - 2026-10-30
 
 ### Added

@@ -14,11 +14,11 @@
     <ContentTargetFolders>content</ContentTargetFolders>
     <NoDefaultExcludes>true</NoDefaultExcludes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/MinimDev/dotnet-clean-architecture-template</PackageProjectUrl>
+    <PackageProjectUrl>https://docs.minimdev.com</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.9.0</Version>
-    <PackageReleaseNotes>v1.9.0 GA: Performance &amp; Licensing Freedom milestone. Migrated the core CQRS engine from commercial/dual-licensed MediatR to high-performance, compile-time Source-Generated Mediator (100% Free MIT License). Features zero reflection overhead, ValueTask low-allocation pipeline, Native AOT compilation readiness for .NET 10, purified Domain layer with zero external package dependencies, and seamless preservation of all pipeline behaviors (Idempotency, Validation, Logging, Domain Event Publishing).</PackageReleaseNotes>
+    <Version>1.9.1</Version>
+    <PackageReleaseNotes>v1.9.1: Package dependency updates &amp; documentation polish. Updated MudBlazor (9.14.0), OpenTelemetry (1.21.0), Microsoft.Data.SqlClient (7.1.2), FluentValidation (12.2.0), Hangfire (1.8.25), Mapster (10.0.14), EF Core &amp; ASP.NET Core packages to 10.0.11, and patched System.Security.Cryptography.Xml (10.0.15). Modernized NuGet README formatting with pure Markdown, absolute repository links, and compact badges.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
